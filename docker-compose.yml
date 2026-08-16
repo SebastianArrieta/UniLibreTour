@@ -1,0 +1,38 @@
+# Entorno local: servidor Node.js + PostgreSQL
+# En producción la BD es Neon; este Postgres solo se usa en desarrollo.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: unilibretour-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: museo
+      POSTGRES_PASSWORD: museo
+      POSTGRES_DB: museo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: unilibretour-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://museo:museo@db:5432/museo_db
+    depends_on:
+      - db
+    volumes:
+      - ./backend/src:/app/backend/src
+      - ./frontend:/app/frontend
+
+volumes:
+  postgres-data:
