@@ -1,4 +1,4 @@
-# Entorno local: servidor Node.js + PostgreSQL
+# Entorno local: servidor Python + PostgreSQL
 # En producción la BD es Neon; este Postgres solo se usa en desarrollo.
 
 services:
@@ -25,13 +25,13 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: development
       PORT: 3000
       DATABASE_URL: postgresql://museo:museo@db:5432/museo_db
+      SESSION_SECRET: cambiar-por-un-secreto-seguro
     depends_on:
       - db
     volumes:
-      - ./backend/src:/app/backend/src
+      - ./backend:/app/backend
       - ./frontend:/app/frontend
 
 volumes:
