@@ -13,7 +13,7 @@ class UsuarioModel:
                     'nombre': r[1],
                     'email': r[2],
                     'rol': r[3],
-                    'created_at': r[4].isoformat() if r[4] else None
+                    'created_at': r[4].isoformat() if hasattr(r[4], 'isoformat') and r[4] else (str(r[4]) if r[4] else None)
                 }
                 for r in rows
             ]
@@ -32,29 +32,23 @@ class UsuarioModel:
                     'nombre': row[1],
                     'email': row[2],
                     'rol': row[3],
-                    'created_at': row[4].isoformat() if row[4] else None
+                    'created_at': row[4].isoformat() if hasattr(row[4], 'isoformat') and row[4] else (str(row[4]) if row[4] else None)
                 }
             return None
 
     @staticmethod
     def create(data):
         from services.auth import hash_password
-        password_hash = hash_password(data['password'])
+        password = data.get('password', '123456')
+        password_hash = hash_password(password)
         with get_cursor() as cur:
             cur.execute(
                 """INSERT INTO usuarios (nombre, email, password_hash, rol)
-                   VALUES (%s, %s, %s, %s)
-                   RETURNING id, nombre, email, rol, created_at""",
+                   VALUES (%s, %s, %s, %s)""",
                 (data['nombre'], data['email'], password_hash, data.get('rol', 'visitante'))
             )
-            row = cur.fetchone()
-            return {
-                'id': row[0],
-                'nombre': row[1],
-                'email': row[2],
-                'rol': row[3],
-                'created_at': row[4].isoformat() if row[4] else None
-            }
+            inserted_id = cur.lastrowid
+        return UsuarioModel.find_by_id(inserted_id)
 
     @staticmethod
     def update(usuario_id, data):
@@ -70,21 +64,13 @@ class UsuarioModel:
                 return None
 
             values.append(usuario_id)
-            query = f"UPDATE usuarios SET {', '.join(fields)} WHERE id = %s RETURNING id, nombre, email, rol, created_at"
+            query = f"UPDATE usuarios SET {', '.join(fields)} WHERE id = %s"
             cur.execute(query, values)
-            row = cur.fetchone()
-            if row:
-                return {
-                    'id': row[0],
-                    'nombre': row[1],
-                    'email': row[2],
-                    'rol': row[3],
-                    'created_at': row[4].isoformat() if row[4] else None
-                }
-            return None
+        return UsuarioModel.find_by_id(usuario_id)
 
     @staticmethod
     def delete(usuario_id):
         with get_cursor() as cur:
             cur.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
             return cur.rowcount > 0
+

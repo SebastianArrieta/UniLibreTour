@@ -7,12 +7,15 @@ class Router:
     def __init__(self):
         self.routes = []
 
+        self._add('GET', '/', usuarios.vista_inicio)
+        self._add('GET', '/usuarios', usuarios.vista_listar)
         self._add('GET', '/api/health', self._health)
         self._add('GET', '/api/usuarios', usuarios.listar)
         self._add('GET', r'/api/usuarios/(\d+)', usuarios.obtener)
         self._add('POST', '/api/usuarios', usuarios.crear)
         self._add('PUT', r'/api/usuarios/(\d+)', usuarios.actualizar)
         self._add('DELETE', r'/api/usuarios/(\d+)', usuarios.eliminar)
+
 
     def _add(self, method, path, handler):
         pattern = re.compile(r'^' + path + r'$')

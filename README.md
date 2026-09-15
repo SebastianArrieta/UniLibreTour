@@ -2,7 +2,7 @@
 
 Museo Digital Interactivo — proyecto de grado.
 
-Stack: HTML5 · CSS3 + Tailwind CLI · TypeScript · Web Components · Node.js (`http` nativo) · PostgreSQL (`pg`) · Docker.
+Stack: Python (`http.server`) · Arquitectura **MVC** · **MySQL 8.0** (`pymysql`) · **Jinja2** (Renderizado de Vistas) · JavaScript (ES6+) · Docker.
 
 ---
 
@@ -12,69 +12,48 @@ Stack: HTML5 · CSS3 + Tailwind CLI · TypeScript · Web Components · Node.js (
 UniLibreTour/
 ├── .env.example              # Variables de entorno de referencia
 ├── .gitignore
-├── docker-compose.yml        # Entorno local: servidor + PostgreSQL
+├── docker-compose.yml        # Entorno local: Servidor Python + MySQL
 ├── Dockerfile                # Imagen del servidor para despliegue
-├── package.json              # Scripts y dependencias del monorepo
-├── tsconfig.base.json        # Opciones TypeScript compartidas
 │
-├── frontend/                 # Capa de presentación (sin framework de UI)
-│   ├── tailwind.config.js    # Configuración Tailwind CLI
-│   ├── tsconfig.json
-│   ├── pages/                # Pantallas HTML (10+ páginas del museo)
-│   ├── components/           # Web Components (Custom Elements)
-│   ├── scripts/
-│   │   ├── pages/            # Lógica TypeScript por pantalla
-│   │   ├── utils/            # Utilidades compartidas del cliente
-│   │   └── types/            # Tipos TypeScript del frontend
-│   ├── styles/
-│   │   └── input.css         # Entrada Tailwind → compilada a public/css/
-│   ├── assets/
-│   │   ├── images/
-│   │   └── fonts/
+├── frontend/                 # Capa de presentación (Vistas Jinja2 y Cliente)
+│   ├── pages/                # Plantillas Jinja2 (.html) renderizadas por el backend
+│   ├── components/           # Componentes UI reutilizables
+│   ├── scripts/              # Lógica de JavaScript del cliente
+│   ├── styles/               # Hojas de estilo CSS
 │   └── public/               # Artefactos estáticos servidos al navegador
-│       ├── css/              # CSS compilado (Tailwind)
-│       └── js/               # JS compilado (TypeScript)
 │
-├── backend/                  # Servidor Node.js sin Express/Fastify
-│   ├── tsconfig.json
-│   └── src/
-│       ├── index.ts          # Punto de entrada del servidor HTTP
-│       ├── router/           # Enrutamiento manual (método + URL)
-│       ├── controllers/      # Manejo de peticiones y respuestas
-│       ├── models/           # Consultas SQL con driver pg (sin ORM)
-│       ├── middleware/       # Auth, sesiones, validación de roles
-│       ├── services/         # Lógica de negocio reutilizable
-│       ├── types/            # Tipos del dominio (Usuario, Proyecto, etc.)
-│       ├── utils/            # Helpers del servidor
-│       └── config/           # Conexión BD, variables de entorno
+├── backend/                  # Servidor Python en arquitectura MVC
+│   ├── main.py               # Punto de entrada HTTP (`http.server`)
+│   ├── router/               # Enrutador de peticiones (Web e API)
+│   ├── controllers/          # Controladores (Manejo de rutas y Jinja2)
+│   ├── models/               # Modelos (Consultas SQL a MySQL)
+│   ├── middleware/           # Auth, sesiones, validación de roles
+│   ├── services/             # Lógica de negocio reutilizable
+│   ├── utils/                # Utilidades (Renderizador Jinja2 `template.py`, respuestas HTTP)
+│   └── config/               # Conexión BD MySQL (`pymysql`) y variables
 │
-└── database/                 # Esquema y datos PostgreSQL
-    ├── init/                 # Scripts SQL al levantar Docker (desarrollo)
+└── database/                 # Esquema y datos MySQL
+    ├── init/                 # Scripts SQL ejecutados al levantar Docker
     ├── migrations/           # Cambios de esquema versionados
     └── seeds/                # Datos iniciales de prueba
 ```
 
 ---
 
-## Responsabilidad de cada capa
+## Responsabilidad de cada capa (MVC)
 
-| Carpeta | Tecnología | Rol |
+| Carpeta / Capa | Tecnología | Rol MVC |
 |---------|-----------|-----|
-| `frontend/pages` | HTML5 | Marcado semántico de cada pantalla |
-| `frontend/components` | Web Components | UI reutilizable (`<header-museo>`, modales, tarjetas) |
-| `frontend/styles` + `public/css` | Tailwind CLI | Estilos compilados a un único CSS |
-| `frontend/scripts` | TypeScript → JS | Lógica del cliente sin framework |
-| `backend/src/router` | Node.js `http` | Despacho manual de rutas |
-| `backend/src/models` | `pg` | SQL escrito a mano, sin ORM |
-| `backend/src/middleware` | bcrypt + cookies | Autenticación y control de roles |
-| `database/` | PostgreSQL | Esquema, migraciones y seeds |
-| Raíz (`Dockerfile`, `docker-compose.yml`) | Docker | Entorno reproducible local y empaquetado |
+| `frontend/pages` | **Jinja2 (HTML5)** | **Vista (V):** Plantillas dinámicas procesadas desde el servidor |
+| `frontend/scripts` | **JavaScript (ES6)** | **Cliente:** Lógica interactiva en el navegador |
+| `backend/controllers` | **Python** | **Controlador (C):** Maneja las peticiones y llama al renderizador Jinja2 o API JSON |
+| `backend/models` | **PyMySQL** | **Modelo (M):** Consultas directas a la base de datos MySQL sin ORM |
+| `database/` | **MySQL 8.0** | **Base de Datos:** Almacenamiento relacional |
+| `docker-compose.yml` | **Docker** | **Infraestructura:** Entorno reproducible con MySQL y Servidor Python |
 
 ---
 
 ## Entornos
 
-- **Desarrollo local:** `docker compose up` levanta servidor + Postgres.
-- **Producción:** imagen Docker en Render/Railway + base de datos en Neon.
+- **Desarrollo local:** `docker compose up --build` levanta el servidor Python y el contenedor de MySQL.
 
-Copia `.env.example` a `.env` y ajusta los valores antes de desarrollar.

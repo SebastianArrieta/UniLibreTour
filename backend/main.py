@@ -1,8 +1,10 @@
 import os
 import json
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
+from config.database import init_db
 from router.routes import Router
 from middleware.auth import AuthMiddleware
 from utils.response import send_json, send_error
@@ -70,6 +72,13 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 3000))
     host = os.getenv('HOST', '0.0.0.0')
 
+    # Intentar inicializar la tabla MySQL
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Warning: No se pudo conectar a la base de datos al inicio: {e}")
+
     server = HTTPServer((host, port), MuseoHandler)
     print(f"Servidor corriendo en http://{host}:{port}")
     server.serve_forever()
+

@@ -1,5 +1,21 @@
 from models.usuario import UsuarioModel
 from utils.response import send_json, send_error
+from utils.template import render_template
+
+
+def vista_listar(handler):
+    try:
+        lista_usuarios = UsuarioModel.find_all()
+    except Exception as e:
+        lista_usuarios = []
+    render_template(handler, 'usuarios.html', {'usuarios': lista_usuarios})
+
+
+def vista_inicio(handler):
+    render_template(handler, 'index.html', {
+        'titulo': 'UniLibreTour — Museo Digital',
+        'mensaje_bienvenida': 'Bienvenido al Museo Digital Interactivo UniLibreTour'
+    })
 
 
 def listar(handler):
@@ -47,3 +63,4 @@ def eliminar(handler):
         send_json(handler, 200, {'mensaje': 'Usuario eliminado'})
     else:
         send_error(handler, 404, 'Usuario no encontrado')
+
