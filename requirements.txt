@@ -1,0 +1,14 @@
+# Framekwork
+Flask==3.1.1
+#ORM trabaja con la BD
+Flask-SQLAlchemy==3.1.1
+#JWT
+Flask-JWT-Extended==4.7.1
+#Validación y serializacion de datos
+marshmallow==4.0.1
+#Driver de conexión
+PyMySQL==1.1.1
+#Servidor WSGI
+gunicorn==23.0.0
+#Utilidades de seguridad y pss
+Werkzeug==3.1.3
