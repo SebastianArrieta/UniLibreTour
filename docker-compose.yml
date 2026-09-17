@@ -1,9 +1,10 @@
-# Entorno local: servidor Python + MySQL
+# Entorno local: Flask + MySQL
 services:
   db:
     image: mysql:8.0
     container_name: unilibretour-db
     restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: museo_root
       MYSQL_DATABASE: museo_db
@@ -14,6 +15,11 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "museo", "-pmuseo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   server:
     build:
@@ -22,17 +28,18 @@ services:
     container_name: unilibretour-server
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "5000:5000"
     environment:
-      PORT: 3000
-      DATABASE_URL: mysql://museo:museo@db:3306/museo_db
-      SESSION_SECRET: cambiar-por-un-secreto-seguro
+      FLASK_ENV: development
+      PORT: 5000
+      DATABASE_URL: mysql+pymysql://museo:museo@db:3306/museo_db
+      SECRET_KEY: cambiar-por-un-secreto-seguro
+      JWT_SECRET_KEY: cambiar-por-un-secreto-seguro
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
+      - .:/app
 
 volumes:
   mysql-data:
-

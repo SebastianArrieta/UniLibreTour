@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <span class="badge">Arquitectura MVC + Flask + SQLAlchemy + MySQL</span>
+    <h2>{{ mensaje_bienvenida | default('Bienvenido al Museo Digital Interactivo') }}</h2>
+    <p class="hero-text">
+        Plataforma interactiva para la gestión y exploración de exposiciones del museo universitario.
+    </p>
+    <div class="hero-actions">
+        <a class="btn" href="{{ url_for('views.usuarios') }}">Ver Lista de Usuarios</a>
+    </div>
+</section>
+{% endblock %}
