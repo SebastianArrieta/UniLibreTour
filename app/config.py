@@ -4,7 +4,7 @@ import os
 def _database_uri() -> str:
     uri = os.getenv(
         "DATABASE_URL",
-        "mysql+pymysql://museo:museo@localhost:3306/museo_db",
+        "mysql+pymysql://unilibretour:unilibretour@localhost:3306/unilibretour_db",
     )
     if uri.startswith("mysql://"):
         uri = uri.replace("mysql://", "mysql+pymysql://", 1)

@@ -1,22 +1,51 @@
+/* ============================================================
+   UniLibreTour — Hoja de estilos principal
+   Organización:
+     1. Variables
+     2. Reset
+     3. Layout
+     4. Componentes
+     5. Páginas
+     6. Responsive
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. Variables
+   ------------------------------------------------------------ */
 :root {
     --bg-color: #0f172a;
     --card-bg: #1e293b;
     --accent: #38bdf8;
+    --accent-secondary: #818cf8;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --border: #334155;
+    --radius: 10px;
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ------------------------------------------------------------
+   2. Reset
+   ------------------------------------------------------------ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
     background-color: var(--bg-color);
     color: var(--text-main);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
 }
 
+/* ------------------------------------------------------------
+   3. Layout
+   ------------------------------------------------------------ */
 header {
     background-color: rgba(30, 41, 59, 0.8);
     backdrop-filter: blur(8px);
@@ -25,10 +54,12 @@ header {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 header h1 {
-    margin: 0;
     font-size: 1.5rem;
     color: var(--accent);
 }
@@ -50,36 +81,19 @@ main {
     max-width: 1100px;
     margin: 0 auto;
     width: 100%;
-    box-sizing: border-box;
 }
 
-.hero {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 2.5rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+footer {
     text-align: center;
-}
-
-.hero h2 {
-    font-size: 2.2rem;
-    margin-top: 0;
-    background: linear-gradient(90deg, #38bdf8, #818cf8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.hero-text {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
     color: var(--text-muted);
-    font-size: 1.1rem;
-    line-height: 1.6;
+    font-size: 0.875rem;
 }
 
-.hero-actions {
-    margin-top: 2rem;
-}
-
+/* ------------------------------------------------------------
+   4. Componentes
+   ------------------------------------------------------------ */
 .badge {
     display: inline-block;
     background-color: rgba(56, 189, 248, 0.1);
@@ -92,43 +106,42 @@ main {
     margin-bottom: 1rem;
 }
 
+.badge-role {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: rgba(56, 189, 248, 0.2);
+    color: var(--accent);
+}
+
 .btn {
+    display: inline-block;
     background: var(--accent);
     color: #0f172a;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
     text-decoration: none;
     font-weight: bold;
+    transition: opacity 0.2s;
 }
 
-.page-header h1 {
-    font-size: 1.8rem;
-    margin: 0;
-}
-
-.page-header p {
-    color: var(--text-muted);
-    margin-top: 0.4rem;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 2rem;
+.btn:hover {
+    opacity: 0.9;
 }
 
 .card {
     background-color: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
-    margin-top: 0;
+.card h2 {
     color: var(--accent);
     font-size: 1.25rem;
+    margin-top: 0;
 }
 
 form label {
@@ -143,14 +156,13 @@ form select {
     width: 100%;
     padding: 0.6rem;
     margin-top: 0.3rem;
-    background-color: #0f172a;
+    background-color: var(--bg-color);
     border: 1px solid var(--border);
     border-radius: 6px;
-    color: #fff;
-    box-sizing: border-box;
+    color: var(--text-main);
 }
 
-button {
+form button {
     margin-top: 1.2rem;
     width: 100%;
     padding: 0.75rem;
@@ -163,7 +175,7 @@ button {
     transition: opacity 0.2s;
 }
 
-button:hover {
+form button:hover {
     opacity: 0.9;
 }
 
@@ -187,31 +199,73 @@ th {
     text-transform: uppercase;
 }
 
-.badge-role {
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background-color: rgba(56, 189, 248, 0.2);
-    color: var(--accent);
-}
-
 .empty-state {
     text-align: center;
     color: var(--text-muted);
     padding: 2rem;
 }
 
-footer {
+/* ------------------------------------------------------------
+   5. Páginas
+   ------------------------------------------------------------ */
+.hero {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-color) 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     text-align: center;
-    padding: 1.5rem;
-    border-top: 1px solid var(--border);
-    color: var(--text-muted);
-    font-size: 0.875rem;
 }
 
+.hero h2 {
+    font-size: 2.2rem;
+    margin-top: 0;
+    background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-text {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    margin-top: 2rem;
+}
+
+.page-header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.page-header p {
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+}
+
+/* ------------------------------------------------------------
+   6. Responsive
+   ------------------------------------------------------------ */
 @media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
+    }
+
+    nav a {
+        margin-left: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    main {
+        padding: 2rem 1rem;
     }
 }
