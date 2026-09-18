@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Usuarios — UniLibreTour{% endblock %}
+{% block content %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, current_page) }}
+      <div class="min-w-0">
+        {% from 'components/macros.html' import section_header %}
+        {{ section_header('Gestión', 'Usuarios', users | length ~ ' usuarios registrados en la plataforma') }}
+
+        <div class="flex gap-3 mb-6 flex-wrap">
+          <input id="user-search" type="text" placeholder="Buscar por nombre o correo…"
+                 class="museum-input flex-1 px-4 py-2.5 rounded text-sm" style="min-width:192px">
+          <select id="user-role" class="museum-input px-3 py-2.5 rounded text-sm">
+            <option value="">Todos los roles</option>
+            {% for r in ['admin', 'docente', 'estudiante', 'egresado', 'visitante'] %}
+            <option value="{{ r }}" style="background:var(--card)">{{ r[0] | upper }}{{ r[1:] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="museum-card rounded overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="museum-table w-full text-sm">
+              <thead>
+                <tr style="border-bottom:1px solid rgba(211,47,47,0.15)">
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Registro</th>
+                  <th>Contribuciones</th>
+                  <th>Puntos</th>
+                  <th>Insignias</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                {% for u in users %}
+                {% set roleColors = {'admin': '#d32f2f', 'docente': '#3b82f6', 'estudiante': '#a855f7', 'visitante': 'var(--muted-foreground)', 'egresado': '#22c55e'} %}
+                {% set rc = roleColors.get(u.role, 'var(--muted-foreground)') %}
+                {% set sc = '#22c55e' if u.status == 'activo' else ('#f97316' if u.status == 'pendiente' else 'var(--muted-foreground)') %}
+                {% set sbg = 'rgba(34,197,94,0.1)' if u.status == 'activo' else ('rgba(249,115,22,0.1)' if u.status == 'pendiente' else 'rgba(255,255,255,0.04)') %}
+                <tr data-name="{{ u.name | lower }} {{ u.email | lower }}" data-role="{{ u.role }}" class="transition-colors hover:opacity-80">
+                  <td>
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                           style="background:rgba(211,47,47,0.1);color:#d32f2f">{{ u.name[0] }}</div>
+                      <div>
+                        <div style="color:var(--secondary-foreground)">{{ u.name }}</div>
+                        <div class="text-xs" style="color:var(--muted-foreground)">{{ u.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-xs px-2 py-0.5 rounded font-mono capitalize" style="background:{{ rc }}12;color:{{ rc }}">{{ u.role }}</span>
+                  </td>
+                  <td>
+                    <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:{{ sbg }};color:{{ sc }}">{{ u.status }}</span>
+                  </td>
+                  <td class="text-xs font-mono" style="color:var(--muted-foreground)">{{ u.joinDate }}</td>
+                  <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ u.contributions }}</td>
+                  <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ u.points if u.points is defined else '—' }}</td>
+                  <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ (u.badgeIds or []) | length }}</td>
+                  <td>
+                    <div class="flex gap-1.5">
+                      <button type="button" class="text-xs px-2.5 py-1 rounded btn-outline-primary" onclick="toastUsr('Edición de usuario simulada')">Editar</button>
+                      {% if u.status == 'pendiente' %}
+                      <button type="button" class="text-xs px-2.5 py-1 rounded" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.25)" onclick="toastUsr('Usuario aprobado')">Aprobar</button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div id="users-empty" class="hidden">
+            <div class="flex flex-col items-center justify-center py-20 text-center gap-3">
+              <span class="text-4xl opacity-30">👥</span>
+              <p style="color:var(--muted-foreground)">No hay usuarios que coincidan con la búsqueda.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  function toastUsr(msg) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:rgba(34,197,94,0.95);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2200);
+    setTimeout(function () { box.remove(); }, 2700);
+  }
+  window.toastUsr = toastUsr;
+
+  var search = document.getElementById('user-search');
+  var role = document.getElementById('user-role');
+  var rows = document.querySelectorAll('#users-tbody tr');
+  var empty = document.getElementById('users-empty');
+
+  function apply() {
+    var q = (search.value || '').toLowerCase().trim();
+    var r = role.value;
+    var visible = 0;
+    rows.forEach(function (tr) {
+      var ok = (!q || tr.getAttribute('data-name').indexOf(q) !== -1) && (!r || tr.getAttribute('data-role') === r);
+      tr.style.display = ok ? '' : 'none';
+      if (ok) visible += 1;
+    });
+    empty.classList.toggle('hidden', visible !== 0);
+  }
+  search.addEventListener('input', apply);
+  role.addEventListener('change', apply);
+})();
+</script>
+{% endblock %}

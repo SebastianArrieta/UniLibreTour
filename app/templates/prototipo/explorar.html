@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from 'components/macros.html' import content_card, section_header %}
+{% block title %}Explorar — UniLibreTour{% endblock %}
+{% block content %}
+{% set cat = request.args.get('cat', '') %}
+{% set nid = request.args.get('news', '') %}
+{% set labels = {'noticias': 'Noticias', 'historia': 'Historia', 'investigacion': 'Investigación', 'proyectos': 'Proyectos', 'eventos': 'Eventos', 'logros': 'Logros', 'docentes': 'Docentes', 'galeria': 'Galería Histórica', 'egresados': 'Egresados Destacados', 'premios': 'Premios'} %}
+{% set cats = [('', '📋', 'Todo', contentItems | length), ('noticias', '📰', 'Noticias', news | length), ('historia', '🏛️', 'Historia', 142), ('investigacion', '🔬', 'Investigación', 318), ('proyectos', '🎓', 'Proyectos', 527), ('eventos', '📅', 'Eventos', 203), ('logros', '🏆', 'Logros', 89), ('docentes', '👨‍🏫', 'Docentes', 74), ('galeria', '🖼️', 'Galería Histórica', 120), ('egresados', '🎓', 'Egresados Destacados', 6), ('premios', '🥇', 'Premios', 5)] %}
+{% if cat %}
+  {% set filtered = contentItems | selectattr('category', 'equalto', cat) | list %}
+{% else %}
+  {% set filtered = contentItems %}
+{% endif %}
+{% set visible = filtered | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
+{% set news_ns = namespace(item=none) %}
+{% if nid %}
+  {% for n in news %}{% if n.id == nid %}{% set news_ns.item = n %}{% endif %}{% endfor %}
+{% endif %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    {{ section_header('Colecciones', 'Descubrir Contenido', 'Navega por las colecciones temáticas del museo.') }}
+
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-8">
+        <nav class="relative flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+            {% for cid, icon, clabel, cnt in cats %}
+            {% set is_active = (cat == cid) or (not cat and cid == '') %}
+            <a href="{{ url_for('prototipo.explorar') }}{{ ('?cat=' ~ cid) if cid }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap lg:whitespace-normal text-left w-auto lg:w-full {{ 'sb-active' if is_active else 'hover:translate-x-1' }}" style="color:{{ '#ffffff' if is_active else 'var(--secondary-foreground)' }}">
+                <span class="sb-chip {{ 'sb-chip-on' if is_active }}">{{ icon }}</span>
+                <span class="flex-1 truncate">{{ clabel }}</span>
+                <span class="text-xs font-mono flex-shrink-0" style="color:{{ 'rgba(255,255,255,0.85)' if is_active else 'var(--muted-foreground)' }}">{{ cnt }}</span>
+            </a>
+            {% endfor %}
+        </nav>
+
+        <div>
+            {% if cat == 'noticias' and news_ns.item %}
+            <div class="fade-up-delayed">
+                <a href="{{ url_for('prototipo.explorar') }}?cat=noticias" class="inline-flex text-xs btn-outline-primary px-4 py-2 rounded mb-5">← Volver a las noticias</a>
+                <article class="museum-card rounded overflow-hidden">
+                    <div class="relative h-[280px] md:h-[380px]">
+                        <img src="{{ news_ns.item.image }}" alt="{{ news_ns.item.title }}" class="w-full h-full object-cover">
+                        <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)"></div>
+                        <div class="absolute flex items-center gap-3 flex-wrap" style="bottom:1rem;left:1.25rem;right:1.25rem">
+                            <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ news_ns.item.category }}</span>
+                            <span class="text-xs font-mono" style="color:rgba(255,255,255,0.75)">{{ news_ns.item.date | fmt_fecha }}</span>
+                        </div>
+                    </div>
+                    <div class="p-6 md:p-8 max-w-3xl">
+                        <h2 class="font-serif text-2xl md:text-3xl font-bold leading-snug mb-4" style="color:var(--foreground)">{{ news_ns.item.title }}</h2>
+                        <p class="text-sm md:text-base leading-relaxed whitespace-pre-line" style="color:var(--secondary-foreground)">{{ news_ns.item.excerpt }}</p>
+                    </div>
+                </article>
+            </div>
+            {% else %}
+            <div class="flex items-center gap-2 mb-5">
+                <h3 class="font-serif font-semibold text-lg" style="color:var(--foreground)">{{ labels.get(cat, 'Todo') }}</h3>
+                <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.08);color:#d32f2f">{{ (news | length) if cat == 'noticias' else (visible | length) }} resultado{{ '' if ((news | length) if cat == 'noticias' else (visible | length)) == 1 else 's' }}</span>
+            </div>
+
+            {% if cat == 'noticias' %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {% for n in news %}
+                <a href="{{ url_for('prototipo.explorar') }}?cat=noticias&news={{ n.id }}" class="museum-card rounded overflow-hidden text-left group fade-up-delayed flex flex-col">
+                    <div class="relative h-40 overflow-hidden">
+                        <img src="{{ n.image }}" alt="{{ n.title }}" class="w-full h-full object-cover opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105">
+                        <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ n.category }}</span>
+                    </div>
+                    <div class="p-4 flex flex-col flex-1">
+                        <div class="text-xs font-mono mb-1" style="color:var(--muted-foreground)">{{ n.date | fmt_fecha }}</div>
+                        <h4 class="font-serif font-semibold text-sm leading-snug mb-2 group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ n.title }}</h4>
+                        <p class="text-xs leading-relaxed line-clamp-3 mt-auto" style="color:var(--muted-foreground)">{{ n.excerpt }}</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% elif visible | length > 0 %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {% for item in visible %}
+                <div class="fade-up-delayed h-full">{{ content_card(item) }}</div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="museum-card rounded py-16 px-6 flex flex-col items-center justify-center text-center gap-3">
+                <span class="empty-float text-5xl">📂</span>
+                <p class="text-sm" style="color:var(--muted-foreground)">No hay contenido en esta categoría aún.</p>
+                <a href="{{ url_for('prototipo.explorar') }}" class="inline-flex text-xs btn-outline-primary px-4 py-2 rounded mt-1">Ver todas las colecciones</a>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

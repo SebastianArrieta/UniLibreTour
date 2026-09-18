@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Verificación en 2 pasos — UniLibreTour{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+                 style="background:rgba(211,47,47,0.1);border:2px solid rgba(211,47,47,0.3)">🔐</div>
+            <h1 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">Verificación en 2 pasos</h1>
+            <p class="text-sm" style="color:var(--muted-foreground)">
+                Ingresa el código de 6 dígitos enviado a tu correo institucional<br>
+                <span id="2fa-mask" style="color:#d32f2f">u*****@unilibre.edu.co</span>
+            </p>
+        </div>
+
+        <div class="museum-card rounded-lg p-7">
+            <form id="otp-form" class="flex flex-col gap-5" novalidate>
+                <div class="flex justify-center gap-2">
+                    {% for i in range(6) %}
+                    <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1"
+                           data-otp="{{ loop.index0 }}"
+                           class="otp-input museum-input w-11 h-14 text-center text-xl font-mono font-bold rounded focus:outline-none"
+                           style="font-size:22px">
+                    {% endfor %}
+                </div>
+
+                <div id="otp-error" class="text-xs px-3 py-2 rounded text-center"
+                     style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+
+                <button type="submit" class="btn-primary w-full py-3 rounded font-semibold">Verificar Identidad</button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <button id="otp-resend" type="button" class="text-xs hover:underline"
+                        style="color:var(--muted-foreground)">¿No recibiste el código? Reenviar</button>
+            </div>
+            <div id="otp-resent-msg" class="text-xs text-center mt-2" style="display:none;color:#22c55e">✓ Código reenviado a tu correo</div>
+
+            <div class="mt-3 text-center">
+                <div class="text-xs px-3 py-1.5 rounded" style="background:rgba(211,47,47,0.06);color:#d32f2f;border:1px solid rgba(211,47,47,0.15)">
+                    Demo: usa el código <span class="font-mono font-bold">123456</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('prototipo.login') }}" class="text-sm" style="color:var(--muted-foreground)">← Volver al inicio de sesión</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+</script>
+<script>
+(function () {
+    var pendingRole = 'estudiante';
+    var pendingEmail = 'estudiante@unilibre.edu.co';
+    try {
+        pendingRole = localStorage.getItem('museo-pending-role') || 'estudiante';
+        pendingEmail = localStorage.getItem('museo-pending-email') || 'estudiante@unilibre.edu.co';
+    } catch (err) {}
+    var maskEl = document.getElementById('2fa-mask');
+    if (maskEl) {
+        var at = pendingEmail.indexOf('@');
+        maskEl.textContent = at > 0 ? pendingEmail.charAt(0) + '*****' + pendingEmail.slice(at) : 'u*****@unilibre.edu.co';
+    }
+
+    var inputs = Array.prototype.slice.call(document.querySelectorAll('.otp-input'));
+    var errorEl = document.getElementById('otp-error');
+    var form = document.getElementById('otp-form');
+
+    function code() {
+        return inputs.map(function (i) { return i.value; }).join('');
+    }
+
+    function showError(msg) {
+        if (!errorEl) return;
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+    }
+
+    function verify() {
+        if (code() === '123456') {
+            if (window.Museo) Museo.login(pendingRole);
+            return true;
+        }
+        showError('Código incorrecto. Usa 123456 para la demo.');
+        return false;
+    }
+
+    inputs.forEach(function (inp, i) {
+        inp.addEventListener('input', function () {
+            var v = inp.value.replace(/[^\d]/g, '').slice(-1);
+            inp.value = v;
+            if (errorEl) errorEl.style.display = 'none';
+            if (v) {
+                if (i < 5) inputs[i + 1].focus();
+                else inp.blur();
+            }
+            if (code().length === 6) verify();
+        });
+        inp.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && !inp.value && i > 0) {
+                inputs[i - 1].value = '';
+                inputs[i - 1].focus();
+            }
+        });
+        inp.addEventListener('paste', function (e) {
+            e.preventDefault();
+            var txt = ((e.clipboardData || {}).getData ? e.clipboardData.getData('text') : '') || '';
+            txt = txt.replace(/[^\d]/g, '').slice(0, 6);
+            txt.split('').forEach(function (ch, j) { if (inputs[j]) inputs[j].value = ch; });
+            var next = Math.min(txt.length, 5);
+            (inputs[next] || inputs[5]).focus();
+        });
+    });
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            verify();
+        });
+    }
+
+    var btn = document.getElementById('otp-resend');
+    var msg = document.getElementById('otp-resent-msg');
+    var ORIG = '¿No recibiste el código? Reenviar';
+    var wait = 30;
+    var timer = null;
+    function startTimer() {
+        wait = 30;
+        btn.disabled = true;
+        btn.textContent = 'Reenviar en ' + wait + 's';
+        timer = setInterval(function () {
+            wait--;
+            btn.textContent = 'Reenviar en ' + wait + 's';
+            if (wait <= 0) {
+                clearInterval(timer);
+                btn.disabled = false;
+                btn.textContent = ORIG;
+            }
+        }, 1000);
+    }
+    if (btn) {
+        btn.addEventListener('click', function () {
+            if (msg) {
+                msg.style.display = 'block';
+                setTimeout(function () { msg.style.display = 'none'; }, 4000);
+            }
+            startTimer();
+        });
+        startTimer();
+    }
+})();
+</script>
+{% endblock %}

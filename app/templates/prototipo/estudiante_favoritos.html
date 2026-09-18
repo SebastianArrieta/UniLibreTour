@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Favoritos — UniLibreTour{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% from 'components/macros.html' import empty_state %}
+{% set sb_links = [
+  {'page':'est-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.estudiante')},
+  {'page':'est-aportes','label':'Mis Aportes','icon':'🗂️','href': url_for('prototipo.estudiante_aportes')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'est-favoritos','label':'Favoritos','icon':'♡','href': url_for('prototipo.estudiante_favoritos')},
+  {'page':'est-contribuir','label':'Contribuir','icon':'↑','href': url_for('prototipo.estudiante_contribuir')},
+] %}
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+</style>
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, current_page) }}
+    <div class="min-w-0">
+      <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div class="mb-4 md:mb-0">
+          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Mi colección</div>
+          <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Favoritos</h2>
+          <p class="mt-2 text-base" style="color:var(--muted-foreground)"><span id="fav-subtitle">0 piezas guardadas</span></p>
+        </div>
+        <button type="button" id="btn-limpiar-favs" class="btn-outline-primary px-5 py-2 rounded text-sm">Limpiar favoritos</button>
+      </div>
+
+      <div id="fav-empty" class="flex flex-col items-center justify-center py-20 gap-3 text-center">
+        <span class="text-5xl opacity-20">♡</span>
+        <p style="color:var(--muted-foreground)">Aún no tienes favoritos. Explora el archivo y guarda piezas.</p>
+        <a href="{{ url_for('prototipo.explorar') }}" class="btn-outline-primary px-5 py-2 rounded text-sm">Explorar Archivo</a>
+      </div>
+
+      <div id="fav-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+</script>
+<script>
+(function () {
+  var D = window.__DATOS || {};
+  var grid = document.getElementById('fav-grid');
+  var empty = document.getElementById('fav-empty');
+  var subtitle = document.getElementById('fav-subtitle');
+
+  function render() {
+    var favs = Museo.getFavs();
+    var items = (D.contentItems || []).filter(function (it) {
+      return favs.indexOf(String(it.id)) !== -1;
+    });
+    if (subtitle) subtitle.textContent = items.length + ' piezas guardadas';
+    if (!items.length) {
+      if (grid) grid.innerHTML = '';
+      if (empty) empty.style.display = '';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    grid.innerHTML = items.map(function (it) {
+      return '<div class="relative">' + UI.contentCard(it, { showStatus: false }) +
+        '<button type="button" data-remove-fav="' + String(it.id) + '" class="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-sm" ' +
+        'style="background:rgba(0,0,0,0.7);color:#d32f2f;border:1px solid rgba(211,47,47,0.4)" title="Quitar de favoritos">★</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(grid.querySelectorAll('[data-remove-fav]'), function (btn) {
+      btn.addEventListener('click', function () {
+        Museo.toggleFav(btn.getAttribute('data-remove-fav'));
+        render();
+      });
+    });
+  }
+
+  var clearBtn = document.getElementById('btn-limpiar-favs');
+  if (clearBtn) clearBtn.addEventListener('click', function () {
+    Museo.setFavs([]);
+    render();
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

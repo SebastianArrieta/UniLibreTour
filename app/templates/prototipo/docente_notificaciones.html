@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Notificaciones — UniLibreTour{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% set sb_links = [
+  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.docente')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'✎','href': url_for('prototipo.docente_evidencia')},
+] %}
+{% set notifs = [
+  {'id':1, 'type':'aprobado', 'title':'Contribución aprobada y publicada', 'body':'"Sistema de Predicción de Deserción Estudiantil" fue aprobada por el administrador y está disponible en el archivo.', 'time':'28 Jun 2024, 10:45', 'color':'#22c55e', 'icon':'✓', 'read':false},
+  {'id':2, 'type':'pendiente', 'title':'Evidencia en revisión', 'body':'"Blockchain para Trazabilidad de Cadena de Suministro en PyMEs" está siendo revisada por el equipo administrativo.', 'time':'25 Jun 2024, 15:30', 'color':'#f97316', 'icon':'⏳', 'read':false},
+  {'id':3, 'type':'sistema', 'title':'Convocatoria de investigación abierta', 'body':'La Vicerrectoría de Investigaciones anuncia la convocatoria interna 2025-1. Fecha límite: 31 julio.', 'time':'22 Jun 2024, 9:00', 'color':'#3b82f6', 'icon':'ℹ', 'read':false},
+  {'id':4, 'type':'devuelto', 'title':'Evidencia devuelta para corrección', 'body':'"Análisis de Vulnerabilidades en Aplicaciones Web Universitarias" fue devuelta. Ver nota del revisor.', 'time':'20 Jun 2024, 14:15', 'color':'#ef4444', 'icon':'↩', 'read':true},
+] %}
+{% set unread_count = notifs | rejectattr('read') | list | length %}
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.notif-card { animation: fadeInUp 0.4s ease-out both; }
+</style>
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, current_page) }}
+    <div class="min-w-0">
+      <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Actualizaciones</div>
+          <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Notificaciones</h2>
+          <p class="mt-2 text-base" style="color:var(--muted-foreground)">Historial de actividad sobre tus contribuciones.</p>
+        </div>
+        <button type="button" id="btn-marcar-todas" class="btn-outline-primary px-4 py-2 rounded text-sm">Marcar todas leídas</button>
+      </div>
+
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(211,47,47,0.12);color:#d32f2f"><span id="unread-count">{{ unread_count }}</span> sin leer</span>
+      </div>
+
+      <div class="flex flex-col gap-4 mb-8" id="notif-list">
+        {% for n in notifs %}
+        <div class="museum-card rounded p-5 flex gap-4 transition-all duration-300"
+             data-nid="{{ n.id }}" data-read="{{ 'true' if n.read else 'false' }}"
+             style="border-left:4px solid {{ n.color }};animation-delay:{{ loop.index0 * 0.08 }}s">
+          <div class="w-11 h-11 rounded-full flex items-center justify-center text-base flex-shrink-0" style="background:{{ n.color }}12;color:{{ n.color }};border:1.5px solid {{ n.color }}30">{{ n.icon }}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full flex-shrink-0 unread-dot" style="background:#d32f2f"></span>
+                <h4 class="font-semibold text-sm" style="color:var(--card-foreground)">{{ n.title }}</h4>
+              </div>
+              <span class="text-xs font-mono flex-shrink-0" style="color:var(--muted-foreground)">{{ n.time }}</span>
+            </div>
+            <p class="text-sm mt-1" style="color:var(--muted-foreground)">{{ n.body }}</p>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              {% if n.type == 'devuelto' %}
+              <button type="button" class="text-xs btn-outline-primary px-3 py-1 rounded">Ver nota del revisor</button>
+              {% endif %}
+              <button type="button" class="text-xs px-3 py-1 rounded notif-toggle" style="color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)">Marcar como leída</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="museum-card rounded p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Preferencias de Notificación</h3>
+        </div>
+        <div class="flex flex-col gap-3" id="pref-box"></div>
+        <button type="button" id="btn-guardar-prefs" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold mt-4">Guardar preferencias</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var PREFERENCES = [
+    { name: 'aprobaciones', label: 'Aprobaciones y publicaciones de mi contenido', checked: true },
+    { name: 'devoluciones', label: 'Devoluciones y correcciones solicitadas', checked: true },
+    { name: 'convocatorias', label: 'Convocatorias y eventos institucionales', checked: false },
+    { name: 'resumen', label: 'Resumen semanal de actividad del museo', checked: false },
+  ];
+
+  function toast(msg, type) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2400);
+    setTimeout(function () { box.remove(); }, 2900);
+  }
+
+  function paintCard(card) {
+    var read = card.getAttribute('data-read') === 'true';
+    card.style.opacity = read ? '0.55' : '1';
+    var dot = card.querySelector('.unread-dot');
+    if (dot) dot.style.background = read ? 'rgba(255,255,255,0.12)' : '#d32f2f';
+    var btn = card.querySelector('.notif-toggle');
+    if (btn) btn.textContent = read ? 'Marcar como no leída' : 'Marcar como leída';
+  }
+
+  function updateUnread() {
+    var total = 0;
+    document.querySelectorAll('#notif-list [data-nid]').forEach(function (c) {
+      if (c.getAttribute('data-read') !== 'true') total += 1;
+    });
+    var el = document.getElementById('unread-count');
+    if (el) el.textContent = total;
+  }
+
+  document.querySelectorAll('#notif-list [data-nid]').forEach(function (card) {
+    card.style.animationName = 'fadeInUp';
+    paintCard(card);
+    var toggle = card.querySelector('.notif-toggle');
+    if (toggle) toggle.addEventListener('click', function () {
+      card.setAttribute('data-read', card.getAttribute('data-read') === 'true' ? 'false' : 'true');
+      paintCard(card);
+      updateUnread();
+    });
+  });
+
+  document.getElementById('btn-marcar-todas').addEventListener('click', function () {
+    document.querySelectorAll('#notif-list [data-nid]').forEach(function (c) {
+      c.setAttribute('data-read', 'true');
+      paintCard(c);
+    });
+    updateUnread();
+    toast('Todas las notificaciones marcadas como leídas');
+  });
+
+  document.querySelectorAll('#notif-list .btn-outline-primary').forEach(function (b) {
+    b.addEventListener('click', function () { toast('Nota del revisor: revisa la pieza devuelta en "Mis Aportes".'); });
+  });
+
+  var prefBox = document.getElementById('pref-box');
+  prefBox.innerHTML = PREFERENCES.map(function (p) {
+    return UI.checkboxHtml({ checked: p.checked, name: p.name, label: p.label, value: p.name });
+  }).join('');
+
+  prefBox.querySelectorAll('[data-checkbox]').forEach(function (box) {
+    box.addEventListener('click', function () {
+      var on = box.getAttribute('aria-checked') === 'true';
+      box.setAttribute('aria-checked', on ? 'false' : 'true');
+      box.style.background = on ? 'rgba(255,255,255,0.04)' : 'var(--primary)';
+      box.style.border = on ? '1px solid rgba(255,255,255,0.15)' : '1px solid var(--primary)';
+      var check = box.querySelector('span');
+      var label = box.parentNode.querySelector('span:last-child');
+      if (on) {
+        if (check) check.remove();
+      } else {
+        box.insertAdjacentHTML('beforeend', '<span class="text-xs text-black font-bold">✓</span>');
+      }
+    });
+  });
+
+  document.getElementById('btn-guardar-prefs').addEventListener('click', function () {
+    toast('Preferencias de notificación guardadas');
+  });
+})();
+</script>
+{% endblock %}

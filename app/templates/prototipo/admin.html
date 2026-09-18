@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Admin — UniLibreTour{% endblock %}
+{% block extra_head %}
+<style>
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    @media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+</style>
+{% endblock %}
+{% block content %}
+  {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, current_page) }}
+      <div class="min-w-0">
+        <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+          <div>
+            <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Administración</div>
+            <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Dashboard</h1>
+            <p class="text-sm mt-1" style="color:var(--muted-foreground)">Panel de control de Herencia Digital</p>
+          </div>
+          <a href="{{ url_for('prototipo.admin_cola') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold flex items-center gap-2">
+            Cola de Contenido
+            <span class="text-white text-xs px-1.5 py-0.5 rounded-full font-mono" style="background:#ef4444">{{ pendientes | length }}</span>
+          </a>
+        </div>
+
+        <div class="museum-card rounded p-5 mb-8">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">➕ Añadir Información</h3>
+            <span class="text-xs" style="color:var(--muted-foreground)">Se publica de inmediato en el museo</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {% set accesos = [
+              {'id': 'tab-timeline', 'icon': '📅', 'label': 'Línea de Tiempo'},
+              {'id': 'tab-premio', 'icon': '🏆', 'label': 'Premios y Reconocimientos'},
+              {'id': 'tab-proyecto', 'icon': '🎓', 'label': 'Proyectos Destacados'},
+              {'id': 'tab-hall', 'icon': '⭐', 'label': 'Hall de la Fama'},
+              {'id': 'tab-evento', 'icon': '🗓️', 'label': 'Eventos del Calendario'},
+              {'id': 'tab-noticias', 'icon': '📰', 'label': 'Noticias'},
+            ] %}
+            {% for a in accesos %}
+            <a href="{{ url_for('prototipo.admin_anadir', _anchor='tab-' ~ a.id | replace('tab-','')) }}"
+               class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
+               style="background:rgba(211,47,47,0.06);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)">
+              <span>{{ a.icon }}</span>{{ a.label }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="kpi-grid mb-8">
+          {% from 'components/macros.html' import stat_card %}
+          {{ stat_card('Total Piezas', '{:,}'.format(kpiData.totalContent).replace(',', '.')) }}
+          {{ stat_card('Publicadas', '{:,}'.format(kpiData.published).replace(',', '.'), color='#22c55e') }}
+          {{ stat_card('Pendientes', '{:,}'.format(kpiData.pending).replace(',', '.'), color='#f97316') }}
+          {{ stat_card('Visitas Totales', '{:,}'.format(kpiData.visitors).replace(',', '.'), color='#3b82f6') }}
+          {{ stat_card('Nuevas (mes)', '{:,}'.format(kpiData.newThisMonth).replace(',', '.'), color='#a855f7') }}
+          {{ stat_card('Usuarios', '{:,}'.format(kpiData.activeUsers).replace(',', '.'), sub='activos') }}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="museum-card rounded p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Visitas Mensuales 2024</h3>
+              <span class="text-xs font-mono" style="color:#22c55e">+18% vs período anterior</span>
+            </div>
+            <div class="flex items-end gap-2 h-32 pt-2">
+              {% set _m = kpiData.monthlyVisits | map(attribute='visits') | max %}
+              {% for d in kpiData.monthlyVisits %}
+              <div class="flex-1 flex flex-col items-center gap-1">
+                <div class="w-full rounded-t transition-all duration-500"
+                     style="height:{{ ((d.visits / _m) * 100) | round(1) }}%;min-height:4px;background:linear-gradient(to top, rgba(211,47,47,0.6), rgba(211,47,47,0.9))"></div>
+                <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ d.month }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="flex justify-between mt-2 text-xs font-mono" style="color:var(--muted-foreground)">
+              <span>Ene</span><span>Jul</span>
+            </div>
+          </div>
+
+          <div class="museum-card rounded p-5">
+            <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Contenido por Categoría</h3>
+            {% set cats = [
+              {'label': 'Proyectos de Grado', 'count': 527, 'pct': 39},
+              {'label': 'Investigación', 'count': 318, 'pct': 23},
+              {'label': 'Eventos', 'count': 203, 'pct': 15},
+              {'label': 'Historia', 'count': 142, 'pct': 10},
+              {'label': 'Logros', 'count': 89, 'pct': 7},
+              {'label': 'Docentes', 'count': 74, 'pct': 6},
+            ] %}
+            <div class="flex flex-col gap-3">
+              {% for c in cats %}
+              <div>
+                <div class="flex justify-between text-xs mb-1" style="color:var(--muted-foreground)">
+                  <span>{{ c.label }}</span>
+                  <span class="font-mono">{{ c.count }}</span>
+                </div>
+                <div class="h-1.5 rounded-full" style="background:rgba(255,255,255,0.06)">
+                  <div class="h-full rounded-full transition-all duration-700"
+                       style="width:{{ c.pct }}%;background:linear-gradient(to right, #d32f2f, #ff4d4d)"></div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="museum-card rounded p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Cola de Validación</h3>
+              <a href="{{ url_for('prototipo.admin_cola') }}" class="text-xs" style="color:#d32f2f">Ver todo</a>
+            </div>
+            {% for item in pendientes %}
+            <div class="flex items-center gap-3 mb-3">
+              <img src="{{ item.image }}" alt="{{ item.title }}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+              <div class="flex-1 min-w-0">
+                <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
+                <div class="text-xs" style="color:var(--muted-foreground)">{{ item.submittedBy }}</div>
+              </div>
+              <a href="{{ url_for('prototipo.admin_validacion', iid=item.id) }}" class="text-xs btn-outline-primary px-2 py-1 rounded flex-shrink-0">Revisar</a>
+            </div>
+            {% endfor %}
+            {% if not pendientes %}
+            <div class="text-sm text-center py-6" style="color:var(--muted-foreground)">No hay piezas pendientes por validar</div>
+            {% endif %}
+          </div>
+
+          <div class="museum-card rounded p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Usuarios Recientes</h3>
+              <a href="{{ url_for('prototipo.admin_usuarios') }}" class="text-xs" style="color:#d32f2f">Ver todos</a>
+            </div>
+            {% for u in users[:4] %}
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                   style="background:rgba(211,47,47,0.12);color:#d32f2f">{{ u.name[0] }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm" style="color:var(--secondary-foreground)">{{ u.name }}</div>
+                <div class="text-xs capitalize" style="color:var(--muted-foreground)">{{ u.role }}</div>
+              </div>
+              {% set _c = '#22c55e' if u.status == 'activo' else ('#f97316' if u.status == 'pendiente' else 'var(--muted-foreground)') %}
+              {% set _b = 'rgba(34,197,94,0.1)' if u.status == 'activo' else ('rgba(249,115,22,0.1)' if u.status == 'pendiente' else 'rgba(255,255,255,0.04)') %}
+              <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:{{ _b }};color:{{ _c }}">{{ u.status }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}{% endblock %}

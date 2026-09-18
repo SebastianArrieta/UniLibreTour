@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Confirmación de Publicación — UniLibreTour{% endblock %}
+{% block extra_head %}
+<style>
+    .ping-ring {
+        position: absolute;
+        inset: -0.5rem;
+        border-radius: 9999px;
+        border: 2px solid #22c55e;
+        opacity: 0.3;
+        animation: pingc 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes pingc {
+        0% { transform: scale(1); opacity: 0.3; }
+        75%, 100% { transform: scale(1.35); opacity: 0; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+  {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
+  {% set sb_active = 'admin-cola' %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, sb_active) }}
+      <div class="min-w-0 flex items-center justify-center min-h-[60vh]">
+        <div class="text-center max-w-md">
+          <div class="relative w-24 h-24 mx-auto mb-6">
+            <div class="w-24 h-24 rounded-full flex items-center justify-center"
+                 style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.4)">
+              <span class="text-4xl">✓</span>
+            </div>
+            <div class="ping-ring"></div>
+          </div>
+
+          <h1 class="font-serif text-3xl font-bold mb-2" style="color:var(--foreground)">¡Contenido Publicado!</h1>
+          <p class="text-sm mb-6" style="color:var(--muted-foreground)">
+            La pieza ha sido aprobada y ahora está disponible públicamente en el archivo del museo.
+          </p>
+
+          <div class="museum-card rounded p-5 text-left mb-6">
+            <div class="flex items-center gap-3 mb-3">
+              <img src="{{ item.image }}" alt="{{ item.title }}" class="w-12 h-12 rounded object-cover">
+              <div class="min-w-0">
+                <div class="font-serif font-semibold text-sm truncate" style="color:var(--card-foreground)">{{ item.title }}</div>
+                <div class="text-xs" style="color:var(--muted-foreground)">Por: {{ item.submittedBy or item.author }}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono"
+                    style="color:#22c55e;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25)">
+                <span class="w-1.5 h-1.5 rounded-full" style="background:#22c55e"></span>
+                Publicado en el Archivo
+              </span>
+              <span class="text-xs font-mono" style="color:var(--muted-foreground)">
+                <span data-today></span>
+              </span>
+            </div>
+          </div>
+
+          <div class="text-xs px-4 py-3 rounded mb-6" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.15)">
+            ℹ Se ha enviado una notificación automática al autor y a los usuarios suscritos a esta categoría.
+          </div>
+
+          <form id="detalles-form" class="museum-card rounded p-5 text-left mb-6">
+            <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Detalles de publicación</div>
+            <label class="block">
+              <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Tipo</span>
+              <select id="pub-type" class="museum-input px-3 py-2.5 rounded text-sm">
+                <option value="contenido">Contenido ordinario</option>
+                <option value="institucional" {{ 'selected' if item.status == 'institucional' }}>Pieza institucional</option>
+              </select>
+            </label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Fecha de publicación</span>
+                <input type="date" id="pub-date" class="museum-input px-3 py-2.5 rounded text-sm">
+              </label>
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Autor</span>
+                <input type="text" value="{{ item.submittedBy or item.author }}" class="museum-input px-3 py-2.5 rounded text-sm" disabled>
+              </label>
+            </div>
+            <label class="block mt-4">
+              <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Mensaje institucional previo</span>
+              <textarea id="pub-msg" rows="3" class="museum-input w-full px-3 py-2.5 rounded text-sm resize-none"
+                        placeholder="Se enviará como aviso anexo a la publicación: felicita al autor y resume el aporte de la pieza al archivo…"></textarea>
+            </label>
+            <div class="flex justify-end pt-4">
+              <button type="submit" class="btn-primary btn-float px-6 py-2.5 rounded text-sm font-semibold">Confirmar Publicación</button>
+            </div>
+          </form>
+
+          <div class="flex gap-3 justify-center">
+            <a href="{{ url_for('prototipo.admin_cola') }}" class="btn-outline-primary px-5 py-2.5 rounded text-sm">Volver a la Cola</a>
+            <a href="{{ url_for('prototipo.admin') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold">Ir al Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  function hoy() {
+    var d = new Date();
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  function isoHoy() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  document.querySelectorAll('[data-today]').forEach(function (el) { el.textContent = hoy(); });
+  var date = document.getElementById('pub-date');
+  if (date && !date.value) date.value = isoHoy();
+
+  document.getElementById('detalles-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var tipo = document.getElementById('pub-type').value === 'institucional' ? 'institucional' : 'contenido ordinario';
+    var box = document.createElement('div');
+    var msg = '✅ Publicado como ' + tipo;
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:rgba(34,197,94,0.95);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2600);
+    setTimeout(function () { box.remove(); }, 3100);
+  });
+})();
+</script>
+{% endblock %}

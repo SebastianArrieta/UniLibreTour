@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Registrar Evidencia — UniLibreTour{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% set sb_links = [
+  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.docente')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'✎','href': url_for('prototipo.docente_evidencia')},
+] %}
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+</style>
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, current_page) }}
+    <div class="min-w-0">
+      <div class="mb-8">
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Nuevo registro</div>
+        <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Registrar Evidencia</h2>
+        <p class="mt-2 text-base" style="color:var(--muted-foreground)">Registra una evidencia del legado institucional para el museo digital.</p>
+      </div>
+
+      <div id="step-indicator"></div>
+
+      <div id="wizard-root">
+        <form id="wizard-form" novalidate class="max-w-2xl">
+          <div id="step-1" class="museum-card rounded p-6 flex flex-col gap-4">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Datos Generales</h3>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="dw-titulo" style="color:var(--secondary-foreground)">Título *</label>
+              <input type="text" id="dw-titulo" placeholder="Título de la evidencia o pieza" class="museum-input w-full px-4 py-2.5 rounded text-sm" required />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="dw-categoria" style="color:var(--secondary-foreground)">Categoría *</label>
+                <select id="dw-categoria" class="museum-input w-full px-3 py-2.5 rounded text-sm" required>
+                  <option value="" style="background:var(--card)">Seleccionar…</option>
+                  {% for c in ['historia', 'investigacion', 'proyectos', 'eventos', 'logros', 'docentes'] %}
+                  <option value="{{ c }}" style="background:var(--card)">{{ c[0] | upper }}{{ c[1:] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="dw-anio" style="color:var(--secondary-foreground)">Año *</label>
+                <input type="number" id="dw-anio" placeholder="2024" min="1975" max="2025" class="museum-input w-full px-3 py-2.5 rounded text-sm" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="dw-responsable" style="color:var(--secondary-foreground)">Docente Responsable</label>
+                <select id="dw-responsable" class="museum-input w-full px-3 py-2.5 rounded text-sm">
+                  <option value="" style="background:var(--card)">Seleccionar…</option>
+                  {% for t in teacherOptions %}
+                  <option value="{{ t.name }}" style="background:var(--card)">{{ t.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="dw-grupo" style="color:var(--secondary-foreground)">Grupo de Investigación</label>
+                <input type="text" id="dw-grupo" placeholder="Ej: GISI, SISDIS, CIETI" class="museum-input w-full px-3 py-2.5 rounded text-sm" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="dw-coautores" style="color:var(--secondary-foreground)">Co-autores</label>
+              <input type="text" id="dw-coautores" placeholder="Nombres de co-autores separados por comas" class="museum-input w-full px-4 py-2.5 rounded text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="dw-desc" style="color:var(--secondary-foreground)">Descripción *</label>
+              <textarea id="dw-desc" placeholder="Describe el contenido, alcance y relevancia institucional…" rows="4" class="museum-input w-full px-4 py-2.5 rounded text-sm resize-none"></textarea>
+            </div>
+            <button type="button" id="dw-to-2" class="btn-primary py-2.5 rounded font-semibold text-sm">Continuar: Evidencia →</button>
+          </div>
+
+          <div id="step-2" class="museum-card rounded p-6 flex flex-col gap-4" style="display:none">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Carga de Evidencias</h3>
+            <p class="text-sm" style="color:var(--muted-foreground)">Adjunta los documentos, imágenes o archivos que respaldan esta evidencia.</p>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="dw-imagen" style="color:var(--secondary-foreground)">URL de la imagen principal</label>
+              <input type="url" id="dw-imagen" placeholder="https://images.unsplash.com/…" class="museum-input w-full px-4 py-2.5 rounded text-sm" />
+            </div>
+            <div id="dw-dropzone" class="rounded-lg border-2 border-dashed p-8 text-center cursor-pointer transition-all"
+                 style="border-color:rgba(211,47,47,0.2);background:transparent">
+              <div class="text-3xl mb-2 opacity-50">📎</div>
+              <p class="text-sm font-medium" style="color:var(--secondary-foreground)">Arrastra archivos aquí o haz clic para seleccionar</p>
+              <p class="text-xs mt-1" style="color:var(--muted-foreground)">PDF, DOCX, PPTX, imágenes (máx. 100 MB por archivo)</p>
+            </div>
+            <div id="dw-files" class="flex flex-col gap-2 hidden"></div>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="dw-tags" style="color:var(--secondary-foreground)">Etiquetas (separadas por comas)</label>
+              <input type="text" id="dw-tags" placeholder="IA, Investigación, Datos" class="museum-input w-full px-4 py-2.5 rounded text-sm" />
+            </div>
+            <div class="flex gap-2">
+              <button type="button" id="dw-back-1" class="btn-outline-primary px-5 py-2.5 rounded text-sm flex-1">← Anterior</button>
+              <button type="button" id="dw-to-3" class="btn-primary px-5 py-2.5 rounded font-semibold text-sm flex-1">Continuar: Enviar →</button>
+            </div>
+          </div>
+
+          <div id="step-3" style="display:none">
+            <div class="flex flex-col gap-5">
+              <div class="museum-card rounded p-6">
+                <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Vista Previa de la Evidencia</h3>
+                <div class="flex flex-col gap-3 text-sm">
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Título</span><span id="dw-sum-titulo" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Categoría</span><span id="dw-sum-cat" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Año</span><span id="dw-sum-anio" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Archivos adjuntos</span><span id="dw-sum-files" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Etiquetas</span><span id="dw-sum-tags" style="color:var(--secondary-foreground)">—</span></div>
+                </div>
+                <div class="mt-4 max-w-sm" id="dw-preview"></div>
+              </div>
+              <div class="text-xs p-4 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">
+                Al enviar, esta evidencia pasará a la cola de validación administrativa. Recibirás una notificación con el resultado.
+              </div>
+              <div class="flex gap-2">
+                <button type="button" id="dw-back-2" class="btn-outline-primary px-5 py-2.5 rounded text-sm flex-1">← Revisar</button>
+                <button type="submit" id="dw-submit" class="btn-primary px-5 py-3 rounded font-semibold text-sm flex-1">Enviar Evidencia ✓</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="wizard-ok" style="display:none">
+        <div class="flex items-center justify-center min-h-[24rem]">
+          <div class="text-center max-w-sm">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)">✓</div>
+            <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Evidencia registrada!</h2>
+            <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu evidencia fue enviada a la cola de validación del administrador. Recibirás una notificación con el resultado.</p>
+            <div class="text-xs px-3 py-2 rounded mb-4" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.2)">Estado: <strong>En Cola de Validación</strong></div>
+            <div class="flex gap-2 justify-center">
+              <a href="{{ url_for('prototipo.docente_notificaciones') }}" class="btn-outline-primary px-4 py-2 rounded text-sm">Ver Notificaciones</a>
+              <a href="{{ url_for('prototipo.docente') }}" class="btn-primary px-4 py-2 rounded text-sm">Ir al Dashboard</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var DEFAULT_IMG = 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&h=500&fit=crop&auto=format';
+  var steps = ['Info general', 'Evidencia', 'Enviar'];
+  var step = 1;
+  var files = [];
+  var form = document.getElementById('wizard-form');
+  var indicator = document.getElementById('step-indicator');
+  var wizardRoot = document.getElementById('wizard-root');
+  var wizardOk = document.getElementById('wizard-ok');
+  var dropzone = document.getElementById('dw-dropzone');
+  var filesBox = document.getElementById('dw-files');
+  var previewBox = document.getElementById('dw-preview');
+
+  function toast(msg, type) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2400);
+    setTimeout(function () { box.remove(); }, 2900);
+  }
+
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+  function showStep(n) {
+    step = n;
+    indicator.innerHTML = UI.stepIndicator(steps, step);
+    document.getElementById('step-1').style.display = n === 1 ? '' : 'none';
+    document.getElementById('step-2').style.display = n === 2 ? '' : 'none';
+    document.getElementById('step-3').style.display = n === 3 ? '' : 'none';
+    if (n === 3) updateSummary();
+  }
+
+  function renderFiles() {
+    if (!files.length) { filesBox.classList.add('hidden'); filesBox.innerHTML = ''; return; }
+    filesBox.classList.remove('hidden');
+    filesBox.innerHTML = files.map(function (f, i) {
+      return '<div class="flex items-center gap-3 px-3 py-2 rounded" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2)">' +
+        '<span class="text-lg">📄</span><span class="text-sm flex-1" style="color:var(--secondary-foreground)">' + window.UI.esc(f) + '</span>' +
+        '<span class="text-xs font-mono" style="color:#22c55e">Cargado</span>' +
+        '<button type="button" data-rm-file="' + i + '" class="text-xs ml-2" style="color:var(--muted-foreground)">✕</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(filesBox.querySelectorAll('[data-rm-file]'), function (b) {
+      b.addEventListener('click', function () {
+        files.splice(Number(b.getAttribute('data-rm-file')), 1);
+        renderFiles();
+      });
+    });
+  }
+
+  dropzone.addEventListener('click', function () {
+    files.push('evidencia_' + (files.length + 1) + '.pdf');
+    renderFiles();
+  });
+  dropzone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    dropzone.style.borderColor = 'rgba(211,47,47,0.6)';
+    dropzone.style.background = 'rgba(211,47,47,0.04)';
+  });
+  dropzone.addEventListener('dragleave', function () {
+    dropzone.style.borderColor = 'rgba(211,47,47,0.2)';
+    dropzone.style.background = 'transparent';
+  });
+  dropzone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropzone.style.borderColor = 'rgba(211,47,47,0.2)';
+    dropzone.style.background = 'transparent';
+    var dropped = Array.prototype.map.call(e.dataTransfer.files, function (f) { return f.name; });
+    files = files.concat(dropped);
+    renderFiles();
+  });
+
+  document.getElementById('dw-to-2').addEventListener('click', function () {
+    if (!val('dw-titulo')) { toast('Escribe el título de la evidencia', 'err'); return; }
+    if (!val('dw-categoria')) { toast('Selecciona una categoría', 'err'); return; }
+    if (!val('dw-anio')) { toast('Indica el año', 'err'); return; }
+    if (!val('dw-desc')) { toast('Describe la evidencia', 'err'); return; }
+    showStep(2);
+  });
+  document.getElementById('dw-back-1').addEventListener('click', function () { showStep(1); });
+  document.getElementById('dw-to-3').addEventListener('click', function () { showStep(3); });
+  document.getElementById('dw-back-2').addEventListener('click', function () { showStep(2); });
+
+  function updateSummary() {
+    var tags = val('dw-tags').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    document.getElementById('dw-sum-titulo').textContent = val('dw-titulo') || 'Sistema de Predicción de Deserción…';
+    document.getElementById('dw-sum-cat').textContent = val('dw-categoria') || 'investigacion';
+    document.getElementById('dw-sum-anio').textContent = val('dw-anio') || '2024';
+    document.getElementById('dw-sum-files').textContent = files.length + ' archivo(s)';
+    document.getElementById('dw-sum-tags').textContent = tags.length ? tags.map(function (t) { return '#' + t; }).join(', ') : '—';
+    previewBox.innerHTML = UI.contentCard({
+      id: 'prev-' + Date.now(),
+      title: val('dw-titulo') || 'Sistema de Predicción de Deserción…',
+      category: val('dw-categoria') || 'investigacion',
+      author: 'Dr. Hernando Casas',
+      date: new Date().toISOString().slice(0, 10),
+      status: 'pendiente',
+      description: val('dw-desc') || 'Describe el contenido, alcance y relevancia institucional…',
+      image: val('dw-imagen') || DEFAULT_IMG,
+      tags: tags
+    }, { showStatus: true });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    wizardRoot.style.display = 'none';
+    wizardOk.style.display = '';
+    toast('¡Evidencia registrada! Estado: En Cola de Validación');
+  });
+
+  showStep(1);
+})();
+</script>
+{% endblock %}

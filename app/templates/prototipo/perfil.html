@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}Mi Perfil — UniLibreTour{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
+    <div class="mb-8">
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Identidad</div>
+        <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Mi Perfil</h2>
+        <p class="mt-2 text-base" style="color:var(--muted-foreground)">Tu información dentro de Herencia Digital.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-8 items-start">
+        <div class="flex flex-col gap-6 min-w-0">
+            <div id="perfil-usuario"></div>
+            <div id="perfil-bio"></div>
+            <div id="perfil-progreso"></div>
+            <div id="perfil-grupo"></div>
+            <div id="perfil-egresado"></div>
+        </div>
+
+        <div class="flex-1 min-w-0 flex flex-col gap-8">
+            <div id="perfil-badges"></div>
+            <div id="perfil-logros"></div>
+            <div>
+                <h3 id="perfil-aportes-title" class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Mis aportes</h3>
+                <div id="perfil-aportes"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+window.__RANKING_URL = "{{ url_for('prototipo.ranking') }}";
+window.__LOGIN_URL = "{{ url_for('prototipo.login') }}";
+window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format";
+</script>
+<script>
+(function () {
+    var D = window.__DATOS || {};
+    var UIw = window.UI;
+    var esc = UIw.esc;
+    var ROLE_LABEL = {
+        visitante: 'Visitante', estudiante: 'Estudiante', docente: 'Docente', admin: 'Admin', egresado: 'Egresado'
+    };
+    var STATUS = {
+        activo: { label: 'Activo', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+        pendiente: { label: 'Pendiente de aprobación', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+        inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(255,255,255,0.04)' }
+    };
+    var ROLE_EMAIL = {
+        estudiante: 'ana.bermudez@unilibre.edu.co',
+        egresado: 'egresado@unilibre.edu.co',
+        docente: 'h.casas@unilibre.edu.co',
+        admin: 'admin@unilibre.edu.co'
+    };
+    var CATEGORY_ICON = { premio: '🏆', certificacion: '📜', reconocimiento: '🤝' };
+
+    function findSelf() {
+        var role = (window.Museo && Museo.role) || 'visitante';
+        var email = ROLE_EMAIL[role];
+        var user = null;
+        (D.users || []).forEach(function (u) { if (u.email === email) user = u; });
+        return user;
+    }
+
+    function fmtJoin(iso) {
+        var d = new Date(iso + 'T00:00:00');
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long' });
+    }
+
+    function card(body, cls) {
+        return '<div class="museum-card rounded p-5 ' + (cls || '') + '">' + body + '</div>';
+    }
+
+    function renderUser(user) {
+        var el = document.getElementById('perfil-usuario');
+        var status = STATUS[user.status] || STATUS.inactivo;
+        var photo = user.photoUrl || window.__PHOTO;
+        el.innerHTML =
+            '<div class="museum-card rounded p-6 text-center">' +
+            '<div class="relative w-24 h-24 mx-auto">' +
+            '<img src="' + esc(photo) + '" alt="' + esc(user.name) + '" class="w-24 h-24 rounded-full object-cover" ' +
+            'style="border:2px solid rgba(211,47,47,0.35)">' +
+            '<div class="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-sm"' +
+            'style="background:#d32f2f;color:#fff;border:2px solid var(--card)" title="Foto de perfil">📷</div>' +
+            '</div>' +
+            '<h2 class="font-serif text-xl font-bold mt-3" style="color:var(--foreground)">' + esc(user.name) + '</h2>' +
+            '<div class="flex flex-wrap items-center justify-center gap-2 mt-2">' +
+            '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)">' + (ROLE_LABEL[user.role] || user.role) + '</span>' +
+            '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:' + status.bg + ';color:' + status.color + '">' + status.label + '</span>' +
+            '</div>' +
+            '<div class="text-sm mt-3" style="color:var(--muted-foreground)">' +
+            '<div>' + esc(user.email) + '</div>' +
+            '<div class="text-xs mt-1">Miembro desde ' + fmtJoin(user.joinDate) + '</div>' +
+            '</div></div>';
+    }
+
+    function renderBio(user) {
+        var el = document.getElementById('perfil-bio');
+        if (!user.bio) {
+            el.innerHTML = card(
+                '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Biografía</h3>' +
+                '<div class="text-center py-2">' +
+                '<p class="text-sm mb-2" style="color:var(--muted-foreground)">Todavía no has escrito tu biografía.</p>' +
+                '<button type="button" class="text-xs btn-primary px-4 py-1.5 rounded">Escribir biografía</button>' +
+                '</div>');
+            return;
+        }
+        el.innerHTML = card(
+            '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Biografía</h3>' +
+            '<p class="text-sm leading-relaxed" style="color:var(--secondary-foreground)">' + esc(user.bio) + '</p>');
+    }
+
+    function renderProgreso(user) {
+        var el = document.getElementById('perfil-progreso');
+        if (['estudiante', 'egresado', 'docente'].indexOf(user.role) === -1) { el.innerHTML = ''; return; }
+        var lvl = window.Museo.levelInfo(user.points || 0);
+        el.innerHTML = card(
+            '<div class="flex items-center justify-between mb-4 flex-wrap gap-2">' +
+            '<h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Progreso</h3>' +
+            '<a href="' + window.__RANKING_URL + '" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver progreso →</a>' +
+            '</div>' +
+            '<div class="flex flex-wrap items-center gap-6">' +
+            '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Nivel</div>' +
+            '<div class="flex items-baseline gap-1"><span class="font-serif text-3xl font-black" style="color:#d32f2f">' + lvl.level + '</span>' +
+            '<span class="text-xs" style="color:var(--muted-foreground)">/ ' + lvl.maxLevel + '</span></div></div>' +
+            '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos</div>' +
+            '<div class="font-serif text-xl font-bold" style="color:var(--foreground)">' + Number(user.points || 0).toLocaleString('es-CO') + '</div></div>' +
+            '</div>' +
+            '<div class="h-2.5 rounded-full mt-4" style="background:rgba(255,255,255,0.06)">' +
+            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:linear-gradient(to right,#d32f2f,#ff4d4d)"></div></div>');
+    }
+
+    function renderGrupo(user) {
+        var el = document.getElementById('perfil-grupo');
+        if (user.role !== 'estudiante' && user.role !== 'docente') { el.innerHTML = ''; return; }
+        var group = null;
+        (D.researchGroups || []).forEach(function (g) { if (g.id === user.researchGroupId) group = g; });
+        var body = '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Grupo de Investigación / Semillero</h3>';
+        if (group) {
+            var leader = group.lead === user.name;
+            body += '<div class="flex items-center gap-3">' +
+                '<div class="w-9 h-9 rounded flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(211,47,47,0.08)">' + (group.category === 'semillero' ? '🔬' : '🧪') + '</div>' +
+                '<div><div class="text-sm font-serif font-semibold" style="color:var(--card-foreground)">' + esc(group.name) + '</div>' +
+                '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:' + (leader ? 'rgba(211,47,47,0.12)' : 'rgba(255,255,255,0.04)') + ';color:' + (leader ? '#d32f2f' : 'var(--muted-foreground)') + '">' + (leader ? 'Líder del grupo' : 'Miembro') + '</span></div></div>';
+        } else {
+            body += '<p class="text-sm" style="color:var(--muted-foreground)">No pertenece a ningún grupo de investigación o semillero todavía.</p>';
+        }
+        el.innerHTML = card(body);
+    }
+
+    function renderEgresado(user) {
+        var el = document.getElementById('perfil-egresado');
+        if (user.role !== 'egresado') { el.innerHTML = ''; return; }
+        var body = '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Trayectoria de Egresado</h3>' +
+            '<div class="flex flex-col gap-2 text-sm">';
+        if (user.graduationYear) {
+            body += '<div class="flex justify-between" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">' +
+                '<span style="color:var(--muted-foreground)">Año de grado</span><span style="color:var(--secondary-foreground)">' + user.graduationYear + '</span></div>';
+        }
+        if (user.currentPosition) {
+            body += '<div class="flex justify-between"><span style="color:var(--muted-foreground)">Cargo actual</span><span style="color:var(--secondary-foreground)">' + esc(user.currentPosition) + '</span></div>';
+        }
+        el.innerHTML = card(body + '</div>');
+    }
+
+    function renderBadges(user) {
+        var el = document.getElementById('perfil-badges');
+        var badges = D.badges || [];
+        var earnedIds = user.badgeIds || [];
+        var grid = badges.map(function (b) {
+            var earned = earnedIds.indexOf(b.id) !== -1;
+            return '<div class="flex flex-col items-center gap-1.5 p-3 rounded text-center" style="background:' +
+                (earned ? 'rgba(211,47,47,0.08)' : 'rgba(255,255,255,0.02)') +
+                ';border:1px solid ' + (earned ? 'rgba(211,47,47,0.3)' : 'rgba(255,255,255,0.06)') +
+                ';opacity:' + (earned ? 1 : 0.45) + '">' +
+                '<span class="text-2xl">' + (earned ? b.icon : '🔒') + '</span>' +
+                '<span class="text-xs font-medium text-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + esc(b.name) + '</span></div>';
+        }).join('');
+        el.innerHTML = card(
+            '<div class="flex items-center justify-between mb-4">' +
+            '<h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Insignias</h3>' +
+            '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f">' + earnedIds.length + ' / ' + badges.length + '</span>' +
+            '</div>' +
+            '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">' + grid + '</div>', 'p-5');
+    }
+
+    function renderLogros() {
+        var el = document.getElementById('perfil-logros');
+        var list = (D.achievements || []).map(function (a) {
+            return '<div class="flex items-start gap-3" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.75rem">' +
+                '<div class="w-9 h-9 rounded flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(211,47,47,0.08)">' + (CATEGORY_ICON[a.category] || '🏆') + '</div>' +
+                '<div class="min-w-0">' +
+                '<div class="font-serif text-sm font-semibold" style="color:var(--card-foreground)">' + esc(a.title) + '</div>' +
+                '<div class="text-xs font-mono mt-0.5" style="color:var(--muted-foreground)">' + a.year + ' · ' + esc(a.institution) + '</div>' +
+                '<p class="text-xs mt-1 leading-relaxed" style="color:var(--secondary-foreground)">' + esc(a.description) + '</p>' +
+                '</div></div>';
+        }).join('');
+        if (!list) list = UIw.emptyState('Todavía no hay logros registrados.', '🏆');
+        el.innerHTML = card(
+            '<h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Logros y Reconocimientos</h3>' +
+            '<div class="flex flex-col gap-3">' + list + '</div>', 'p-5');
+    }
+
+    function renderAportes(user) {
+        var el = document.getElementById('perfil-aportes');
+        var title = document.getElementById('perfil-aportes-title');
+        var contribs = [];
+        var seen = {};
+        (D.contentItems || []).concat(D.contentQueue || []).forEach(function (item) {
+            if ((item.author === user.name || item.submittedBy === user.name) && !seen[item.id]) {
+                seen[item.id] = 1;
+                if (item.status === 'publicado' || item.status === 'institucional') contribs.push(item);
+            }
+        });
+        if (title) title.textContent = 'Mis aportes (' + contribs.length + ')';
+        if (!contribs.length) {
+            el.innerHTML = UIw.emptyState('Todavía no hay contribuciones registradas.', '📂');
+            return;
+        }
+        el.innerHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">' +
+            contribs.map(function (i) { return UIw.contentCard(i, { showStatus: true }); }).join('') +
+            '</div>';
+    }
+
+    function renderEmpty() {
+        var areas = ['perfil-usuario', 'perfil-badges', 'perfil-logros', 'perfil-aportes'];
+        areas.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = UIw.emptyState('Inicia sesión para ver tu perfil.', '👤');
+        });
+    }
+
+    var user = findSelf();
+    if (!user) { renderEmpty(); return; }
+    renderUser(user);
+    renderBio(user);
+    renderProgreso(user);
+    renderGrupo(user);
+    renderEgresado(user);
+    renderBadges(user);
+    renderLogros();
+    renderAportes(user);
+})();
+</script>
+{% endblock %}

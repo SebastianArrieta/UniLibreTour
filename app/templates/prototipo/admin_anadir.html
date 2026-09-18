@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+{% block title %}Añadir Información — UniLibreTour{% endblock %}
+{% block content %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  {% macro field(label) %}
+  <label class="block">
+    <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">{{ label }}</span>
+    {{ caller() }}
+  </label>
+  {% endmacro %}
+  {% set inputCls = 'museum-input w-full px-3 py-2.5 rounded text-sm' %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, current_page) }}
+      <div class="min-w-0">
+        {% from 'components/macros.html' import section_header %}
+        {{ section_header('Administración', 'Añadir Información', 'Publica hitos, premios, proyectos, miembros del Hall y eventos directamente en el museo.') }}
+
+        <div class="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6 items-start">
+          <nav class="relative flex lg:flex-col gap-1 overflow-x-auto pb-1" id="anadir-nav">
+            {% set tabs = [
+              {'id': 'timeline', 'label': 'Línea de Tiempo', 'icon': '📅'},
+              {'id': 'premio', 'label': 'Premios y Reconocimientos', 'icon': '🏆'},
+              {'id': 'proyecto', 'label': 'Proyectos Destacados', 'icon': '🎓'},
+              {'id': 'hall', 'label': 'Hall de la Fama', 'icon': '⭐'},
+              {'id': 'evento', 'label': 'Eventos del Calendario', 'icon': '🗓️'},
+              {'id': 'noticias', 'label': 'Noticias', 'icon': '📰'},
+            ] %}
+            {% for t in tabs %}
+            <button type="button" data-tab="{{ t.id }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap {{ 'sb-active' if loop.first }}">
+              <span class="sb-chip">{{ t.icon }}</span>
+              <span class="truncate">{{ t.label }}</span>
+            </button>
+            {% endfor %}
+          </nav>
+
+          <div class="min-w-0">
+            <form id="anadir-form" novalidate>
+              <div class="museum-card rounded p-6">
+                <div id="anadir-error" class="hidden mb-4 text-xs px-3 py-2 rounded"
+                     style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.25)"></div>
+
+                <div class="tab-panel" data-panel="timeline">
+                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">📅 Nuevo hito de la línea de tiempo</h3>
+                  <div class="flex flex-col gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Año *') %}<input type="number" min="1900" max="2100" name="year" data-required placeholder="2024" class="{{ inputCls }}">{% endcall %}
+                      {% call field('Tipo *') %}
+                      <select name="type" data-required class="{{ inputCls }}">
+                        <option value="">Selecciona…</option>
+                        <option value="fundacion">Fundación</option>
+                        <option value="logro">Logro</option>
+                        <option value="evento">Evento</option>
+                        <option value="investigacion">Investigación</option>
+                      </select>
+                      {% endcall %}
+                    </div>
+                    {% call field('Título *') %}<input name="title" data-required placeholder="Inauguración del nuevo laboratorio…" class="{{ inputCls }}">{% endcall %}
+                    {% call field('Descripción *') %}<textarea rows="3" name="description" data-required placeholder="Describe el hito…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                    <div>
+                      <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Evidencias Multimedia *</span>
+                      <button type="button" id="media-drop" class="w-full rounded-lg border-2 border-dashed p-6 text-center transition-all"
+                              style="border-color:rgba(211,47,47,0.2);background:transparent">
+                        <div class="text-2xl mb-1.5 opacity-50">📎</div>
+                        <p class="text-sm font-medium" style="color:var(--secondary-foreground)">Arrastra archivos aquí o haz clic para seleccionar</p>
+                        <p class="text-xs mt-1" style="color:var(--muted-foreground)">Fotos, videos, audios o documentos que respalden el hito (máx. 50 MB por archivo)</p>
+                      </button>
+                      <div id="media-list" class="flex flex-col gap-2 mt-3"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="tab-panel hidden" data-panel="premio">
+                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">🏆 Nuevo premio o reconocimiento</h3>
+                  <div class="flex flex-col gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Año *') %}<input type="number" min="1900" max="2100" name="year" data-required placeholder="2025" class="{{ inputCls }}">{% endcall %}
+                      {% call field('Categoría') %}
+                      <select name="category" class="{{ inputCls }}">
+                        <option value="premio">Premio</option>
+                        <option value="certificacion">Certificación</option>
+                        <option value="reconocimiento">Reconocimiento</option>
+                      </select>
+                      {% endcall %}
+                    </div>
+                    {% call field('Título *') %}<input name="title" data-required placeholder="Premio Nacional de Ingeniería…" class="{{ inputCls }}">{% endcall %}
+                    {% call field('Institución otorgante *') %}<input name="institution" data-required placeholder="Ministerio de Tecnologías de la Información…" class="{{ inputCls }}">{% endcall %}
+                    {% call field('Descripción *') %}<textarea rows="3" name="description" data-required placeholder="Describe el reconocimiento…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                  </div>
+                </div>
+
+                <div class="tab-panel hidden" data-panel="proyecto">
+                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">🎓 Nuevo proyecto destacado</h3>
+                  <div class="flex flex-col gap-4">
+                    {% call field('Título *') %}<input name="title" data-required placeholder="Plataforma web para… " class="{{ inputCls }}">{% endcall %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Autor *') %}<input name="author" data-required placeholder="Nombre del autor…" class="{{ inputCls }}">{% endcall %}
+                      {% call field('Fecha *') %}<input type="date" name="date" data-required class="{{ inputCls }}">{% endcall %}
+                    </div>
+                    {% call field('Categoría *') %}
+                    <select name="category" data-required class="{{ inputCls }}">
+                      <option value="">Selecciona…</option>
+                      {% for c in ['investigacion', 'proyectos', 'historia', 'eventos', 'logros', 'docentes'] %}
+                      <option value="{{ c }}">{{ c[0] | upper }}{{ c[1:] }}</option>
+                      {% endfor %}
+                    </select>
+                    {% endcall %}
+                    {% call field('Descripción *') %}<textarea rows="3" name="description" data-required placeholder="Describe el proyecto…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                    {% call field('Etiquetas (separadas por coma)') %}<input name="tags" placeholder="IA, Python, Salud" class="{{ inputCls }}">{% endcall %}
+                    {% call field('URL de imagen (opcional)') %}<input name="image" placeholder="https://…" class="{{ inputCls }}">{% endcall %}
+                    <label class="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" name="featured" class="w-4 h-4">
+                      <span class="text-sm" style="color:var(--secondary-foreground)">Destacar en la portada del museo</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="tab-panel hidden" data-panel="hall">
+                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">⭐ Nuevo miembro del Hall de la Fama</h3>
+                  <div class="flex flex-col gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Nombre completo *') %}<input name="name" data-required placeholder="Ing. Nombre Apellido…" class="{{ inputCls }}">{% endcall %}
+                      {% call field('Cargo actual *') %}<input name="title" data-required placeholder="CTO – Empresa…" class="{{ inputCls }}">{% endcall %}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Año de graduación *') %}<input type="number" min="1900" max="2100" name="year" data-required placeholder="2010" class="{{ inputCls }}">{% endcall %}
+                      {% call field('Categoría *') %}
+                      <select name="category" data-required class="{{ inputCls }}">
+                        <option value="">Selecciona…</option>
+                        {% for c in ['Industria Tecnológica', 'Investigación', 'Gestión Académica', 'Emprendimiento', 'Docencia', 'Sector Público'] %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                      </select>
+                      {% endcall %}
+                    </div>
+                    {% call field('Logro destacado *') %}<textarea rows="3" name="achievement" data-required placeholder="Describe su logro más relevante…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                    {% call field('URL de foto (opcional)') %}<input name="image" placeholder="https://…" class="{{ inputCls }}">{% endcall %}
+                    {% call field('Biografía') %}<textarea rows="4" name="bio" placeholder="Trayectoria profesional y académica del miembro. Se mostrará en su perfil del Hall de la Fama…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                  </div>
+                </div>
+
+                <div class="tab-panel hidden" data-panel="evento">
+                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">🗓️ Nuevo evento en el calendario</h3>
+                  <div class="flex flex-col gap-4">
+                    {% call field('Título *') %}<input name="title" data-required placeholder="Conferencia: …" class="{{ inputCls }}">{% endcall %}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {% call field('Fecha *') %}<input type="date" name="date" data-required class="{{ inputCls }}">{% endcall %}
+                      {% call field('Hora *') %}<input type="time" name="time" data-required class="{{ inputCls }}">{% endcall %}
+                      {% call field('Tipo *') %}
+                      <select name="type" data-required class="{{ inputCls }}">
+                        <option value="">Selecciona…</option>
+                        <option value="conferencia">Conferencia</option>
+                        <option value="taller">Taller</option>
+                        <option value="graduacion">Graduación</option>
+                        <option value="cultural">Cultural</option>
+                      </select>
+                      {% endcall %}
+                    </div>
+                    {% call field('Lugar *') %}<input name="location" data-required placeholder="Auditorio Principal…" class="{{ inputCls }}">{% endcall %}
+                    {% call field('Descripción') %}<textarea rows="3" name="description" placeholder="Detalles del evento…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                  </div>
+                </div>
+
+                <div class="tab-panel hidden" data-panel="noticias">
+                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">📰 Nueva noticia</h3>
+                  <div class="flex flex-col gap-4">
+                    {% call field('Título *') %}<input name="title" data-required placeholder="Título de la noticia…" class="{{ inputCls }}">{% endcall %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Categoría *') %}
+                      <select name="category" data-required class="{{ inputCls }}">
+                        <option value="">Selecciona…</option>
+                        {% for c in ['Institucional', 'Archivo', 'Investigación', 'Hall de la Fama', 'Convocatoria', 'Evento'] %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                      </select>
+                      {% endcall %}
+                      {% call field('Fecha *') %}<input type="date" name="date" data-required class="{{ inputCls }}">{% endcall %}
+                    </div>
+                    {% call field('Contenido *') %}<textarea rows="5" name="excerpt" data-required placeholder="Escribe la noticia completa. Aparecerá en el carrusel del inicio y en la sección Noticias de Explorar…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                    {% call field('URL de imagen (opcional)') %}<input name="image" placeholder="https://…" class="{{ inputCls }}">{% endcall %}
+                  </div>
+                </div>
+
+                <div class="flex justify-end pt-2 mt-6" style="border-top:1px solid rgba(211,47,47,0.12)">
+                  <button type="submit" class="btn-primary btn-float px-6 py-2.5 rounded text-sm font-semibold">Publicar en el museo →</button>
+                </div>
+
+                <div class="mt-6 pt-4" style="border-top:1px solid rgba(211,47,47,0.12)">
+                  <button type="button" id="reset-demo" class="text-xs btn-outline-primary px-3 py-2 rounded">↺ Restaurar datos demo</button>
+                </div>
+              </div>
+            </form>
+
+            <div class="museum-card rounded p-5 mt-6">
+              <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Vista previa en vivo</h3>
+                <span class="text-xs font-mono" style="color:var(--muted-foreground)">Se renderiza al escribir</span>
+              </div>
+              <div id="preview-content" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+              <div id="preview-hall" class="hidden mx-auto" style="max-width:320px"></div>
+            </div>
+
+            <div class="museum-card rounded p-5 mt-6">
+              <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Publicados en esta sesión</h3>
+              <div id="published-box">
+                <div class="text-sm text-center py-6" style="color:var(--muted-foreground)">Nada publicado todavía. Completa el formulario y presiona "Publicar en el museo →".</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+(function () {
+  var TABS = ['timeline', 'premio', 'proyecto', 'hall', 'evento', 'noticias'];
+  var TAB_LABEL = { timeline: 'Línea de Tiempo', premio: 'Premios y Reconocimientos', proyecto: 'Proyectos Destacados', hall: 'Hall de la Fama', evento: 'Eventos del Calendario', noticias: 'Noticias' };
+  var PLACEHOLDER = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop&auto=format';
+  var PERSON_PLACEHOLDER = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format';
+  var activeTab = 'timeline';
+  var mediaFiles = [];
+  var published = [];
+  var seq = 0;
+
+  function esc(s) { return window.Museo ? Museo.esc(s) : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  function toast(msg, type) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2200);
+    setTimeout(function () { box.remove(); }, 2700);
+  }
+
+  function showError(msg) {
+    var el = document.getElementById('anadir-error');
+    el.textContent = '⚠ ' + msg;
+    el.classList.remove('hidden');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function clearError() { document.getElementById('anadir-error').classList.add('hidden'); }
+
+  function setTab(id) {
+    activeTab = id;
+    clearError();
+    document.querySelectorAll('#anadir-nav [data-tab]').forEach(function (b) {
+      var on = b.getAttribute('data-tab') === id;
+      b.classList.toggle('sb-active', on);
+    });
+    document.querySelectorAll('.tab-panel').forEach(function (p) {
+      p.classList.toggle('hidden', p.getAttribute('data-panel') !== id);
+    });
+    var isHall = id === 'hall';
+    document.getElementById('preview-content').classList.toggle('hidden', isHall);
+    document.getElementById('preview-hall').classList.toggle('hidden', !isHall);
+    renderPreview();
+  }
+
+  function activePanel() { return document.querySelector('.tab-panel[data-panel="' + activeTab + '"]'); }
+
+  function fd() { return new FormData(activePanel()); }
+
+  function categoryForPreview() {
+    var tab = activeTab;
+    if (tab === 'proyecto') return fd().get('category') || 'proyectos';
+    if (tab === 'noticias') return 'historia';
+    if (tab === 'premio') return 'logros';
+    if (tab === 'timeline') return 'historia';
+    if (tab === 'evento') return 'eventos';
+    return 'proyectos';
+  }
+
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function renderPreview() {
+    var data = fd();
+    var title = data.get('title') || 'Título de la pieza';
+    var desc = data.get('description') || data.get('excerpt') || data.get('achievement') || data.get('bio') || 'Descripción de la nueva pieza que se publicará en el museo.';
+    var item = {
+      id: 'preview',
+      title: title,
+      category: categoryForPreview(),
+      author: data.get('author') || data.get('name') || data.get('institution') || 'Autor',
+      date: data.get('date') || data.get('year') || todayISO(),
+      description: desc,
+      image: data.get('image') || PLACEHOLDER,
+      tags: (data.get('tags') || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean)
+    };
+    if (activeTab === 'hall') {
+      var m = {
+        name: data.get('name') || 'Ing. Nombre Apellido',
+        title: data.get('title') || 'Cargo actual',
+        year: data.get('year') || 2010,
+        achievement: data.get('achievement') || 'Logro destacado del miembro…',
+        category: data.get('category') || 'Investigación',
+        image: data.get('image') || PERSON_PLACEHOLDER
+      };
+      document.getElementById('preview-hall').innerHTML = hallCard(m);
+    } else {
+      document.getElementById('preview-content').innerHTML = UI.contentCard(item, { showStatus: false });
+    }
+  }
+
+  function hallCard(m) {
+    return '<article class="museum-card rounded overflow-hidden group"><div class="relative overflow-hidden" style="aspect-ratio:4/3;background:#0c0c0c">' +
+      '<img src="' + esc(m.image) + '" alt="' + esc(m.name) + '" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105">' +
+      '<div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>' +
+      '<div class="absolute bottom-0 left-0 right-0 p-4"><div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--foreground)">' + esc(m.name) + '</div>' +
+      '<div class="text-xs" style="color:#d32f2f">' + esc(m.title) + '</div></div>' +
+      '<div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.7);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' + esc(m.year) + '</div></div>' +
+      '<div class="p-4"><div class="text-xs mb-1 font-mono" style="color:var(--muted-foreground)">' + esc(m.category) + '</div>' +
+      '<p class="text-sm" style="color:var(--secondary-foreground)">' + esc(m.achievement) + '</p></div></article>';
+  }
+
+  function renderMedia() {
+    var list = document.getElementById('media-list');
+    list.innerHTML = mediaFiles.map(function (f, i) {
+      return '<div class="flex items-center gap-2 text-sm px-3 py-2 rounded" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2)">' +
+        '<span style="color:#22c55e">✓</span><span style="color:var(--secondary-foreground)">' + esc(f) + '</span>' +
+        '<button type="button" data-i="' + i + '" class="ml-auto text-xs" style="color:var(--muted-foreground)">✕</button></div>';
+    }).join('');
+  }
+
+  function validate() {
+    var data = fd();
+    var missing = [];
+    activePanel().querySelectorAll('[data-required]').forEach(function (el) {
+      if (!data.get(el.name) || !String(data.get(el.name)).trim()) missing.push(el.name);
+    });
+    if (missing.length) { showError('El campo "' + missing[0] + '" es obligatorio.'); return false; }
+    if (activeTab === 'timeline') {
+      if (!mediaFiles.length) { showError('Debes adjuntar al menos una evidencia multimedia.'); return false; }
+      if (!data.get('type')) { showError('El campo "Tipo" es obligatorio.'); return false; }
+    }
+    if (activeTab === 'proyecto' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
+    if (activeTab === 'hall' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
+    if (activeTab === 'evento' && !data.get('type')) { showError('El campo "Tipo" es obligatorio.'); return false; }
+    if (activeTab === 'noticias' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
+    var year = Number(data.get('year'));
+    if (data.get('year') && (!Number.isInteger(year) || year < 1900 || year > 2100)) { showError('El año debe estar entre 1900 y 2100.'); return false; }
+    return true;
+  }
+
+  function addPublished(item) {
+    published.push(item);
+    var box = document.getElementById('published-box');
+    box.innerHTML = published.slice().reverse().map(function (it) {
+      return '<div class="mb-3">' + (it.hall ? hallCard(it.hall) : UI.contentCard(it.content, { showStatus: false })) + '</div>';
+    }).join('');
+  }
+
+  function onPublish(e) {
+    e.preventDefault();
+    clearError();
+    if (!validate()) return;
+    var data = fd();
+    if (activeTab === 'hall') {
+      data.set('name', data.get('name').trim());
+      data.set('title', data.get('title').trim());
+      data.set('year', Number(data.get('year')));
+      data.set('achievement', data.get('achievement').trim());
+      data.set('category', data.get('category'));
+      data.set('image', (data.get('image') || '').trim() || PERSON_PLACEHOLDER);
+      data.set('bio', (data.get('bio') || '').trim());
+      addPublished({ hall: { name: data.get('name'), title: data.get('title'), year: data.get('year'), achievement: data.get('achievement'), category: data.get('category'), image: data.get('image'), bio: data.get('bio') } });
+    } else {
+      seq += 1;
+      addPublished({ content: {
+        id: 'sess-' + seq,
+        title: data.get('title').trim(),
+        category: activeTab === 'noticias' ? 'historia' : categoryForPreview(),
+        author: (activeTab === 'proyecto' ? data.get('author') : data.get('institution') || data.get('name')) || 'Autor',
+        date: data.get('date') || data.get('year') || todayISO(),
+        description: (data.get('description') || data.get('excerpt') || '').trim(),
+        image: (data.get('image') || '').trim() || PLACEHOLDER,
+        tags: (data.get('tags') || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean),
+        featured: !!(data.get('featured'))
+      } });
+    }
+    toast(TAB_LABEL[activeTab] + ': registro publicado');
+    activePanel().reset();
+    mediaFiles = [];
+    renderMedia();
+    renderPreview();
+  }
+
+  document.getElementById('anadir-nav').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab]');
+    if (b) setTab(b.getAttribute('data-tab'));
+  });
+
+  document.getElementById('anadir-form').addEventListener('input', function () { clearError(); renderPreview(); });
+  document.getElementById('anadir-form').addEventListener('change', function () { clearError(); renderPreview(); });
+  document.getElementById('anadir-form').addEventListener('submit', onPublish);
+
+  document.getElementById('media-drop').addEventListener('click', function () {
+    mediaFiles.push('evidencia_' + (mediaFiles.length + 1) + '.pdf');
+    renderMedia();
+  });
+
+  document.getElementById('media-list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-i]');
+    if (b) { mediaFiles.splice(Number(b.getAttribute('data-i')), 1); renderMedia(); }
+  });
+
+  document.getElementById('reset-demo').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (window.confirm('¿Restaurar todos los datos demo? Se perderá la información añadida.')) {
+      published = [];
+      document.getElementById('published-box').innerHTML = '<div class="text-sm text-center py-6" style="color:var(--muted-foreground)">Nada publicado todavía. Completa el formulario y presiona "Publicar en el museo →".</div>';
+      toast('Datos demo restaurados');
+    }
+  });
+
+  var hash = (location.hash || '').replace('#tab-', '');
+  if (TABS.indexOf(hash) !== -1) setTab(hash); else setTab('timeline');
+  renderMedia();
+})();
+</script>
+{% endblock %}

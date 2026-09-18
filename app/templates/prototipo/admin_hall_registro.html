@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Registro en el Hall de la Fama — UniLibreTour{% endblock %}
+{% block content %}
+  {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
+  {% set sb_active = 'admin-dashboard' %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  {% set pasos = ['Selección', 'Justificación', 'Revisión', 'Confirmación'] %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, sb_active) }}
+      <div class="min-w-0">
+        {% from 'components/macros.html' import section_header %}
+        {{ section_header('Hall de la Fama', 'Destacar Proyecto') }}
+
+        <div class="flex items-center gap-2 mb-8">
+          {% for label in pasos %}
+          {% set num = loop.index %}
+          <div class="flex items-center gap-2 flex-1">
+            <div class="step-circle" style="background:var(--primary);color:var(--background);border:none">{{ num }}</div>
+            <span class="text-xs hidden md:inline truncate" style="color:var(--secondary-foreground)">{{ label }}</span>
+            {% if num < pasos | length %}
+            <div class="h-px flex-1 mx-2" style="background:var(--primary)"></div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <form id="hall-form" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div class="museum-card rounded p-6">
+            <h3 class="font-serif text-xl font-bold mb-2" style="color:var(--foreground)">Paso 1 · Datos del miembro</h3>
+            <p class="text-sm mb-4" style="color:var(--secondary-foreground)">Registra un egresado o docente destacado en el Hall de la Fama del museo.</p>
+            <div class="flex flex-col gap-4">
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Nombre completo *</span>
+                <input name="name" data-hall-required placeholder="Ing. Nombre Apellido…" class="museum-input w-full px-3 py-2.5 rounded text-sm">
+              </label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="block">
+                  <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Cargo actual / Logro *</span>
+                  <input name="title" data-hall-required placeholder="CTO – Empresa…" class="museum-input w-full px-3 py-2.5 rounded text-sm">
+                </label>
+                <label class="block">
+                  <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Promoción (año) *</span>
+                  <input type="number" min="1900" max="2100" name="year" data-hall-required placeholder="2010" class="museum-input w-full px-3 py-2.5 rounded text-sm">
+                </label>
+              </div>
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Categoría *</span>
+                <select name="category" data-hall-required class="museum-input w-full px-3 py-2.5 rounded text-sm">
+                  <option value="">Selecciona…</option>
+                  {% for c in ['Industria Tecnológica', 'Investigación', 'Gestión Académica', 'Emprendimiento', 'Docencia', 'Sector Público'] %}
+                  <option value="{{ c }}">{{ c }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Logro destacado *</span>
+                <textarea rows="3" name="achievement" data-hall-required placeholder="Describe su logro más relevante…" class="museum-input w-full px-3 py-2.5 rounded text-sm resize-none"></textarea>
+              </label>
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Biografía</span>
+                <textarea rows="4" name="bio" placeholder="Trayectoria profesional y académica del miembro. Se mostrará en su perfil del Hall de la Fama…" class="museum-input w-full px-3 py-2.5 rounded text-sm resize-none"></textarea>
+              </label>
+              <label class="block">
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">URL de foto</span>
+                <input name="image" placeholder="https://…" class="museum-input w-full px-3 py-2.5 rounded text-sm">
+              </label>
+              <div>
+                <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Insignias acreditadas</span>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {% for b in badges %}
+                  <label class="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)">
+                    <input type="checkbox" name="badges" value="{{ b.id }}" class="w-4 h-4">
+                    <span class="text-sm">{{ b.icon }} {{ b.name }}</span>
+                  </label>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-5">
+            <div class="museum-card rounded p-5">
+              <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Vista previa</h3>
+                <span class="text-xs font-mono" style="color:var(--muted-foreground)">Tarjeta del Hall de la Fama</span>
+              </div>
+              <div id="hall-preview" class="mx-auto" style="max-width:320px"></div>
+            </div>
+
+            <div id="hall-ok" class="hidden museum-card rounded p-5 text-center">
+              <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"
+                   style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)">✓</div>
+              <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Añadido al Hall de la Fama!</h2>
+              <p class="text-sm mb-6" style="color:var(--muted-foreground)">El proyecto ahora es visible en la sección principal del Hall de la Fama.</p>
+              <a href="{{ url_for('prototipo.admin') }}" class="btn-primary px-5 py-2.5 rounded text-sm">Volver al Dashboard</a>
+            </div>
+
+            <button type="submit" class="btn-primary btn-float px-8 py-3 rounded font-semibold text-sm w-full">Registrar en el Hall →</button>
+          </div>
+        </form>
+
+        <div class="mt-10">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">⭐ Miembros actuales del Hall</h3>
+            <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ hallMembers | length }} miembros</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for m in hallMembers %}
+            <article class="museum-card rounded overflow-hidden">
+              <div class="relative overflow-hidden" style="aspect-ratio:4/3;background:#0c0c0c">
+                <img src="{{ m.image }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80">
+                <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-4">
+                  <div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--foreground)">{{ m.name }}</div>
+                  <div class="text-xs" style="color:#d32f2f">{{ m.title }}</div>
+                </div>
+                <div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded"
+                     style="background:rgba(0,0,0,0.7);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">{{ m.year }}</div>
+              </div>
+              <div class="p-4">
+                <div class="text-xs mb-1 font-mono" style="color:var(--muted-foreground)">{{ m.category }}</div>
+                <p class="text-sm line-clamp-2" style="color:var(--secondary-foreground)">{{ m.achievement }}</p>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+(function () {
+  var PERSON_PLACEHOLDER = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format';
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+
+  function toast(msg, type) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2200);
+    setTimeout(function () { box.remove(); }, 2700);
+  }
+
+  function hallCardHTML(m) {
+    return '<article class="museum-card rounded overflow-hidden group"><div class="relative overflow-hidden" style="aspect-ratio:4/3;background:#0c0c0c">' +
+      '<img src="' + esc(m.image) + '" alt="' + esc(m.name) + '" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105">' +
+      '<div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>' +
+      '<div class="absolute bottom-0 left-0 right-0 p-4"><div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--foreground)">' + esc(m.name) + '</div>' +
+      '<div class="text-xs" style="color:#d32f2f">' + esc(m.title) + '</div></div>' +
+      '<div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.7);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' + esc(m.year) + '</div></div>' +
+      '<div class="p-4"><div class="text-xs mb-1 font-mono" style="color:var(--muted-foreground)">' + esc(m.category) + '</div>' +
+      '<p class="text-sm" style="color:var(--secondary-foreground)">' + esc(m.achievement) + '</p></div></article>';
+  }
+
+  var form = document.getElementById('hall-form');
+  var preview = document.getElementById('hall-preview');
+
+  function readMember() {
+    var fd = new FormData(form);
+    return {
+      name: fd.get('name') || 'Ing. Nombre Apellido',
+      title: fd.get('title') || 'Cargo actual / Logro',
+      year: fd.get('year') || 2010,
+      category: fd.get('category') || 'Investigación',
+      achievement: fd.get('achievement') || 'Logro destacado del miembro…',
+      bio: fd.get('bio') || '',
+      image: fd.get('image') || PERSON_PLACEHOLDER
+    };
+  }
+
+  function renderPreview() { preview.innerHTML = hallCardHTML(readMember()); }
+
+  form.addEventListener('input', renderPreview);
+  form.addEventListener('change', renderPreview);
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fd = new FormData(form);
+    var missing = [];
+    form.querySelectorAll('[data-hall-required]').forEach(function (el) {
+      if (!fd.get(el.name) || !String(fd.get(el.name)).trim()) missing.push(el.name);
+    });
+    if (missing.length) { toast('El campo "' + missing[0] + '" es obligatorio.', 'err'); return; }
+    var year = Number(fd.get('year'));
+    if (!Number.isInteger(year) || year < 1900 || year > 2100) { toast('El año debe estar entre 1900 y 2100.', 'err'); return; }
+    preview.innerHTML = hallCardHTML(readMember());
+    document.getElementById('hall-ok').classList.remove('hidden');
+    document.getElementById('hall-ok').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('Miembro registrado en el Hall de la Fama');
+  });
+
+  renderPreview();
+})();
+</script>
+{% endblock %}

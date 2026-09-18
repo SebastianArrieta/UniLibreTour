@@ -1,0 +1,28 @@
+<footer class="site-footer">
+    <div class="footer-grid">
+        <div>
+            <div class="font-serif text-lg font-bold mb-1" style="color:#d32f2f">UniLibreTour</div>
+            <p class="text-sm" style="color:var(--muted-foreground)">
+                Herencia Digital · Programa de Ingeniería de Sistemas — Universidad Libre, Colombia.
+            </p>
+            <p class="text-xs mt-3 font-mono" style="color:var(--muted-foreground)">© 2025 Universidad Libre · Todos los derechos reservados</p>
+        </div>
+        <div>
+            <div class="footer-title">Explorar</div>
+            <div class="flex flex-col gap-1.5">
+                <a class="footer-link" href="{{ url_for('prototipo.explorar') }}">Colecciones</a>
+                <a class="footer-link" href="{{ url_for('prototipo.buscar') }}">Buscador</a>
+                <a class="footer-link" href="{{ url_for('prototipo.hall_fama') }}">Hall de la Fama</a>
+            </div>
+        </div>
+        <div>
+            <div class="footer-title">Institución</div>
+            <div class="flex flex-col gap-1" style="color:var(--muted-foreground);font-size:13px">
+                <span>Facultad de Ingeniería</span>
+                <span>Carrera 70D #53-40, Bogotá</span>
+                <span>ingeniería.sistemas@unilibre.edu.co</span>
+                <span>(+57) 601 382-0327</span>
+            </div>
+        </div>
+    </div>
+</footer>

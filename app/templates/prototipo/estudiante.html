@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Mi Espacio — Estudiante{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% from 'components/macros.html' import content_card, status_badge, empty_state, category_badge, tag_list %}
+{% set sb_links = [
+  {'page':'est-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.estudiante')},
+  {'page':'est-aportes','label':'Mis Aportes','icon':'🗂️','href': url_for('prototipo.estudiante_aportes')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'est-favoritos','label':'Favoritos','icon':'♡','href': url_for('prototipo.estudiante_favoritos')},
+  {'page':'est-contribuir','label':'Contribuir','icon':'↑','href': url_for('prototipo.estudiante_contribuir')},
+] %}
+{% set sb_active = current_page %}
+{% set todo = contentItems + contentQueue %}
+{% set mis_aportes = (todo | selectattr('author', 'equalto', 'Ana Lucía Bermúdez') | list + todo | selectattr('submittedBy', 'equalto', 'Ana Lucía Bermúdez') | list) | unique(attribute='id') | list %}
+{% set ap_pub = (mis_aportes | selectattr('status', 'equalto', 'publicado') | list + mis_aportes | selectattr('status', 'equalto', 'institucional') | list) | unique(attribute='id') | list %}
+{% set puntos = users | selectattr('email', 'equalto', 'ana.bermudez@unilibre.edu.co') | first %}
+{% set pts = puntos.points if puntos else 3240 %}
+{% set nivel = [((pts // pointsPerLevel) + 1), maxLevel] | min %}
+{% set pts_nivel = pts - (nivel - 1) * pointsPerLevel %}
+{% set pct = 100 if nivel >= maxLevel else ((pts_nivel / pointsPerLevel) * 100) %}
+{% set falta = 0 if nivel >= maxLevel else (pointsPerLevel - pts_nivel) %}
+{% set anuncios = [
+  {'f':'28 Jun','d':'Jun','t':'Semillero de Investigación GISI','h':'10:00 AM · Sala 301'},
+  {'f':'2 Jul','d':'Jul','t':'Taller: Redacción de Proyectos de Grado','h':'2:00 PM · Auditorio B'},
+  {'f':'10 Jul','d':'Jul','t':'Congreso Estudiantil de Ingeniería','h':'8:00 AM · Auditorio Principal'},
+] %}
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, sb_active) }}
+    <div class="min-w-0">
+      <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Panel de Control</div>
+          <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Mi Espacio</h1>
+          <p class="text-sm mt-1" style="color:var(--muted-foreground)">Bienvenida, Ana Lucía · Ingeniería de Sistemas</p>
+        </div>
+        <a href="{{ url_for('prototipo.estudiante_contribuir') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold">+ Nueva Contribución</a>
+      </div>
+
+      <div id="banner-convocatoria" class="mb-8 rounded-lg p-4 flex items-start gap-4" style="background:linear-gradient(to right, rgba(211,47,47,0.15), rgba(30,58,138,0.15)); border:1px solid rgba(211,47,47,0.3)">
+        <div class="text-2xl">📢</div>
+        <div class="flex-1">
+          <h4 class="font-serif font-bold text-sm mb-1" style="color:var(--foreground)">Convocatoria Proyectos Destacados 2025</h4>
+          <p class="text-xs" style="color:var(--secondary-foreground)">Fecha límite: 31 julio. Postula tu proyecto de grado para el Hall de la Fama.</p>
+        </div>
+        <button type="button" data-dismiss="banner-convocatoria" class="text-xs px-2 py-1 opacity-50 hover:opacity-100">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="museum-card rounded p-5">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Contribuciones</div>
+          <div class="font-serif text-3xl font-bold" style="color:#d32f2f">{{ mis_aportes | length }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">{{ ap_pub | length }} publicadas</div>
+        </div>
+        <div class="museum-card rounded p-5">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Favoritos</div>
+          <div class="font-serif text-3xl font-bold" style="color:#3b82f6"><span id="fav-count">7</span></div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">guardados</div>
+        </div>
+        <div class="museum-card rounded p-5">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Comentarios</div>
+          <div class="font-serif text-3xl font-bold" style="color:#a855f7">12</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">este semestre</div>
+        </div>
+      </div>
+
+      <div class="museum-card rounded p-6 mb-8">
+        <div class="flex flex-wrap items-start justify-between gap-6 mb-4">
+          <div>
+            <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Nivel actual</div>
+            <div class="flex items-baseline gap-2">
+              <span class="font-serif text-5xl font-black" style="color:#d32f2f">{{ nivel }}</span>
+              <span class="text-sm" style="color:var(--muted-foreground)">/ {{ maxLevel }}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos totales</div>
+            <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ '{:,.0f}'.format(pts) | replace(',', '.') }}</div>
+            {% if nivel < maxLevel %}
+            <div class="text-xs mt-1" style="color:var(--muted-foreground)">Faltan {{ '{:,.0f}'.format(falta) | replace(',', '.') }} para Nivel {{ nivel + 1 }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="h-2.5 rounded-full" style="background:rgba(255,255,255,0.06)">
+          <div class="h-full rounded-full transition-all duration-700" style="width:{{ pct }}%;background:linear-gradient(to right, #d32f2f, #ff4d4d)"></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="museum-card rounded p-5">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Contenido en el archivo</div>
+          <div class="font-serif text-3xl font-bold" style="color:#d32f2f">{{ '{:,.0f}'.format(kpiData.totalContent) | replace(',', '.') }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">piezas del museo</div>
+        </div>
+        <div class="museum-card rounded p-5">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Visitantes</div>
+          <div class="font-serif text-3xl font-bold" style="color:#22c55e">{{ '{:,.0f}'.format(kpiData.visitors) | replace(',', '.') }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">este año</div>
+        </div>
+        <div class="museum-card rounded p-5">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Usuarios activos</div>
+          <div class="font-serif text-3xl font-bold" style="color:#a855f7">{{ '{:,.0f}'.format(kpiData.activeUsers) | replace(',', '.') }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">en la plataforma</div>
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <div class="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <h3 class="font-serif text-xl font-semibold" style="color:var(--card-foreground)">Contenido Reciente del Programa</h3>
+          <a href="{{ url_for('prototipo.explorar') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver todo →</a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {% for item in contentItems if item.status in ['publicado', 'institucional'] %}{% if loop.index0 < 3 %}{{ content_card(item) }}{% endif %}{% endfor %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="museum-card rounded p-5">
+          <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Agenda Académica</h3>
+          <div class="flex flex-col gap-3">
+            {% for ev in anuncios %}
+            <div class="flex gap-3 items-start">
+              <div class="w-12 flex-shrink-0 text-center rounded p-1.5" style="background:rgba(211,47,47,0.1); border:1px solid rgba(211,47,47,0.2)">
+                <div class="text-xs font-mono font-bold" style="color:#d32f2f">{{ ev.f }}</div>
+                <div class="text-xs" style="color:var(--muted-foreground)">{{ ev.d }}</div>
+              </div>
+              <div>
+                <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ ev.t }}</div>
+                <div class="text-xs" style="color:var(--muted-foreground)">{{ ev.h }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="museum-card rounded p-5">
+          <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Necesitan tu Atención</h3>
+          <div class="flex flex-col gap-3">
+            {% set pendientes = mis_aportes | rejectattr('status', 'in', ['publicado', 'institucional']) | list %}
+            {% if pendientes | length > 0 %}
+              {% for item in pendientes %}
+              <div class="flex items-center gap-3">
+                <img src="{{ item.image }}" alt="{{ item.title }}" class="w-10 h-10 object-cover rounded flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
+                  {{ status_badge(item.status) }}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              {{ empty_state('No tienes contribuciones pendientes de revisión.', '✓') }}
+            {% endif %}
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <a href="{{ url_for('prototipo.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">Ver mis aportes →</a>
+              <a href="{{ url_for('prototipo.estudiante_contribuir') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">+ Agregar nueva</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <div class="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <h3 class="font-serif text-xl font-semibold" style="color:var(--card-foreground)">Mis aportes recientes</h3>
+          <a href="{{ url_for('prototipo.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver todos →</a>
+        </div>
+        {% if mis_aportes | length > 0 %}
+        <div class="flex flex-col gap-3">
+          {% for item in mis_aportes | sort(attribute='date', reverse=true) %}
+          <div class="museum-card rounded p-4 flex items-start gap-4">
+            <img src="{{ item.image }}" alt="{{ item.title }}" class="w-16 h-16 rounded object-cover flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-1.5">
+                {% from 'components/macros.html' import category_badge, tag_list %}
+                {{ category_badge(item.category) }}
+                {{ status_badge(item.status) }}
+                <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ item.date | fmt_fecha }}</span>
+              </div>
+              <h4 class="font-serif font-semibold text-sm mb-1 line-clamp-1" style="color:var(--card-foreground)">{{ item.title }}</h4>
+              <p class="text-xs line-clamp-2" style="color:var(--muted-foreground)">{{ item.description }}</p>
+            </div>
+            <button type="button" class="fav-toggle flex-shrink-0 self-center w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
+              <span data-fav-icon>♡</span>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="museum-card rounded p-4">
+          {{ empty_state('Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.', '🗂️') }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <a href="{{ url_for('prototipo.estudiante_contribuir') }}" class="fab-contribuir btn-primary px-5 py-3 rounded-full text-sm font-semibold" aria-label="Contribuir">
+    ↑ Contribuir
+  </a>
+</div>
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+.fab-contribuir { position: fixed; right: 1.25rem; bottom: 5.75rem; z-index: 45; box-shadow: 0 6px 20px rgba(211, 47, 47, 0.45); }
+@media (min-width: 768px) { .fab-contribuir { bottom: 1.5rem; } }
+</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var deny = document.querySelector('[data-dismiss="banner-convocatoria"]');
+  if (deny) deny.addEventListener('click', function () { var b = document.getElementById('banner-convocatoria'); if (b) b.style.display = 'none'; });
+  var favCount = document.getElementById('fav-count');
+  if (favCount) favCount.textContent = (Museo.getFavs().length || 7);
+  Museo.bindFavButtons(document);
+})();
+</script>
+{% endblock %}

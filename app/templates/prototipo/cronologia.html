@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}La Ruta — Cronología | UniLibreTour{% endblock %}
+{% block content %}
+{% set type_colors = {'fundacion': '#d32f2f', 'logro': '#22c55e', 'evento': '#3b82f6', 'investigacion': '#a855f7'} %}
+{% set type_labels = {'fundacion': 'Fundación', 'logro': 'Logro', 'evento': 'Evento', 'investigacion': 'Investigación'} %}
+
+{% macro event_card(ev, color, label, href) %}
+<a href="{{ href }}" class="group block max-w-md w-full">
+<article class="museum-card ruta-item rounded p-5 md:p-6 w-full cursor-pointer group">
+    <div class="flex items-center gap-2 mb-3">
+        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider"
+              style="background:{{ color }}14;color:{{ color }};border:1px solid {{ color }}30">{{ label }}</span>
+        <span class="font-mono text-xs font-bold lg:hidden" style="color:{{ color }}">{{ ev.year }}</span>
+    </div>
+    <h3 class="font-serif text-lg md:text-xl font-bold leading-snug mb-2 transition-colors group-hover:text-[#d32f2f]"
+        style="color:var(--foreground)">{{ ev.title }}</h3>
+    <p class="text-sm leading-relaxed" style="color:var(--muted-foreground)">{{ ev.description }}</p>
+    {% if ev.media and ev.media | length %}
+    <div class="flex flex-wrap gap-1.5 mt-3">
+        {% for f in ev.media %}
+        <span class="text-[10px] px-2 py-0.5 rounded font-mono truncate max-w-full"
+              style="background:{{ color }}12;color:var(--secondary-foreground);border:1px solid {{ color }}30">📎 {{ f }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <span class="inline-block mt-4 text-xs font-medium transition-transform duration-300 group-hover:translate-x-1"
+          style="color:#d32f2f">{{ 'Ver pieza relacionada →' if ev.itemId else 'Explorar colecciones →' }}</span>
+</article>
+</a>
+{% endmacro %}
+
+{% macro year_block(ev) %}
+<div class="ruta-item select-none">
+    <div class="font-serif text-[88px] xl:text-[110px] font-black leading-none text-primary-gradient">{{ ev.year }}</div>
+    <div class="font-mono text-[11px] uppercase tracking-widest mt-2" style="color:var(--muted-foreground)">Década de los {{ ((ev.year // 10) % 10) }}0</div>
+</div>
+{% endmacro %}
+
+<div class="relative overflow-x-hidden">
+    {% set first_year = timeline[0].year if timeline else 1975 %}
+    {% set last_year = timeline[-1].year if timeline else 2024 %}
+
+    <section class="relative min-h-[72vh] flex items-center justify-center overflow-hidden px-4">
+        <div class="absolute inset-0 opacity-[0.04]"
+             style="background-image:linear-gradient(rgba(211,47,47,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(211,47,47,0.5) 1px, transparent 1px);background-size:80px 80px"></div>
+        <div class="absolute inset-0"
+             style="background:radial-gradient(circle at 50% 30%, rgba(211,47,47,0.14), transparent 55%)"></div>
+        <div class="relative z-10 text-center max-w-3xl animate-fadeInUp py-24">
+            <a href="{{ url_for('prototipo.home') }}"
+               class="inline-flex items-center gap-2 text-xs font-mono mb-10 hover:opacity-70 transition-opacity"
+               style="color:var(--muted-foreground)">← Volver al inicio</a>
+            <div class="text-xs font-mono uppercase tracking-widest mb-4" style="color:#d32f2f">Cronología · {{ first_year }} — {{ last_year }}</div>
+            <h1 class="font-serif text-5xl md:text-7xl font-black leading-none mb-6" style="color:var(--foreground)">
+                La <span class="text-primary-gradient italic">Ruta</span>
+            </h1>
+            <p class="text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-8" style="color:var(--secondary-foreground)">
+                Medio siglo de historia trazado en un solo camino. Desliza y acompaña cada hito que construyó el Programa de Ingeniería de Sistemas.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-14">
+                <span class="px-3 py-1 rounded-full text-xs font-mono"
+                      style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)"><b style="color:#d32f2f">50</b> años</span>
+                <span class="px-3 py-1 rounded-full text-xs font-mono"
+                      style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)"><b style="color:#d32f2f">5</b> décadas</span>
+                <span class="px-3 py-1 rounded-full text-xs font-mono"
+                      style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)"><b style="color:#d32f2f">{{ timeline | length }}</b> hitos</span>
+            </div>
+            <div class="ruta-scroll-hint flex flex-col items-center gap-1" style="color:#d32f2f">
+                <span class="text-xl">↓</span>
+                <span class="text-[11px] font-mono uppercase tracking-widest">Comienza a recorrer</span>
+            </div>
+        </div>
+    </section>
+
+    <div id="ruta-camino" class="ruta relative mx-auto max-w-6xl pb-16">
+        <div class="absolute top-0 bottom-0 lg:hidden" style="left:23px;width:2px;background:linear-gradient(to bottom, transparent, rgba(211,47,47,0.35) 12%, rgba(211,47,47,0.35) 88%, transparent)"></div>
+        <div class="absolute top-0 bottom-0 hidden lg:block" style="left:50%;width:2px;transform:translateX(-1px);background:linear-gradient(to bottom, transparent, rgba(211,47,47,0.3) 10%, rgba(211,47,47,0.3) 90%, transparent)"></div>
+
+        {% for ev in timeline %}
+        {% set left = loop.index0 % 2 == 0 %}
+        {% set color = type_colors.get(ev.type, '#d32f2f') %}
+        {% set label = type_labels.get(ev.type, ev.type) %}
+        {% set href = url_for('prototipo.detalle', cid=ev.itemId) if ev.itemId else url_for('prototipo.explorar') %}
+
+        <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
+             class="relative flex items-center gap-4 py-8 pl-3 pr-4 lg:hidden">
+            <div data-row-node class="relative z-10 shrink-0 flex items-center justify-center" style="width:48px;height:48px">
+                <div class="absolute inset-0 rounded-full" style="border:1px solid {{ color }}55;background:{{ color }}12"></div>
+                <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:width .25s, height .25s"></div>
+            </div>
+            {{ event_card(ev, color, label, href) }}
+        </div>
+
+        <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
+             class="relative hidden lg:flex items-center min-h-[50vh]">
+            <div class="w-1/2 flex {{ 'justify-end pr-[13%]' if left else 'justify-end pr-[9%]' }}">
+                {{ event_card(ev, color, label, href) if left else year_block(ev) }}
+            </div>
+            <div data-row-node class="absolute z-10" style="left:50%;top:50%;transform:translate(-50%,-50%)">
+                <div class="relative flex items-center justify-center" style="width:48px;height:48px">
+                    <div class="absolute inset-0 rounded-full" style="border:1px solid {{ color }}55;background:{{ color }}12"></div>
+                    <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:width .25s, height .25s"></div>
+                </div>
+            </div>
+            <div class="w-1/2 flex {{ 'justify-start pl-[9%]' if left else 'justify-start pl-[13%]' }}">
+                {{ year_block(ev) if left else event_card(ev, color, label, href) }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <section class="relative text-center py-28 px-4 overflow-hidden">
+        <div class="absolute inset-0"
+             style="background:radial-gradient(circle at 50% 60%, rgba(211,47,47,0.12), transparent 60%)"></div>
+        <div class="relative z-10 animate-fadeInUp">
+            <div class="text-xs font-mono uppercase tracking-widest mb-4" style="color:var(--muted-foreground)">Cierre de la ruta</div>
+            <div class="font-serif text-6xl md:text-8xl font-black text-primary-gradient leading-none mb-5">50 Años</div>
+            <p class="text-sm md:text-base max-w-lg mx-auto mb-9 leading-relaxed" style="color:var(--secondary-foreground)">
+                De 24 graduandos a una comunidad de miles de ingenieros. La ruta continúa con cada nueva generación.
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a href="{{ url_for('prototipo.explorar') }}" class="btn-primary btn-float px-6 py-3 rounded text-sm">Explorar Colecciones</a>
+                <a href="{{ url_for('prototipo.hall_fama') }}" class="btn-outline-primary px-6 py-3 rounded text-sm">Hall de la Fama</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="ruta-rail"
+         class="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2.5 transition-opacity duration-500"
+         style="opacity:0;pointer-events:none">
+        <span id="ruta-rail-year" class="font-mono text-xs font-bold tracking-widest mb-1"
+              style="writing-mode:vertical-rl;color:#d32f2f"></span>
+        {% for ev in timeline %}
+        {% set color = type_colors.get(ev.type, '#d32f2f') %}
+        <span data-rail-index="{{ loop.index0 }}" data-color="{{ color }}"
+              title="{{ ev.year }} · {{ ev.title }}"
+              class="rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"
+              style="width:6px;height:6px;background:rgba(211,47,47,0.28)"></span>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var camino = document.getElementById('ruta-camino');
+    if (!camino) return;
+    var rows = Array.prototype.slice.call(camino.querySelectorAll('[data-ruta-index]'));
+    var railDots = Array.prototype.slice.call(document.querySelectorAll('[data-rail-index]'));
+    var years = rows.map(function (r) { return parseInt(r.getAttribute('data-year'), 10); });
+    if (!rows.length) return;
+
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting) { en.target.classList.add('route-in'); io.unobserve(en.target); }
+            });
+        }, { threshold: 0.12 });
+        io.observe(camino);
+    } else {
+        camino.classList.add('route-in');
+    }
+
+    function setActive(i) {
+        rows.forEach(function (r, k) {
+            var d = r.querySelector('[data-row-dot]');
+            var on = k === i;
+            if (d) {
+                d.style.width = on ? '16px' : '12px';
+                d.style.height = on ? '16px' : '12px';
+                d.classList.toggle('ruta-dot-active', on);
+            }
+        });
+        railDots.forEach(function (rd, k) {
+            var on = k === i;
+            var color = rd.getAttribute('data-color') || '#d32f2f';
+            rd.classList.toggle('ruta-dot-active', on);
+            rd.style.width = on ? '10px' : '6px';
+            rd.style.height = on ? '10px' : '6px';
+            rd.style.background = on ? color : 'rgba(211,47,47,0.28)';
+            rd.style.boxShadow = on ? '0 0 8px ' + color : 'none';
+        });
+        var y = document.getElementById('ruta-rail-year');
+        if (y && years[i]) y.textContent = years[i];
+    }
+
+    function updateActive() {
+        var vh = window.innerHeight;
+        var idx = 0;
+        rows.forEach(function (r, i) {
+            var rc = r.getBoundingClientRect();
+            if (rc.top + rc.height / 2 <= vh * 0.6) idx = i;
+        });
+        setActive(idx);
+        var rail = document.getElementById('ruta-rail');
+        if (rail) {
+            var rc = camino.getBoundingClientRect();
+            var visible = rc.top < vh * 0.55;
+            rail.style.opacity = visible ? '1' : '0';
+            rail.style.pointerEvents = visible ? 'auto' : 'none';
+        }
+    }
+
+    var raf = 0;
+    window.addEventListener('scroll', function () {
+        if (!raf) raf = requestAnimationFrame(function () { raf = 0; updateActive(); });
+    }, { passive: true });
+    window.addEventListener('resize', updateActive);
+
+    railDots.forEach(function (rd) {
+        rd.addEventListener('click', function () {
+            var idx = parseInt(rd.getAttribute('data-rail-index'), 10);
+            var target = rows[idx];
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
+
+    var now = new Date().getFullYear();
+    var startIdx = years.length - 1;
+    for (var i = 0; i < years.length; i++) {
+        if (years[i] >= now) { startIdx = i; break; }
+    }
+    window.scrollTo(0, 0);
+    setTimeout(function () {
+        var target = rows[startIdx];
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        updateActive();
+    }, 400);
+})();
+</script>
+{% endblock %}

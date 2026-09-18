@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Ranking — UniLibreTour{% endblock %}
+{% block content %}
+{% set role_labels = {'estudiante': 'Estudiante', 'docente': 'Docente', 'egresado': 'Egresado', 'admin': 'Admin', 'visitante': 'Visitante'} %}
+{% set badges_map = {} %}
+{% for b in badges %}{% if badges_map.update({b.id: b}) %}{% endif %}{% endfor %}
+{% set participants = users | selectattr('role', 'in', ['estudiante', 'egresado', 'docente']) | list %}
+{% set ranking = participants | sort(attribute='points', reverse=true) %}
+{% set medals = ['🥇', '🥈', '🥉'] %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="flex gap-8">
+        <div class="flex-1 min-w-0">
+            <div class="mb-8">
+                <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Gamificación</div>
+                <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Ranking</h2>
+                <p class="mt-2 text-base" style="color:var(--muted-foreground)">Participación de estudiantes, egresados y docentes en el museo.</p>
+            </div>
+
+            <div id="ranking-personal" style="display:none"></div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end mb-8" id="podium">
+                {% set podium = [ranking[1] if ranking | length > 1 else none, ranking[0] if ranking | length > 0 else none, ranking[2] if ranking | length > 2 else none] %}
+                {% for p in podium %}
+                {% if p %}
+                {% set lvl = p.points // pointsPerLevel %}
+                {% set prog = (p.points % pointsPerLevel) / pointsPerLevel * 100 %}
+                <div data-email="{{ p.email }}" class="podium-card museum-card rounded p-6 text-center"
+                     style="{{ 'border-color:rgba(255,215,0,0.45);box-shadow:0 0 28px rgba(255,215,0,0.10)' if loop.index0 == 1 else '' }}">
+                    <div class="text-3xl mb-2">{{ medals[loop.index0] }}</div>
+                    <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-xl font-bold"
+                         style="background:rgba(211,47,47,0.12);color:#d32f2f">{{ p.name[0] }}</div>
+                    <div data-name class="font-serif text-lg font-bold mt-3 {{ 'text-xl' if loop.index0 == 1 else '' }}"
+                         style="color:{{ '#d32f2f' if loop.index0 == 1 else 'var(--foreground)' }}">{{ p.name }}</div>
+                    <div class="inline-block text-xs font-mono mt-1.5 px-2 py-0.5 rounded"
+                         style="background:rgba(211,47,47,0.08);color:#d32f2f">{{ role_labels.get(p.role, p.role) }}</div>
+                    <div class="font-mono text-xl font-bold mt-3" style="color:var(--foreground)">{{ '{:,}'.format(p.points) }}</div>
+                    <div class="text-xs font-mono mt-1" style="color:var(--muted-foreground)">pts · Nivel {{ lvl }}</div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="h-1.5 rounded-full flex-1" style="background:rgba(255,255,255,0.08)">
+                            <div class="h-full rounded-full" style="width:{{ '%.0f'|format(prog) }}%;background:linear-gradient(to right,#d32f2f,#ff4d4d)"></div>
+                        </div>
+                        <span class="text-[10px] font-mono" style="color:var(--muted-foreground)">{{ '%.0f'|format(prog) }}%</span>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-1 mt-3 text-base">
+                        {% for bid in p.badgeIds or [] %}
+                        {% set b = badges_map.get(bid) %}
+                        {% if b %}<span title="{{ b.name }}" style="cursor:pointer">{{ b.icon }}</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="museum-card rounded overflow-hidden">
+                <div class="px-5 pt-5">
+                    <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Ranking de Participación · Top {{ ranking | length }}</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm mt-4">
+                        <thead>
+                            <tr style="border-bottom:1px solid rgba(211,47,47,0.15)">
+                                <th class="px-5 py-3 text-left text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">#</th>
+                                <th class="px-5 py-3 text-left text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Usuario</th>
+                                <th class="px-5 py-3 text-left text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Rol</th>
+                                <th class="px-5 py-3 text-left text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Avance</th>
+                                <th class="px-5 py-3 text-left text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Puntos</th>
+                                <th class="px-5 py-3 text-left text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Insignias</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in ranking[0:10] %}
+                            {% set lvl = u.points // pointsPerLevel %}
+                            {% set prog = (u.points % pointsPerLevel) / pointsPerLevel * 100 %}
+                            {% set remain = pointsPerLevel - (u.points % pointsPerLevel) %}
+                            <tr data-email="{{ u.email }}"
+                                style="border-bottom:{{ '1px solid rgba(255,255,255,0.04)' if not loop.last else 'none' }};transition:background .2s">
+                                <td class="px-5 py-3 text-base">{{ medals[loop.index0] if loop.index0 < 3 else loop.index0 + 1 }}</td>
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-2.5 text-left">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                                             style="background:rgba(211,47,47,0.1);color:#d32f2f">{{ u.name[0] }}</div>
+                                        <div>
+                                            <div data-name class="font-medium" style="color:var(--secondary-foreground)">{{ u.name }}</div>
+                                            <div class="text-[10px] font-mono" style="color:var(--muted-foreground)">Nivel {{ lvl }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3">
+                                    <span class="text-xs px-2 py-0.5 rounded font-mono"
+                                          style="background:rgba(211,47,47,0.08);color:#d32f2f">{{ role_labels.get(u.role, u.role) }}</span>
+                                </td>
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-24">
+                                            <div class="h-1.5 rounded-full" style="background:rgba(255,255,255,0.06)">
+                                                <div class="h-full rounded-full" style="width:{{ '%.0f'|format(prog) }}%;background:linear-gradient(to right,#d32f2f,#ff4d4d)"></div>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-mono whitespace-nowrap" style="color:var(--muted-foreground)">Faltan {{ '{:,}'.format(remain) }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3 font-mono" style="color:var(--secondary-foreground)">{{ '{:,}'.format(u.points) }}</td>
+                                <td class="px-5 py-3">
+                                    {% if u.badgeIds %}
+                                    <div class="flex gap-1 text-sm">
+                                        {% for bid in u.badgeIds %}
+                                        {% set b = badges_map.get(bid) %}
+                                        {% if b %}<span title="{{ b.name }}" style="cursor:pointer">{{ b.icon }}</span>{% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-xs" style="color:var(--muted-foreground)">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+</script>
+<script>
+(function () {
+    var D = window.__DATOS || {};
+
+    function renderPersonal(me) {
+        var c = document.getElementById('ranking-personal');
+        if (!c) return;
+        if (!me || ['estudiante', 'egresado', 'docente'].indexOf(me.role) === -1) return;
+        var lvl = window.Museo.levelInfo(me.points || 0);
+        var earnedIds = me.badgeIds || [];
+        var badges = D.badges || [];
+        var badgeGrid = badges.map(function (b) {
+            var earned = earnedIds.indexOf(b.id) !== -1;
+            return '<div class="flex flex-col items-center gap-1.5 p-3 rounded text-center" style="background:' +
+                (earned ? 'rgba(211,47,47,0.08)' : 'rgba(255,255,255,0.02)') +
+                ';border:1px solid ' + (earned ? 'rgba(211,47,47,0.3)' : 'rgba(255,255,255,0.06)') +
+                ';opacity:' + (earned ? 1 : 0.45) + '">' +
+                '<span class="text-2xl">' + (earned ? b.icon : '🔒') + '</span>' +
+                '<span class="text-xs font-medium text-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' +
+                window.UI.esc(b.name) + '</span></div>';
+        }).join('');
+
+        var remain = Math.max(0, lvl.pointsForNextLevel - lvl.pointsIntoLevel);
+        c.innerHTML =
+            '<div class="museum-card rounded p-6 mb-6">' +
+            '<div class="flex flex-wrap items-start justify-between gap-6 mb-4">' +
+            '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Nivel actual</div>' +
+            '<div class="flex items-baseline gap-2"><span class="font-serif text-5xl font-black" style="color:#d32f2f">' + lvl.level + '</span>' +
+            '<span class="text-sm" style="color:var(--muted-foreground)">/ ' + lvl.maxLevel + '</span></div></div>' +
+            '<div class="text-right"><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos totales</div>' +
+            '<div class="font-serif text-3xl font-bold" style="color:var(--foreground)">' + Number(me.points || 0).toLocaleString('es-CO') + '</div>' +
+            (lvl.level < lvl.maxLevel ? '<div class="text-xs mt-1" style="color:var(--muted-foreground)">Faltan ' + remain.toLocaleString('es-CO') + ' para Nivel ' + (lvl.level + 1) + '</div>' : '') +
+            '</div></div>' +
+            '<div class="h-2.5 rounded-full" style="background:rgba(255,255,255,0.06)">' +
+            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:linear-gradient(to right,#d32f2f,#ff4d4d)"></div></div></div>' +
+            '<div class="museum-card rounded p-5 mb-8">' +
+            '<div class="flex items-center justify-between mb-4"><h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Insignias</h3>' +
+            '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f">' + earnedIds.length + ' / ' + badges.length + '</span></div>' +
+            '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">' + badgeGrid + '</div></div>';
+        c.style.display = '';
+    }
+
+    function highlight(me) {
+        if (!me) return;
+        var lists = document.querySelectorAll('[data-email]');
+        Array.prototype.forEach.call(lists, function (el) {
+            if (el.getAttribute('data-email') !== me.email) return;
+            el.style.background = 'rgba(211,47,47,0.06)';
+            el.style.boxShadow = 'inset 3px 0 0 #d32f2f';
+            var dataName = el.querySelector('[data-name]');
+            if (dataName) dataName.textContent = dataName.textContent.trim() + ' (Tú)';
+        });
+    }
+
+    if (window.Museo && typeof window.Museo.getUser === 'function') {
+        window.Museo.getUser().then(function (me) {
+            renderPersonal(me);
+            highlight(me);
+        }).catch(function () {});
+    }
+})();
+</script>
+{% endblock %}

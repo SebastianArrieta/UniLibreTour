@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Mis Aportes — UniLibreTour{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% from 'components/macros.html' import empty_state, status_badge, category_badge, tag_list %}
+{% set sb_links = [
+  {'page':'est-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.estudiante')},
+  {'page':'est-aportes','label':'Mis Aportes','icon':'🗂️','href': url_for('prototipo.estudiante_aportes')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'est-favoritos','label':'Favoritos','icon':'♡','href': url_for('prototipo.estudiante_favoritos')},
+  {'page':'est-contribuir','label':'Contribuir','icon':'↑','href': url_for('prototipo.estudiante_contribuir')},
+] %}
+{% set todo = contentItems + contentQueue %}
+{% set mis_aportes = ((todo | selectattr('author', 'equalto', 'Ana Lucía Bermúdez') | list) + (todo | selectattr('submittedBy', 'equalto', 'Ana Lucía Bermúdez') | list)) | unique(attribute='id') | list | sort(attribute='date', reverse=true) %}
+{% set ap_pub = mis_aportes | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
+{% set ap_pend = mis_aportes | selectattr('status', 'equalto', 'pendiente') | list %}
+{% set ap_dev = mis_aportes | selectattr('status', 'equalto', 'devuelto') | list %}
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+</style>
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, current_page) }}
+    <div class="min-w-0">
+      <div class="flex items-start justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Mis contribuciones</div>
+          <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Mis Aportes</h2>
+          <p class="mt-2 text-base" style="color:var(--muted-foreground)">{{ mis_aportes | length }} aportes · {{ ap_pub | length }} publicados · {{ ap_pend | length + ap_dev | length }} en proceso</p>
+        </div>
+        <a href="{{ url_for('prototipo.estudiante_contribuir') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold">+ Nueva Contribución</a>
+      </div>
+
+      <div class="flex gap-2 flex-wrap mb-6" id="aporte-filtros">
+        <button type="button" data-filter="todos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:#d32f2f;color:#ffffff;border:1px solid #d32f2f">Todos <span class="font-mono opacity-70">{{ mis_aportes | length }}</span></button>
+        <button type="button" data-filter="publicados" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Publicados <span class="font-mono opacity-70">{{ ap_pub | length }}</span></button>
+        <button type="button" data-filter="pendientes" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Pendientes <span class="font-mono opacity-70">{{ ap_pend | length }}</span></button>
+        <button type="button" data-filter="devueltos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Devueltos <span class="font-mono opacity-70">{{ ap_dev | length }}</span></button>
+      </div>
+
+      <div class="flex flex-col gap-3" id="aporte-list">
+        {% for item in mis_aportes %}
+        {% set cm = contentItems | selectattr('id', 'equalto', item.id) | first %}
+        <div class="museum-card rounded p-4 flex items-start gap-4 transition-transform hover:-translate-y-0.5" data-status="{{ item.status }}"
+             data-href="{{ url_for('prototipo.detalle', cid=cm.id) if (cm is defined and cm) else '' }}" data-clickable>
+          <img src="{{ item.image }}" alt="{{ item.title }}" class="w-20 h-20 rounded object-cover flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1.5">
+              {{ category_badge(item.category) }}
+              {{ status_badge(item.status) }}
+              <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ item.date | fmt_fecha }}</span>
+            </div>
+            <h4 class="font-serif font-semibold text-sm mb-1 line-clamp-1" style="color:var(--card-foreground)">{{ item.title }}</h4>
+            <p class="text-xs line-clamp-2 mb-2" style="color:var(--muted-foreground)">{{ item.description }}</p>
+            {% if item.tags and item.tags | length > 0 %}
+            <div class="flex gap-1.5 flex-wrap">
+              {% for t in item.tags %}
+              <span class="text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(211,47,47,0.06);color:var(--secondary-foreground);border:1px solid var(--border)">#{{ t }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% if item.reviewNote %}
+            <div class="text-xs px-3 py-2 rounded mt-2" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.25)">
+              <strong>Nota del revisor:</strong> {{ item.reviewNote }}
+            </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-col items-end gap-2 flex-shrink-0">
+            <button type="button" class="fav-toggle w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
+              <span data-fav-icon>♡</span>
+            </button>
+            <span class="opacity-30 transition-all flex-shrink-0" data-arrow style="color:#d32f2f">→</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div id="aporte-empty" style="display:none">
+        {% set msgs = {
+          'todos': 'Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.',
+          'publicados': 'No tienes aportes publicados.',
+          'pendientes': 'No tienes aportes pendientes.',
+          'devueltos': 'No tienes aportes devueltos.'
+        } %}
+        <div class="flex flex-col items-center justify-center py-20 gap-3 text-center">
+          <span class="text-5xl opacity-20">🗂️</span>
+          <p data-msg-todos style="color:var(--muted-foreground)">Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.</p>
+          <p data-msg-filtered style="color:var(--muted-foreground);display:none">No tienes aportes en esta categoría.</p>
+          <a href="{{ url_for('prototipo.estudiante_contribuir') }}" class="btn-outline-primary px-5 py-2 rounded text-sm">Registrar Contribución</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var chips = document.querySelectorAll('#aporte-filtros [data-filter]');
+  var cards = document.querySelectorAll('#aporte-list [data-status]');
+  var empty = document.getElementById('aporte-empty');
+  var emptyTodos = empty.querySelector('[data-msg-todos]');
+  var emptyFiltered = empty.querySelector('[data-msg-filtered]');
+
+  function fits(status, f) {
+    if (f === 'todos') return true;
+    if (f === 'publicados') return status === 'publicado' || status === 'institucional';
+    if (f === 'pendientes') return status === 'pendiente';
+    if (f === 'devueltos') return status === 'devuelto';
+    return true;
+  }
+
+  function applyFilter(f) {
+    var visible = 0;
+    chips.forEach(function (c) {
+      var on = c.getAttribute('data-filter') === f;
+      c.style.background = on ? '#d32f2f' : 'var(--muted)';
+      c.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
+      c.style.border = on ? '1px solid #d32f2f' : '1px solid var(--border)';
+    });
+    cards.forEach(function (card) {
+      var on = fits(card.getAttribute('data-status'), f);
+      card.style.display = on ? '' : 'none';
+      if (on) visible += 1;
+    });
+    if (empty) {
+      var isEmpty = visible === 0;
+      empty.style.display = isEmpty ? '' : 'none';
+      if (emptyTodos) emptyTodos.style.display = f === 'todos' ? '' : 'none';
+      if (emptyFiltered) emptyFiltered.style.display = f === 'todos' ? 'none' : '';
+    }
+  }
+
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () { applyFilter(c.getAttribute('data-filter')); });
+  });
+
+  Array.prototype.forEach.call(cards, function (card) {
+    card.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && t.closest && t.closest('.fav-toggle')) return;
+      var href = card.getAttribute('data-href');
+      if (href) window.location.href = href;
+    });
+  });
+
+  if (window.Museo && typeof Museo.bindFavButtons === 'function') {
+    Museo.bindFavButtons(document);
+  }
+})();
+</script>
+{% endblock %}

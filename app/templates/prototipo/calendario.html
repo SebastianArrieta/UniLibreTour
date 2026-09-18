@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% from 'components/macros.html' import section_header %}
+{% block title %}Calendario de Actividades — UniLibreTour{% endblock %}
+{% block content %}
+{% set event_types = {'conferencia': '#d32f2f', 'taller': '#3b82f6', 'graduacion': '#22c55e', 'cultural': '#a855f7'} %}
+
+<div class="max-w-6xl mx-auto px-4 md:px-8 py-12">
+    {{ section_header('Comunidad', 'Calendario de Actividades', 'Conferencias, talleres y vida universitaria del programa, mes a mes.') }}
+
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+        <div class="flex-1 min-w-0 museum-card rounded-lg p-4 md:p-5 w-full">
+            <div class="flex items-center justify-between mb-4">
+                <button type="button" id="cal-prev" aria-label="Mes anterior" class="w-8 h-8 rounded flex items-center justify-center transition-colors" style="border:1px solid rgba(211,47,47,0.25);color:var(--secondary-foreground)">‹</button>
+                <div id="cal-month-label" class="font-serif text-lg font-bold capitalize" style="color:var(--foreground)"></div>
+                <button type="button" id="cal-next" aria-label="Mes siguiente" class="w-8 h-8 rounded flex items-center justify-center transition-colors" style="border:1px solid rgba(211,47,47,0.25);color:var(--secondary-foreground)">›</button>
+            </div>
+
+            <div class="grid grid-cols-7 gap-1 mb-1">
+                {% for d in ['L', 'M', 'X', 'J', 'V', 'S', 'D'] %}
+                <div class="text-center text-[10px] font-mono uppercase tracking-wider py-1" style="color:var(--muted-foreground)">{{ d }}</div>
+                {% endfor %}
+            </div>
+
+            <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
+        </div>
+
+        <div class="flex flex-col gap-5 w-full lg:w-80 flex-shrink-0">
+            <div class="museum-card rounded-lg p-4">
+                <div class="text-[10px] font-mono uppercase tracking-widest mb-2.5" style="color:#d32f2f">Tipos de actividad</div>
+                <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+                    {% for t, color in event_types.items() %}
+                    <div class="flex items-center gap-1.5 text-xs" style="color:var(--secondary-foreground)">
+                        <span class="rounded-full flex-shrink-0" style="width:8px;height:8px;background:{{ color }}"></span>
+                        {{ t | capitalize }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="museum-card rounded-lg p-4">
+                <div id="cal-day-label" class="text-sm font-serif font-bold mb-3 capitalize" style="color:var(--foreground)"></div>
+                <div id="cal-days">Sin actividades programadas. Cargando calendario…</div>
+            </div>
+
+            <a href="{{ url_for('prototipo.explorar') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded self-start">Ver archivo de eventos →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>window.__DATOS = {{ datos | tojson }};</script>
+<script>
+(function () {
+    var DATOS = window.__DATOS || {};
+    var evs = DATOS.events || [];
+    var grid = document.getElementById('cal-grid');
+    var monthEl = document.getElementById('cal-month-label');
+    var dayLabelEl = document.getElementById('cal-day-label');
+    var daysEl = document.getElementById('cal-days');
+    if (!grid) return;
+
+    var typeColors = { conferencia: '#d32f2f', taller: '#3b82f6', graduacion: '#22c55e', cultural: '#a855f7' };
+    function esc(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function iso(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    var byDate = {};
+    evs.forEach(function (ev) { (byDate[ev.date] = byDate[ev.date] || []).push(ev); });
+
+    var now = new Date();
+    var selected = iso(now);
+    var view = { y: now.getFullYear(), m: now.getMonth() };
+
+    function renderDay() {
+        var list = byDate[selected] || [];
+        var d = new Date(selected + 'T12:00:00');
+        dayLabelEl.textContent = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+        if (!list.length) {
+            daysEl.innerHTML = '<p class="text-xs leading-relaxed" style="color:var(--muted-foreground)">Sin actividades programadas para este día. Selecciona un día con puntos de color en el calendario.</p>';
+            return;
+        }
+        var html = '<div class="flex flex-col gap-4">';
+        list.forEach(function (ev) {
+            var c = typeColors[ev.type] || '#d32f2f';
+            html += '<div class="pl-3" style="border-left:2px solid ' + c + '">' +
+                '<div class="flex items-center gap-2 mb-1">' +
+                '<span class="font-mono text-xs font-bold" style="color:' + c + '">' + esc(ev.time) + '</span>' +
+                '<span class="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider" style="padding:0.125rem 0.375rem;background:' + c + '14;color:' + c + ';border:1px solid ' + c + '30">' + esc(ev.type) + '</span>' +
+                '</div>' +
+                '<div class="text-sm font-serif font-semibold leading-snug" style="color:var(--card-foreground)">' + esc(ev.title) + '</div>' +
+                '<div class="text-xs mt-0.5" style="color:var(--muted-foreground)">📍 ' + esc(ev.location) + '</div>' +
+                '<p class="text-xs mt-1.5 leading-relaxed" style="color:var(--muted-foreground)">' + esc(ev.description) + '</p>' +
+                '</div>';
+        });
+        html += '</div>';
+        daysEl.innerHTML = html;
+    }
+
+    function render() {
+        var daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+        var lead = (new Date(view.y, view.m, 1).getDay() + 6) % 7;
+        var cells = [];
+        for (var i = lead; i > 0; i--) cells.push({ y: view.y, m: view.m, d: new Date(view.y, view.m, 1 - i).getDate(), dim: true });
+        for (var d = 1; d <= daysInMonth; d++) cells.push({ y: view.y, m: view.m, d: d, dim: false });
+        var trail = 1;
+        while (cells.length % 7 !== 0) cells.push({ y: view.y, m: view.m + 1, d: trail++, dim: true });
+
+        var html = '';
+        cells.forEach(function (c) {
+            var key = iso(new Date(c.y, c.m, c.d));
+            var list = byDate[key] || [];
+            var sel = key === selected;
+            var today = key === iso(now);
+            html += '<button type="button" class="relative rounded-md p-1.5 text-left transition-all" style="min-height:52px;' + (sel ? 'background:rgba(211,47,47,0.14);border:1px solid rgba(211,47,47,0.55);' : 'border:1px solid transparent;') + '"' + (c.dim ? ' tabindex="-1"' : '') + ' data-day="' + key + '">' +
+                '<span class="text-xs font-mono ' + (today ? 'font-bold' : '') + '" style="color:' + (today ? '#d32f2f' : 'var(--card-foreground)') + '">' + c.d + '</span>';
+            if (list.length) {
+                html += '<span class="absolute flex gap-0.5" style="bottom:6px;left:50%;transform:translateX(-50%)">' +
+                    list.slice(0, 3).map(function (ev) {
+                        return '<span class="rounded-full" style="width:6px;height:6px;background:' + (typeColors[ev.type] || '#d32f2f') + '"></span>';
+                    }).join('') + '</span>';
+            }
+            html += '</button>';
+        });
+        grid.innerHTML = html;
+        monthEl.textContent = new Date(view.y, view.m, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+
+        Array.prototype.forEach.call(grid.querySelectorAll('[data-day]'), function (b) {
+            b.addEventListener('click', function () { selected = b.getAttribute('data-day'); render(); });
+        });
+        renderDay();
+    }
+
+    document.getElementById('cal-prev').addEventListener('click', function () {
+        var d = new Date(view.y, view.m - 1, 1);
+        view = { y: d.getFullYear(), m: d.getMonth() };
+        render();
+    });
+    document.getElementById('cal-next').addEventListener('click', function () {
+        var d = new Date(view.y, view.m + 1, 1);
+        view = { y: d.getFullYear(), m: d.getMonth() };
+        render();
+    });
+
+    render();
+})();
+</script>
+{% endblock %}

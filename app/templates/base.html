@@ -1,27 +1,29 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
+    <script>(function(){try{var t=localStorage.getItem('museo-theme')||'dark';document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');}catch(e){}})();</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="UniLibreTour — Plataforma interactiva para la gestión y exploración del museo digital universitario.">
     <title>{% block title %}{{ titulo | default('UniLibreTour — Museo Digital') }}{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=JetBrains+Mono:wght@400;500&display=swap">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo-unilibre-escudo.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    {% include 'components/navbar.html' %}
+    {% include 'components/header.html' %}
 
-    <main>
+    <main class="min-h-[60vh]">
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        &copy; 2026 UniLibreTour — Museo Digital Interactivo
-    </footer>
+    {% include 'components/footer.html' %}
 
+    <script src="{{ url_for('static', filename='js/utils/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils/app.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

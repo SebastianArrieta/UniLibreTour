@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Cola de Contenido — UniLibreTour{% endblock %}
+{% block extra_head %}
+<style>
+  @media (min-width: 768px) { .nowrap-md { flex-wrap: nowrap; } }
+</style>
+{% endblock %}
+{% block content %}
+  {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  {% set filtros = [
+    {'value': '', 'label': 'Todo'},
+    {'value': 'pendiente', 'label': 'Pendiente'},
+    {'value': 'publicado', 'label': 'Publicado'},
+    {'value': 'devuelto', 'label': 'Devuelto'},
+  ] %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, current_page) }}
+      <div class="min-w-0">
+        {% from 'components/macros.html' import section_header, status_badge, category_badge %}
+        {{ section_header('Revisión', 'Cola de Contenido', 'Piezas en espera de validación y publicación.') }}
+
+        <div class="flex flex-wrap items-center gap-3 mb-2">
+          <div class="text-xs font-mono px-3 py-1.5 rounded-full" style="background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.25)">{{ pendientes | length }} en espera</div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-6" id="cola-filtros">
+          {% for f in filtros %}
+          {% set n = contentQueue | selectattr('status', 'equalto', f.value) | list | length if f.value else contentQueue | length %}
+          <button type="button" data-filter="{{ f.value }}" class="{{ 'fil-aktivo px-3 py-1.5 rounded text-sm' if loop.first else 'px-3 py-1.5 rounded text-sm' }}"
+                  style="{{ 'background:#d32f2f;color:var(--background);border:1px solid #d32f2f' if loop.first else 'background:rgba(255,255,255,0.04);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)' }}">
+            {{ f.label }} ({{ n }})
+          </button>
+          {% endfor %}
+        </div>
+
+        <div class="flex flex-col gap-4" id="cola-list">
+          {% for item in contentQueue %}
+          {% set cm = contentItems | selectattr('title', 'equalto', item.title) | first %}
+          {% set detalle_href = url_for('prototipo.detalle', cid=cm.id) if (cm is defined and cm) else url_for('prototipo.detalle', cid='1') %}
+          <div class="museum-card rounded p-5 flex gap-4 flex-wrap nowrap-md" data-status="{{ item.status }}">
+            <img src="{{ item.image }}" alt="{{ item.title }}" class="w-24 h-20 object-cover rounded flex-shrink-0">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start gap-2 flex-wrap mb-1">
+                {{ status_badge(item.status) }}
+                {{ category_badge(item.category) }}
+              </div>
+              <h4 class="font-serif font-semibold text-sm mb-1" style="color:var(--card-foreground)">{{ item.title }}</h4>
+              <p class="text-xs line-clamp-2 mb-2" style="color:var(--muted-foreground)">{{ item.description }}</p>
+              <div class="flex items-center gap-4 text-xs" style="color:var(--muted-foreground)">
+                <span>Por: <span style="color:var(--secondary-foreground)">{{ item.submittedBy }}</span></span>
+                <span class="font-mono">{{ item.date }}</span>
+              </div>
+              {% if item.reviewNote %}
+              <div class="mt-2 text-xs px-3 py-2 rounded" style="background:rgba(239,68,68,0.06);color:#fca5a5;border:1px solid rgba(239,68,68,0.15)">
+                ↩ Nota: {{ item.reviewNote }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="flex flex-col gap-2 flex-shrink-0">
+              {% if item.status == 'pendiente' %}
+              <a href="{{ url_for('prototipo.admin_validacion', iid=item.id) }}" class="btn-primary px-4 py-2 rounded text-xs font-semibold whitespace-nowrap">Validar →</a>
+              {% else %}
+              <a href="{{ url_for('prototipo.admin_hall_registro') }}" class="btn-primary px-4 py-2 rounded text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-1">⭐ Destacar</a>
+              {% endif %}
+              <a href="{{ detalle_href }}" class="btn-outline-primary px-4 py-2 rounded text-xs whitespace-nowrap">Ver Contenido</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var chips = document.querySelectorAll('#cola-filtros [data-filter]');
+  var cards = document.querySelectorAll('#cola-list [data-status]');
+  function applyFilter(val) {
+    chips.forEach(function (c) {
+      var on = c.getAttribute('data-filter') === val;
+      c.style.background = on ? '#d32f2f' : 'rgba(255,255,255,0.04)';
+      c.style.color = on ? 'var(--background)' : 'var(--secondary-foreground)';
+      c.style.border = on ? '1px solid #d32f2f' : '1px solid rgba(255,255,255,0.1)';
+    });
+    cards.forEach(function (card) {
+      card.style.display = (!val || card.getAttribute('data-status') === val) ? '' : 'none';
+    });
+  }
+  chips.forEach(function (c) {
+    c.addEventListener('click', function () { applyFilter(c.getAttribute('data-filter')); });
+  });
+})();
+</script>
+{% endblock %}

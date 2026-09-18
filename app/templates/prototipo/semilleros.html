@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Semilleros y Grupos — UniLibreTour{% endblock %}
+{% block content %}
+{% set semilleros = researchGroups | selectattr('category', 'equalto', 'semillero') | list %}
+{% set grupos = researchGroups | selectattr('category', 'equalto', 'grupo') | list %}
+
+<div class="max-w-4xl mx-auto px-4 md:px-8 py-10">
+    <a href="{{ url_for('prototipo.home') }}" class="inline-flex items-center gap-2 text-sm mb-8 btn-outline-primary px-3 py-1.5 rounded">← Volver al Inicio</a>
+
+    <div class="mb-10">
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Investigación</div>
+        <h1 class="font-serif text-3xl md:text-4xl font-bold leading-tight mb-2" style="color:var(--foreground)">Semilleros y Grupos</h1>
+        <p class="text-base" style="color:var(--muted-foreground)">La fuerza investigativa que impulsa la innovación en el Programa de Ingeniería de Sistemas.</p>
+    </div>
+
+    <div class="mb-10">
+        <h2 class="text-xs font-mono uppercase tracking-widest mb-4" style="color:var(--muted-foreground)">Semilleros</h2>
+        <div class="flex flex-col gap-3">
+            {% for g in semilleros %}
+            <div class="museum-card rounded p-5 flex gap-4 items-start">
+                <div class="w-10 h-10 rounded flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(211,47,47,0.08)">🔬</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-serif font-semibold text-base" style="color:var(--card-foreground)">{{ g.name }}</h3>
+                        <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(255,255,255,0.04);color:var(--muted-foreground)">{{ g.members }} miembros</span>
+                    </div>
+                    <div class="text-sm mb-1" style="color:#d32f2f">{{ g.lead }}</div>
+                    <p class="text-sm" style="color:var(--muted-foreground)">{{ g.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <h2 class="text-xs font-mono uppercase tracking-widest mb-4" style="color:var(--muted-foreground)">Grupos de Investigación</h2>
+        <div class="flex flex-col gap-3">
+            {% for g in grupos %}
+            <div class="museum-card rounded p-5 flex gap-4 items-start">
+                <div class="w-10 h-10 rounded flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(211,47,47,0.08)">🧪</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h3 class="font-serif font-semibold text-base" style="color:var(--card-foreground)">{{ g.name }}</h3>
+                        <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(255,255,255,0.04);color:var(--muted-foreground)">{{ g.members }} miembros</span>
+                    </div>
+                    <div class="text-sm mb-1" style="color:#d32f2f">{{ g.lead }}</div>
+                    <p class="text-sm" style="color:var(--muted-foreground)">{{ g.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

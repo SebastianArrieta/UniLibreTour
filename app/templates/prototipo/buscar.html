@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from 'components/macros.html' import content_card, section_header %}
+{% block title %}Buscador — UniLibreTour{% endblock %}
+{% block content %}
+{% set visible = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
+{% set categorias = ['historia', 'investigacion', 'proyectos', 'eventos', 'logros', 'docentes', 'fotografías', 'videos', 'documentos'] %}
+{% set anios = ['2024', '2023', '2022', '2021', '2020', '2019'] %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    {{ section_header('Búsqueda', 'Buscador', 'Encuentra proyectos, investigaciones y eventos del programa.') }}
+
+    <div class="museum-card rounded p-5 mb-8 flex flex-col md:flex-row gap-3">
+        <input type="text" id="bq" placeholder="Buscar por título, descripción o etiqueta…" class="museum-input flex-1 px-4 py-2.5 rounded text-sm">
+        <input type="text" id="ba" placeholder="Por persona (autor)…" class="museum-input flex-1 px-4 py-2.5 rounded text-sm md:max-w-[200px]">
+        <select id="bc" class="museum-input px-3 py-2.5 rounded text-sm md:w-44">
+            <option value="">Categoría</option>
+            {% for c in categorias %}
+            <option value="{{ c }}" style="background:var(--card)">{{ c | capitalize }}</option>
+            {% endfor %}
+        </select>
+        <select id="by" class="museum-input px-3 py-2.5 rounded text-sm md:w-32">
+            <option value="">Año</option>
+            {% for y in anios %}
+            <option value="{{ y }}" style="background:var(--card)">{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 mb-6">
+        <span class="text-sm font-mono mr-2" style="color:var(--muted-foreground)"><span id="bcount">{{ visible | length }}</span> resultado{{ '' if (visible | length) == 1 else 's' }}</span>
+        <span id="bchips" class="flex flex-wrap items-center gap-2"></span>
+    </div>
+
+    <div id="bgrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for item in visible %}
+        {{ content_card(item) }}
+        {% endfor %}
+    </div>
+
+    <div id="bvacio" class="hidden text-center py-20 flex flex-col items-center gap-2">
+        <span class="text-5xl opacity-20">🔍</span>
+        <p style="color:var(--muted-foreground)">No se encontraron resultados. Intenta con otros términos.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>window.__DATOS = {{ datos | tojson }};</script>
+<script>
+(function () {
+    var DATOS = window.__DATOS || {};
+    var q = document.getElementById('bq');
+    var a = document.getElementById('ba');
+    var c = document.getElementById('bc');
+    var y = document.getElementById('by');
+    var grid = document.getElementById('bgrid');
+    var vacio = document.getElementById('bvacio');
+    var countEl = document.getElementById('bcount');
+    var chips = document.getElementById('bchips');
+    var all = DATOS.contentItems || [];
+    if (!q || !grid) return;
+
+    function esc(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function searchHits(query) {
+        if (window.Museo && Museo.data()) return Museo.searchAll(query);
+        var ql = query.toLowerCase();
+        var hits = [];
+        all.forEach(function (it) {
+            if (!it) return;
+            var hay = [it.title, it.description, it.author, it.category].concat(it.tags || []).join(' ').toLowerCase();
+            if (hay.indexOf(ql) !== -1) hits.push({ item: it });
+        });
+        return hits;
+    }
+
+    function apply() {
+        var query = q.value.trim().toLowerCase();
+        var author = a.value.trim().toLowerCase();
+        var cat = c.value;
+        var year = y.value;
+        var list;
+        if (query) {
+            list = searchHits(query).filter(function (h) { return !h.extra; }).map(function (h) { return h.item; });
+        } else {
+            list = all.slice();
+        }
+        list = list.filter(function (it) { return it.status === 'publicado' || it.status === 'institucional'; })
+            .filter(function (it) { return !author || ((it.author || '').toLowerCase().indexOf(author) !== -1); })
+            .filter(function (it) { return !cat || it.category === cat; })
+            .filter(function (it) { return !year || String(it.date || '').indexOf(year) === 0; });
+
+        countEl.textContent = list.length;
+        if (!list.length) {
+            grid.innerHTML = '';
+            vacio.classList.remove('hidden');
+        } else {
+            vacio.classList.add('hidden');
+            grid.innerHTML = list.map(function (it) { return UI.contentCard(it); }).join('');
+        }
+
+        var h = '';
+        if (query) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Búsqueda: ' + esc(q.value.trim()) + '</span>';
+        if (author) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Persona: ' + esc(a.value.trim()) + '</span>';
+        if (cat) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Categoría: ' + esc(cat) + '</span>';
+        if (year) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Año: ' + esc(year) + '</span>';
+        chips.innerHTML = h;
+    }
+
+    var fields = [q, a, c, y];
+    ['input', 'change'].forEach(function (ev) {
+        fields.forEach(function (el) { el.addEventListener(ev, apply); });
+    });
+
+    if (window.Museo) Museo.loadData().catch(function () {});
+    apply();
+})();
+</script>
+{% endblock %}

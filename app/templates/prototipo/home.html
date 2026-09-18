@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% from 'components/macros.html' import section_header %}
+{% block title %}UniLibreTour — Herencia Digital{% endblock %}
+{% block content %}
+{% set type_colors = {'fundacion': '#d32f2f', 'logro': '#22c55e', 'evento': '#3b82f6', 'investigacion': '#a855f7'} %}
+{% set meses = {'01':'ene', '02':'feb', '03':'mar', '04':'abr', '05':'may', '06':'jun', '07':'jul', '08':'ago', '09':'sep', '10':'oct', '11':'nov', '12':'dic'} %}
+{% set tl_ns = namespace(groups={}) %}
+{% for ev in timeline %}
+  {% set dec = (ev.year // 10) * 10 %}
+  {% if dec in tl_ns.groups %}
+    {% set _ = tl_ns.groups[dec].append(ev) %}
+  {% else %}
+    {% set _ = tl_ns.groups.__setitem__(dec, [ev]) %}
+  {% endif %}
+{% endfor %}
+{% set decades = tl_ns.groups.keys() | list | sort %}
+{% set eventos_home = contentItems | selectattr('category', 'equalto', 'eventos') | list %}
+
+<section class="relative min-h-[82vh] flex items-center overflow-hidden">
+    <div class="absolute inset-0 z-0">
+        <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=1400&h=900&fit=crop&auto=format" alt="Campus universitario" class="w-full h-full object-cover opacity-20">
+        <div class="hero-overlay absolute inset-0"></div>
+    </div>
+    <div class="absolute inset-0 z-0" style="opacity:0.03;background-image:linear-gradient(rgba(211,47,47,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(211,47,47,0.5) 1px, transparent 1px);background-size:80px 80px"></div>
+
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 py-16">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div class="animate-fadeInUp">
+                <img src="{{ url_for('static', filename='images/logo-unilibre-escudo.svg') }}" alt="Escudo Universidad Libre" class="block w-auto mx-auto h-[58px] mb-6">
+
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-mono" style="background:rgba(211,47,47,0.1);border:1px solid rgba(211,47,47,0.25);color:#d32f2f">
+                    ✦ 50 Años de Excelencia Académica · 1975–2025
+                </div>
+
+                <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl font-black leading-none mb-5" style="color:var(--foreground)">
+                    Herencia<br>
+                    <span class="text-primary-gradient italic">Digital</span>
+                </h1>
+                <p class="text-base md:text-lg max-w-lg mb-8 leading-relaxed" style="color:var(--secondary-foreground)">
+                    Archivo vivo del Programa de Ingeniería de Sistemas — Universidad Libre. Historia, investigación y logros que inspiran generaciones.
+                </p>
+
+                <form action="{{ url_for('prototipo.buscar') }}" method="get" class="flex gap-2 max-w-md mb-6">
+                    <input type="text" name="q" placeholder="Buscar proyectos, investigaciones…" class="museum-input flex-1 px-4 py-3 rounded text-sm">
+                    <button type="submit" class="btn-primary px-5 py-3 rounded text-sm whitespace-nowrap">Buscar</button>
+                </form>
+
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ url_for('prototipo.explorar') }}" class="btn-outline-primary btn-float px-5 py-2.5 rounded text-sm">Explorar Colecciones</a>
+                    <a href="{{ url_for('prototipo.hall_fama') }}" class="btn-outline-primary px-5 py-2.5 rounded text-sm">Hall de la Fama</a>
+                    <a href="{{ url_for('prototipo.login') }}" class="px-5 py-2.5 rounded text-sm font-medium transition-colors" style="background:rgba(255,255,255,0.06);color:var(--card-foreground);border:1px solid rgba(255,255,255,0.1)">¿Eres parte del programa? →</a>
+                </div>
+            </div>
+
+            <div id="hero-timeline" class="hidden lg:block">
+                <div class="mb-4">
+                    <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Cronología</div>
+                    <div class="text-sm font-serif font-semibold" style="color:var(--foreground)">Medio siglo de hitos</div>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 mb-4">
+                    {% for dec in decades %}
+                    <button type="button" data-decade="{{ dec }}" class="px-3 py-1 rounded-full text-xs font-mono font-bold transition-all" style="{% if loop.first %}background:#d32f2f;color:#ffffff;box-shadow:0 2px 10px rgba(211,47,47,0.35);border:1px solid #d32f2f{% else %}background:transparent;color:var(--secondary-foreground);border:1px solid rgba(211,47,47,0.25){% endif %}">{{ "'" }}{{ (dec | string)[-2:] }}0s</button>
+                    {% endfor %}
+                </div>
+
+                <div class="relative pl-6" style="min-height:220px">
+                    <div class="absolute left-0 top-1 bottom-1 rounded-full" style="width:3px;background:linear-gradient(to bottom, #d32f2f, rgba(211,47,47,0.05))"></div>
+                    {% for dec in decades %}
+                    {% set group = tl_ns.groups[dec] %}
+                    {% set main = group[0] %}
+                    <div data-decade-content="{{ dec }}" class="{{ 'hidden' if not loop.first }}">
+                        <a href="{{ url_for('prototipo.explorar') }}" class="block w-full text-left group">
+                            <span class="font-serif text-[64px] font-black leading-none text-primary-gradient block transition-transform duration-300 group-hover:translate-x-1">{{ main.year }}</span>
+                            <span class="inline-block text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider mt-2.5" style="background:{{ type_colors[main.type] }}14;color:{{ type_colors[main.type] }};border:1px solid {{ type_colors[main.type] }}30">{{ main.type | capitalize }}</span>
+                            <div class="font-serif text-lg font-bold mt-2 leading-snug transition-colors" style="color:var(--foreground)">{{ main.title }}</div>
+                            <p class="text-sm leading-relaxed mt-1.5 max-w-md" style="color:var(--muted-foreground)">{{ main.description }}</p>
+                        </a>
+                        {% if group | length > 1 %}
+                        <div class="mt-5 pt-4" style="border-top:1px solid rgba(211,47,47,0.12)">
+                            <div class="text-[10px] font-mono uppercase tracking-widest mb-2" style="color:var(--muted-foreground)">También en esta década</div>
+                            <div class="flex flex-col gap-2">
+                                {% for ev in group[1:] %}
+                                <a href="{{ url_for('prototipo.explorar') }}" class="flex items-baseline gap-3 text-left w-full hover:opacity-70 transition-opacity">
+                                    <span class="font-mono text-xs font-bold flex-shrink-0" style="color:{{ type_colors[ev.type] }}">{{ ev.year }}</span>
+                                    <span class="text-xs truncate" style="color:var(--secondary-foreground)">{{ ev.title }}</span>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <a href="{{ url_for('prototipo.cronologia') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded mt-4">Ver línea completa →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 md:px-8 pt-16">
+    <div class="flex items-end justify-between mb-4 flex-wrap gap-3">
+        <div>
+            <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Mantente informado</div>
+            <h2 class="font-serif text-2xl md:text-3xl font-bold" style="color:var(--foreground)">Noticias</h2>
+        </div>
+        <div class="flex gap-2">
+            <button type="button" id="news-prev" aria-label="Noticia anterior" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:-translate-x-0.5" style="border:1px solid var(--border);color:#d32f2f;background:var(--card)">‹</button>
+            <button type="button" id="news-next" aria-label="Noticia siguiente" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:translate-x-0.5" style="border:1px solid var(--border);color:#d32f2f;background:var(--card)">›</button>
+        </div>
+    </div>
+
+    <div id="news-carousel" class="relative rounded-lg overflow-hidden h-[340px] sm:h-[400px] group" style="border:1px solid var(--border)">
+        {% for n in news %}
+        <a href="{{ url_for('prototipo.explorar') }}" aria-hidden="{{ 'false' if loop.first else 'true' }}" class="news-slide absolute inset-0 transition-opacity duration-700 cursor-pointer {% if loop.first %}opacity-100 z-10{% else %}opacity-0 z-0 pointer-events-none{% endif %}">
+            <img src="{{ n.image }}" alt="{{ n.title }}" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.15) 100%)"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-6 md:p-10 max-w-3xl">
+                <div class="flex items-center gap-3 mb-3 flex-wrap">
+                    <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ n.category }}</span>
+                    <span class="text-xs font-mono" style="color:rgba(255,255,255,0.6)">{{ n.date | fmt_fecha }}</span>
+                </div>
+                <h3 class="font-serif text-xl md:text-3xl font-bold leading-snug mb-2" style="color:#ffffff">{{ n.title }}</h3>
+                <p class="text-sm leading-relaxed line-clamp-2 max-w-2xl" style="color:rgba(255,255,255,0.75)">{{ n.excerpt }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <div class="flex items-center justify-center gap-2 mt-4">
+        {% for n in news %}
+        <button type="button" data-dot="{{ loop.index0 }}" aria-label="Ir a la noticia {{ loop.index }}" class="news-dot h-1.5 rounded-full transition-all duration-300" style="width:{{ 24 if loop.first else 8 }}px;background:{{ '#d32f2f' if loop.first else 'var(--border)' }}"></button>
+        {% endfor %}
+    </div>
+</section>
+
+<section id="colecciones" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
+    {{ section_header('Archivo', 'Colecciones', 'Seis colecciones temáticas que documentan la trayectoria del programa.') }}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for col in collections %}
+        <a href="{{ url_for('prototipo.explorar') }}" class="museum-card rounded overflow-hidden text-left group block">
+            <div class="relative h-40 overflow-hidden" style="background:#111827">
+                <img src="{{ col.image }}" alt="{{ col.title }}" class="w-full h-full object-cover opacity-70 transition-all duration-500 group-hover:opacity-90 group-hover:scale-105">
+                <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)"></div>
+                <span class="absolute bottom-3 left-3 text-2xl">{{ col.icon }}</span>
+                <span class="absolute top-3 right-3 text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.6);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">{{ col.count }} piezas</span>
+            </div>
+            <div class="p-4">
+                <h3 class="font-serif font-semibold text-base mb-1" style="color:var(--card-foreground)">{{ col.title }}</h3>
+                <p class="text-xs leading-relaxed" style="color:var(--muted-foreground)">{{ col.description }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<hr class="section-divider max-w-7xl mx-auto" style="width:calc(100% - 4rem)">
+
+<section id="logros" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
+    {{ section_header('Premios', 'Logros Destacados', 'Reconocimientos que avalan la excelencia del programa.') }}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {% for ach in achievements[:3] %}
+        <div class="museum-card rounded overflow-hidden flex flex-col group">
+            <div class="h-32 relative" style="background:#111827">
+                <img src="{{ ach.image }}" alt="{{ ach.title }}" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
+                <div class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center" style="background:rgba(0,0,0,0.6);border:1px solid rgba(211,47,47,0.3)">🏆</div>
+            </div>
+            <div class="p-4 flex-1 flex flex-col">
+                <div class="text-xs font-mono mb-1" style="color:#d32f2f">{{ ach.year }} · {{ ach.institution }}</div>
+                <h4 class="font-serif font-semibold text-sm mb-2" style="color:var(--card-foreground)">{{ ach.title }}</h4>
+                <p class="text-xs line-clamp-2 mt-auto" style="color:var(--muted-foreground)">{{ ach.description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<hr class="section-divider max-w-7xl mx-auto" style="width:calc(100% - 4rem)">
+
+<section class="max-w-7xl mx-auto px-4 md:px-8 py-12">
+    {{ section_header('Comunidad', 'Investigación y Eventos', 'La actividad académica que mantiene vivo el programa.') }}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+            <div class="flex items-center gap-2 mb-4">
+                <div class="text-xs font-mono uppercase tracking-widest" style="color:#d32f2f">Grupos y Semilleros</div>
+            </div>
+            <div class="flex flex-col">
+                {% for g in researchGroups %}
+                <div class="flex items-center gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid rgba(255,255,255,0.05){% endif %}">
+                    <div class="w-8 h-8 rounded flex items-center justify-center text-sm flex-shrink-0" style="background:rgba(211,47,47,0.08)">{{ '🔬' if g.category == 'semillero' else '🧪' }}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-serif font-semibold group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ g.name }}</div>
+                        <div class="text-xs" style="color:var(--muted-foreground)">{{ g.lead }}</div>
+                    </div>
+                    <div class="text-xs font-mono px-2 py-0.5 rounded flex-shrink-0" style="background:rgba(255,255,255,0.04);color:var(--muted-foreground)">{{ g.members }} miembros</div>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('prototipo.semilleros') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded mt-4">Ver todos los grupos →</a>
+        </div>
+
+        <div>
+            <div class="flex items-center gap-2 mb-4">
+                <div class="text-xs font-mono uppercase tracking-widest" style="color:#d32f2f">Agenda</div>
+            </div>
+            <div class="flex flex-col">
+                {% for ev in eventos_home[:3] %}
+                <div class="flex gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid rgba(255,255,255,0.05){% endif %}">
+                    <div class="w-10 flex-shrink-0 text-center rounded p-1" style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.15)">
+                        <div class="text-xs font-mono font-bold leading-none" style="color:#d32f2f">{{ ev.date[8:10] }}</div>
+                        <div class="text-[10px] leading-none mt-0.5" style="color:var(--muted-foreground)">{{ meses.get(ev.date[5:7], ev.date[5:7]) }}</div>
+                    </div>
+                    <a href="{{ url_for('prototipo.detalle', cid=ev.id) }}" class="flex-1 min-w-0 block">
+                        <div class="text-sm font-serif font-semibold leading-tight group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ ev.title }}</div>
+                        <div class="text-xs mt-0.5" style="color:var(--muted-foreground)">📍 Auditorio Principal</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('prototipo.calendario') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded mt-4">Ver todos los eventos →</a>
+        </div>
+    </div>
+</section>
+
+<hr class="section-divider max-w-7xl mx-auto" style="width:calc(100% - 4rem)">
+
+<section class="py-16">
+    <div class="max-w-5xl mx-auto px-4 md:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {% for s in [{'label': 'Piezas en el Archivo', 'value': '1.353'}, {'label': 'Años de Historia', 'value': '50'}, {'label': 'Egresados Destacados', 'value': '2.400+'}, {'label': 'Proyectos Laureados', 'value': '84'}] %}
+            <div>
+                <div class="font-serif text-4xl font-black mb-1 text-primary-gradient">{{ s.value }}</div>
+                <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">{{ s.label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var wrap = document.getElementById('news-carousel');
+    if (!wrap) return;
+    var slides = Array.prototype.slice.call(wrap.querySelectorAll('.news-slide'));
+    var dots = Array.prototype.slice.call(document.querySelectorAll('.news-dot'));
+    var idx = 0, hovered = false;
+    if (!slides.length) return;
+    function go(i) {
+        idx = (i + slides.length) % slides.length;
+        slides.forEach(function (s, k) {
+            var on = k === idx;
+            s.classList.toggle('opacity-100', on);
+            s.classList.toggle('z-10', on);
+            s.classList.toggle('opacity-0', !on);
+            s.classList.toggle('z-0', !on);
+            s.classList.toggle('pointer-events-none', !on);
+            s.setAttribute('aria-hidden', on ? 'false' : 'true');
+        });
+        dots.forEach(function (d, k) {
+            d.style.width = (k === idx ? 24 : 8) + 'px';
+            d.style.background = k === idx ? '#d32f2f' : 'var(--border)';
+        });
+    }
+    var timer = setInterval(function () { if (!hovered) go(idx + 1); }, 5000);
+    wrap.addEventListener('mouseenter', function () { hovered = true; });
+    wrap.addEventListener('mouseleave', function () { hovered = false; });
+    document.getElementById('news-prev').addEventListener('click', function () { go(idx - 1); });
+    document.getElementById('news-next').addEventListener('click', function () { go(idx + 1); });
+    dots.forEach(function (d, k) { d.addEventListener('click', function () { go(k); }); });
+    go(0);
+})();
+
+(function () {
+    var tl = document.getElementById('hero-timeline');
+    if (!tl) return;
+    var groups = Array.prototype.slice.call(tl.querySelectorAll('[data-decade-content]'));
+    var btns = Array.prototype.slice.call(tl.querySelectorAll('[data-decade]'));
+    if (!groups.length) return;
+    var active = groups[0].getAttribute('data-decade-content');
+    var hovered = false;
+    function paint() {
+        groups.forEach(function (g) { g.classList.toggle('hidden', g.getAttribute('data-decade-content') !== active); });
+        btns.forEach(function (b) {
+            var on = b.getAttribute('data-decade') === active;
+            b.style.background = on ? '#d32f2f' : 'transparent';
+            b.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
+            b.style.border = on ? '1px solid #d32f2f' : '1px solid rgba(211,47,47,0.25)';
+            b.style.boxShadow = on ? '0 2px 10px rgba(211,47,47,0.35)' : 'none';
+        });
+    }
+    btns.forEach(function (b) {
+        b.addEventListener('click', function () { active = b.getAttribute('data-decade'); paint(); });
+    });
+    tl.addEventListener('mouseenter', function () { hovered = true; });
+    tl.addEventListener('mouseleave', function () { hovered = false; });
+    setInterval(function () {
+        if (hovered) return;
+        var idx = groups.findIndex(function (g) { return g.getAttribute('data-decade-content') === active; });
+        active = groups[(idx + 1) % groups.length].getAttribute('data-decade-content');
+        paint();
+    }, 5000);
+    paint();
+})();
+</script>
+{% endblock %}

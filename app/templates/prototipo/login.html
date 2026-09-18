@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Acceso al Museo — UniLibreTour{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="mt-8 mb-3 flex justify-center">
+                {% include 'components/logo.html' %}
+            </div>
+            <h1 class="font-serif text-2xl font-bold mb-1" style="color:var(--foreground)">Acceso al Museo</h1>
+            <p class="text-sm" style="color:var(--muted-foreground)">Ingresa con tus credenciales institucionales</p>
+        </div>
+
+        <div class="museum-card rounded-lg p-7">
+            <form id="login-form" class="flex flex-col gap-4" novalidate>
+                <div>
+                    <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Correo Institucional</label>
+                    <input id="login-email" type="email" placeholder="usuario@unilibre.edu.co"
+                           class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Contraseña</label>
+                    <input id="login-password" type="password" placeholder="••••••••"
+                           class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                </div>
+                <div id="login-error" class="text-xs px-3 py-2 rounded" style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+                <button type="submit" class="btn-primary w-full py-3 rounded font-semibold">Ingresar</button>
+            </form>
+            <div class="mt-4 text-center">
+                <a href="{{ url_for('prototipo.registro') }}" class="text-sm hover:underline" style="color:#d32f2f">¿No tienes cuenta? Regístrate</a>
+            </div>
+        </div>
+
+        <div class="mt-6 rounded-lg p-4" style="background:rgba(211,47,47,0.05);border:1px solid rgba(211,47,47,0.15)">
+            <div class="text-xs font-mono uppercase tracking-widest mb-3 text-center" style="color:var(--muted-foreground)">
+                Cuentas Demo — clic para rellenar
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                {% for acc in demoAccounts %}
+                <button type="button" data-fill data-email="{{ acc.email }}" data-password="{{ acc.password }}"
+                        class="p-2 rounded text-center transition-all"
+                        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--secondary-foreground)">
+                    <div class="text-xs font-semibold mb-0.5" style="color:#d32f2f">{{ acc.label }}</div>
+                    <div class="text-xs" style="color:var(--muted-foreground);font-size:10px">{{ acc.email.split('@')[0] }}</div>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+</script>
+<script>
+(function () {
+    var D = window.__DATOS || {};
+    var accounts = D.demoAccounts || [];
+    var TWO_FA_URL = "{{ url_for('prototipo.two_fa') }}";
+    var emailEl = document.getElementById('login-email');
+    var passEl = document.getElementById('login-password');
+    var errorEl = document.getElementById('login-error');
+    var form = document.getElementById('login-form');
+
+    function showError(msg) {
+        if (!errorEl) return;
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = (emailEl.value || '').trim().toLowerCase();
+        var pass = passEl.value || '';
+        var match = null;
+        accounts.forEach(function (a) {
+            if ((a.email || '').toLowerCase() === email && a.password === pass) match = a;
+        });
+        if (!match) {
+            showError('Credenciales incorrectas. Usa las cuentas demo a continuación.');
+            return;
+        }
+        try {
+            localStorage.setItem('museo-pending-role', match.role);
+            localStorage.setItem('museo-pending-email', match.email);
+        } catch (err) {}
+        window.location.href = TWO_FA_URL;
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-fill]'), function (btn) {
+        btn.addEventListener('click', function () {
+            emailEl.value = btn.getAttribute('data-email');
+            passEl.value = btn.getAttribute('data-password');
+            if (errorEl) errorEl.style.display = 'none';
+        });
+    });
+})();
+</script>
+{% endblock %}

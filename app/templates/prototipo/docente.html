@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Mi Espacio — Docente{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% from 'components/macros.html' import empty_state, status_badge, category_badge %}
+{% set sb_links = [
+  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.docente')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'✎','href': url_for('prototipo.docente_evidencia')},
+] %}
+{% set casas = users | selectattr('email', 'equalto', 'h.casas@unilibre.edu.co') | first %}
+{% set cola = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
+{% set involucrados = contentItems | selectattr('involvedTeacher', 'in', ['Dr. Hernando Casas', 'Hernando Casas']) | list %}
+{% set involved_pending = involucrados | selectattr('status', 'equalto', 'pendiente') | list %}
+{% set notifs = [
+  {'type':'aprobado','message':'Tu contribución "Sistema de Predicción..." fue aprobada','time':'Hace 2h','icon':'✓','color':'#22c55e'},
+  {'type':'pendiente','message':'Tienes 1 pieza pendiente de revisión','time':'Hace 5h','icon':'⏳','color':'#f97316'},
+  {'type':'sistema','message':'Convocatoria de investigación 2025-1 abierta','time':'Ayer','icon':'ℹ','color':'#3b82f6'},
+] %}
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+</style>
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, current_page) }}
+    <div class="min-w-0">
+      <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)">Docente</span>
+            <span class="text-xs font-mono" style="color:var(--muted-foreground)">Grupo GISI</span>
+          </div>
+          <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Buenos días, Dr. Casas</h1>
+          <p class="text-sm mt-1" style="color:var(--muted-foreground)">Cat. Investigador Asociado · {{ cola | length }} contribuciones pendientes de revisión</p>
+        </div>
+        <a href="{{ url_for('prototipo.docente_evidencia') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold flex items-center gap-2">
+          <span class="text-lg leading-none">+</span> Registrar Evidencia
+        </a>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #d32f2f">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(211,47,47,0.06);color:#d32f2f">📝</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Contribuciones</div>
+          </div>
+          <div class="font-serif text-3xl font-bold" style="color:#d32f2f">{{ casas.contributions if casas and casas.contributions else 18 }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Total registradas</div>
+        </div>
+        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #22c55e">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(34,197,94,0.06);color:#22c55e">✓</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Publicadas</div>
+          </div>
+          <div class="font-serif text-3xl font-bold" style="color:#22c55e">15</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">En el archivo</div>
+        </div>
+        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #f97316">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(249,115,22,0.06);color:#f97316">⏳</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">En Revisión</div>
+          </div>
+          <div class="font-serif text-3xl font-bold" style="color:#f97316">{{ cola | length }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Pendientes</div>
+        </div>
+        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #a855f7">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(168,85,247,0.06);color:#a855f7">🎓</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Estudiantes</div>
+          </div>
+          <div class="font-serif text-3xl font-bold" style="color:#a855f7">34</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Proyectos activos</div>
+        </div>
+      </div>
+
+      <div class="flex gap-0 border-b mb-6" style="border-color:rgba(255,255,255,0.08)" id="doc-tabs">
+        <button type="button" data-tab="mio" class="py-3 px-4 border-b-2 text-sm font-medium transition-all duration-200" style="border-color:#d32f2f;color:#d32f2f;background:rgba(211,47,47,0.04)">📄 Mi Contenido</button>
+        <button type="button" data-tab="involucrado" class="py-3 px-4 border-b-2 text-sm font-medium flex items-center gap-2 transition-all duration-200" style="border-color:transparent;color:var(--muted-foreground);background:transparent">
+          👥 Me Involucran
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div id="tab-mio" class="flex flex-col gap-6">
+            <div class="museum-card rounded p-5">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Cola de Contenido Pendiente</h3>
+                  <span class="text-xs font-mono px-2 py-0.5 rounded-full" style="background:rgba(249,115,22,0.12);color:#f97316">{{ cola | length }}</span>
+                </div>
+                <a href="{{ url_for('prototipo.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nueva</a>
+              </div>
+              <div class="flex flex-col gap-3">
+                {% if cola | length == 0 %}
+                  {{ empty_state('No hay contenido pendiente en la cola.', '✓') }}
+                {% endif %}
+                {% for item in cola %}
+                <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03)">
+                  <img src="{{ item.image }}" alt="{{ item.title }}" class="w-10 h-10 object-cover rounded flex-shrink-0" />
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
+                    <div class="flex items-center gap-2 mt-1">
+                      {{ status_badge(item.status) }}
+                      <span class="text-xs font-mono" style="color:var(--muted-foreground)">Por: {{ item.submittedBy }}</span>
+                    </div>
+                  </div>
+                  <a href="{{ url_for('prototipo.admin_validacion', iid=item.id) }}" class="text-xs btn-primary px-3 py-1.5 rounded flex-shrink-0">Revisar →</a>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="museum-card rounded p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Necesitan tu Atención</h3>
+                <a href="{{ url_for('prototipo.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nueva</a>
+              </div>
+              <div class="flex flex-col gap-3">
+                {% set mi_pend = casas and ((contentItems + contentQueue) | selectattr('author', 'equalto', casas.name) | list + (contentItems + contentQueue) | selectattr('submittedBy', 'equalto', casas.name) | list) | unique(attribute='id') | list | rejectattr('status', 'in', ['publicado', 'institucional']) | list %}
+                {% if (mi_pend | default([])) | length == 0 %}
+                  {{ empty_state('No tienes contribuciones pendientes de revisión.', '✓') }}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-involucrado" class="museum-card rounded p-5" style="display:none">
+            <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Proyectos donde te involucran</h3>
+            <div class="flex flex-col gap-3">
+              {% if involucrados | length == 0 %}
+              <p class="text-sm" style="color:var(--muted-foreground)">No hay proyectos que te involucren aún.</p>
+              {% else %}
+                {% for item in involucrados %}
+                <div class="flex items-center justify-between gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03)">
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">{{ item.title }}</div>
+                    <div class="text-xs mt-1" style="color:var(--muted-foreground)">Enviado por: {{ item.author }}</div>
+                    <div class="mt-1">{{ status_badge(item.status) }}</div>
+                  </div>
+                  <a href="{{ url_for('prototipo.detalle', cid=item.id) }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Ver detalle</a>
+                </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="museum-card rounded p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">🔔 Notificaciones</h3>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(211,47,47,0.12);color:#d32f2f">3</span>
+            </div>
+            <a href="{{ url_for('prototipo.docente_notificaciones') }}" class="text-xs" style="color:#d32f2f">Ver todas</a>
+          </div>
+          <div class="flex flex-col gap-2">
+            {% for n in notifs %}
+            <div class="flex gap-3 items-start p-3 rounded transition-colors hover:bg-white/[0.02]" style="border-left:3px solid {{ n.color }}">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0" style="background:{{ n.color }}15;color:{{ n.color }}">{{ n.icon }}</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm" style="color:var(--secondary-foreground)">{{ n.message }}</p>
+                <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ n.time }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var tabs = document.querySelectorAll('#doc-tabs [data-tab]');
+  var mio = document.getElementById('tab-mio');
+  var invol = document.getElementById('tab-involucrado');
+  function activate(tab) {
+    tabs.forEach(function (t) {
+      var on = t.getAttribute('data-tab') === tab;
+      t.style.borderColor = on ? '#d32f2f' : 'transparent';
+      t.style.color = on ? '#d32f2f' : 'var(--muted-foreground)';
+      t.style.background = on ? 'rgba(211,47,47,0.04)' : 'transparent';
+    });
+    mio.style.display = tab === 'mio' ? '' : 'none';
+    invol.style.display = tab === 'involucrado' ? '' : 'none';
+  }
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
+  });
+})();
+</script>
+{% endblock %}

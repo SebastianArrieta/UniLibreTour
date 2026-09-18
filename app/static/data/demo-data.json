@@ -1,0 +1,852 @@
+{
+  "collections": [
+    {
+      "id": "historia",
+      "title": "Historia del Programa",
+      "description": "Documentos fundacionales, actas y hitos que marcaron la trayectoria académica desde 1975.",
+      "count": 142,
+      "icon": "🏛️",
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "investigacion",
+      "title": "Investigación",
+      "description": "Publicaciones, artículos indexados y resultados de grupos de investigación reconocidos por Minciencias.",
+      "count": 318,
+      "icon": "🔬",
+      "image": "https://images.unsplash.com/photo-1532094349884-543559fee08d?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "proyectos",
+      "title": "Proyectos de Grado",
+      "description": "Trabajos de grado meritorios y laureados que han generado impacto en la industria y la academia.",
+      "count": 527,
+      "icon": "🎓",
+      "image": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "eventos",
+      "title": "Eventos Académicos",
+      "description": "Congresos, simposios, semilleros y actividades culturales que enriquecen la vida universitaria.",
+      "count": 203,
+      "icon": "📅",
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "logros",
+      "title": "Logros y Reconocimientos",
+      "description": "Premios nacionales, acreditaciones de alta calidad y distinciones obtenidas por docentes y egresados.",
+      "count": 89,
+      "icon": "🏆",
+      "image": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "docentes",
+      "title": "Docentes Destacados",
+      "description": "Perfiles de investigadores, directores de grupo y mentores que han moldeado generaciones de ingenieros.",
+      "count": 74,
+      "icon": "👨‍🏫",
+      "image": "https://images.unsplash.com/photo-1560523159-4a9692d222ef?w=600&h=400&fit=crop&auto=format"
+    }
+  ],
+  "news": [
+    {
+      "id": "n1",
+      "title": "El programa celebra sus 50 años formando ingenieros íntegros",
+      "excerpt": "Con un acto protocolario en el Auditorio Principal y una exposición conmemorativa en el museo, la comunidad celebró medio siglo de historia desde su fundación en 1975.",
+      "date": "2025-08-15",
+      "category": "Institucional",
+      "image": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&h=600&fit=crop&auto=format"
+    },
+    {
+      "id": "n2",
+      "title": "Nueva colección digitalizada: 300 fotografías históricas del programa",
+      "excerpt": "El archivo del museo incorpora imágenes restauradas de ceremonias, laboratorios y primeras cohortes, disponibles en alta resolución para consulta pública.",
+      "date": "2025-08-02",
+      "category": "Archivo",
+      "image": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&h=600&fit=crop&auto=format"
+    },
+    {
+      "id": "n3",
+      "title": "SeedAI gana la maratón nacional de inteligencia artificial",
+      "excerpt": "El semillero de inteligencia artificial se quedó con el primer puesto entre 42 equipos universitarios con su sistema de detección temprana de inundaciones.",
+      "date": "2025-07-21",
+      "category": "Investigación",
+      "image": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200&h=600&fit=crop&auto=format"
+    },
+    {
+      "id": "n4",
+      "title": "Egresada Catalina Restrepo ingresa al Hall de la Fama",
+      "excerpt": "Directora de Innovación en el sector fintech y egresada de la cohorte 2018, reconocida por su trayectoria y aportes al ecosistema tecnológico nacional.",
+      "date": "2025-07-10",
+      "category": "Hall de la Fama",
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=600&fit=crop&auto=format"
+    },
+    {
+      "id": "n5",
+      "title": "Abren convocatoria para proyectos destacados 2025",
+      "excerpt": "Estudiantes y egresados pueden postular sus proyectos de grado hasta el 31 de julio para ser publicados como piezas institucionales y optar por el Hall de la Fama.",
+      "date": "2025-06-28",
+      "category": "Convocatoria",
+      "image": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&h=600&fit=crop&auto=format"
+    }
+  ],
+  "timeline": [
+    {
+      "year": 1975,
+      "title": "Fundación del Programa",
+      "description": "Apertura oficial del Programa de Ingeniería de Sistemas de la Universidad Libre sede Bogotá.",
+      "type": "fundacion"
+    },
+    {
+      "year": 1982,
+      "title": "Primera Cohorte de Graduados",
+      "description": "Egresaron los primeros 24 ingenieros de sistemas formados por la facultad.",
+      "type": "logro"
+    },
+    {
+      "year": 1991,
+      "title": "Creación del Centro de Cómputo",
+      "description": "Inauguración del laboratorio de computación con 40 estaciones de trabajo.",
+      "type": "evento"
+    },
+    {
+      "year": 1998,
+      "title": "Primer Grupo de Investigación",
+      "description": "Reconocimiento de COLCIENCIAS al grupo GISI como categoría C.",
+      "type": "investigacion"
+    },
+    {
+      "year": 2004,
+      "title": "Acreditación de Alta Calidad",
+      "description": "El CNA otorga acreditación de alta calidad por primera vez al programa.",
+      "type": "logro"
+    },
+    {
+      "year": 2009,
+      "title": "Programa de Maestría",
+      "description": "Apertura de la Maestría en Ingeniería de Software, primera en la facultad.",
+      "type": "fundacion"
+    },
+    {
+      "year": 2015,
+      "title": "Premio Nacional de Innovación",
+      "description": "Proyecto de grado \"SmartAgro\" gana el premio INNOVA del Ministerio TIC.",
+      "type": "logro"
+    },
+    {
+      "year": 2019,
+      "title": "Renovación Acreditación",
+      "description": "Renovación de acreditación de alta calidad por 8 años, la máxima distinción.",
+      "type": "logro",
+      "itemId": "3"
+    },
+    {
+      "year": 2022,
+      "title": "Laboratorio de IA y Datos",
+      "description": "Inauguración del laboratorio de Inteligencia Artificial y Ciencia de Datos.",
+      "type": "evento",
+      "itemId": "1"
+    },
+    {
+      "year": 2024,
+      "title": "50 Años de Excelencia",
+      "description": "Celebración del medio siglo de formación de ingenieros íntegros y competentes.",
+      "type": "fundacion"
+    }
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "title": "Conferencia: IA Generativa en la Ingeniería",
+      "date": "2026-09-21",
+      "time": "10:00",
+      "location": "Auditorio Principal",
+      "type": "conferencia",
+      "description": "Charla magistral sobre el impacto de los modelos generativos en la práctica profesional de la ingeniería de sistemas."
+    },
+    {
+      "id": "e2",
+      "title": "Taller de Ciberseguridad Ofensiva",
+      "date": "2026-09-24",
+      "time": "14:00",
+      "location": "Laboratorio de Redes",
+      "type": "taller",
+      "description": "Sesión práctica de ethical hacking dirigida a estudiantes de séptimo y octavo semestre."
+    },
+    {
+      "id": "e3",
+      "title": "Feria de Empresas y Prácticas",
+      "date": "2026-09-27",
+      "time": "09:00",
+      "location": "Cancha Central",
+      "type": "cultural",
+      "description": "Encuentro con más de 20 empresas aliadas que ofrecen prácticas, monitorías y contratos de aprendizaje."
+    },
+    {
+      "id": "e4",
+      "title": "Simposio de Investigación GISI",
+      "date": "2026-10-01",
+      "time": "08:00",
+      "location": "Auditorio Principal",
+      "type": "conferencia",
+      "description": "Presentación de los proyectos activos del grupo GISI y convocatoria a nuevos semillistas."
+    },
+    {
+      "id": "e5",
+      "title": "Taller: Docker y Contenedores",
+      "date": "2026-10-04",
+      "time": "15:00",
+      "location": "Laboratorio de Software",
+      "type": "taller",
+      "description": "Fundamentos de containerización y despliegue de aplicaciones con docker-compose."
+    },
+    {
+      "id": "e6",
+      "title": "Grado Simbólico Promoción 2026-1",
+      "date": "2026-10-09",
+      "time": "17:00",
+      "location": "Plaza de la Cultura",
+      "type": "graduacion",
+      "description": "Ceremonia protocolar de grado para la promoción de ingenieros de sistemas 2026-1."
+    },
+    {
+      "id": "e7",
+      "title": "Noche de Talentos Unilibrista",
+      "date": "2026-10-13",
+      "time": "19:00",
+      "location": "Teatro La Castellana",
+      "type": "cultural",
+      "description": "Presentaciones artísticas de estudiantes y docentes en marco de bienestar universitario."
+    },
+    {
+      "id": "e8",
+      "title": "Conferencia: Nube Híbrida Empresarial",
+      "date": "2026-10-16",
+      "time": "11:00",
+      "location": "Auditorio El Bosque",
+      "type": "conferencia",
+      "description": "Arquitecturas multi-nube y mejores prácticas de migración con invitados de la industria."
+    },
+    {
+      "id": "e9",
+      "title": "Hackathon Unilibre Data",
+      "date": "2026-10-21",
+      "time": "08:00",
+      "location": "Bloque Tecnológico",
+      "type": "taller",
+      "description": "24 horas de desarrollo de soluciones de datos abiertos con premios para los tres primeros equipos."
+    },
+    {
+      "id": "e10",
+      "title": "Torneo Deportivo Interfacultades",
+      "date": "2026-10-25",
+      "time": "09:00",
+      "location": "Canchas Campus Candelaria",
+      "type": "cultural",
+      "description": "Fútbol, voleibol y baloncesto entre programas de la facultad de ingeniería."
+    }
+  ],
+  "contentItems": [
+    {
+      "id": "1",
+      "title": "Sistema de Predicción de Deserción Estudiantil mediante Aprendizaje Automático",
+      "category": "investigacion",
+      "author": "Dr. Hernando Casas",
+      "date": "2024-03-15",
+      "status": "publicado",
+      "description": "Investigación que desarrolla un modelo predictivo con 94% de precisión para identificar estudiantes en riesgo de deserción en universidades colombianas, utilizando Random Forest y redes neuronales.",
+      "image": "https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "IA",
+        "Machine Learning",
+        "Educación",
+        "Python"
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Plataforma IoT para Monitoreo de Calidad del Aire en Bogotá",
+      "category": "proyectos",
+      "author": "Laura Milena Torres Ríos",
+      "date": "2023-11-20",
+      "status": "publicado",
+      "description": "Proyecto de grado laureado que implementa 50 sensores distribuidos en zonas críticas de la ciudad para monitoreo en tiempo real de contaminantes atmosféricos.",
+      "image": "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "IoT",
+        "Arduino",
+        "Calidad del Aire",
+        "Dashboard"
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Renovación de Acreditación de Alta Calidad 2019",
+      "category": "logros",
+      "author": "Dirección del Programa",
+      "date": "2019-06-10",
+      "status": "institucional",
+      "description": "El Consejo Nacional de Acreditación renueva la distinción de Alta Calidad al programa por un período de 8 años, reconociendo la excelencia académica e investigativa.",
+      "image": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Acreditación",
+        "CNA",
+        "Calidad",
+        "Reconocimiento"
+      ]
+    },
+    {
+      "id": "4",
+      "title": "III Congreso Internacional de Ingeniería y Tecnología UniLibre 2023",
+      "category": "eventos",
+      "author": "Comité Organizador",
+      "date": "2023-10-05",
+      "status": "publicado",
+      "description": "Evento académico con la participación de 18 universidades de 9 países, 120 ponencias y más de 800 asistentes. Temáticas: IA, Ciberseguridad y Transformación Digital.",
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Congreso",
+        "Internacional",
+        "TIC",
+        "Networking"
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Aplicación Móvil para Gestión de Residuos Sólidos en Comunidades Rurales",
+      "category": "proyectos",
+      "author": "Carlos Andrés Peña Vargas",
+      "date": "2024-01-18",
+      "status": "pendiente",
+      "description": "Solución tecnológica orientada a mejorar la gestión de residuos en municipios con menos de 20.000 habitantes, con módulo de gamificación para incentivar el reciclaje.",
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Móvil",
+        "Flutter",
+        "Sostenibilidad",
+        "Comunidades"
+      ],
+      "submittedBy": "Carlos Andrés Peña Vargas"
+    },
+    {
+      "id": "6",
+      "title": "Blockchain para Trazabilidad de Cadena de Suministro en PyMEs",
+      "category": "investigacion",
+      "author": "Dra. Paola Andrea Jiménez",
+      "date": "2024-02-28",
+      "status": "pendiente",
+      "description": "Prototipo de sistema distribuido basado en Hyperledger Fabric para pequeñas y medianas empresas del sector manufacturero en Colombia.",
+      "image": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Blockchain",
+        "Hyperledger",
+        "PyMEs",
+        "Trazabilidad"
+      ],
+      "submittedBy": "Dra. Paola Andrea Jiménez"
+    }
+  ],
+  "hallMembers": [
+    {
+      "id": "1",
+      "name": "Ing. Roberto Suárez Castro",
+      "title": "CTO – Rappi Colombia",
+      "year": 1998,
+      "achievement": "Lideró la arquitectura de microservicios que soporta 10M+ transacciones diarias en Latinoamérica.",
+      "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format",
+      "category": "Industria Tecnológica"
+    },
+    {
+      "id": "2",
+      "name": "Dra. Marcela Ospina Ruiz",
+      "title": "Investigadora Principal – Microsoft Research",
+      "year": 2005,
+      "achievement": "Pionera en modelos de lenguaje natural para lenguas indígenas colombianas. Más de 80 publicaciones indexadas.",
+      "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&auto=format",
+      "category": "Investigación"
+    },
+    {
+      "id": "3",
+      "name": "Dr. Álvaro Herrera Montaño",
+      "title": "Rector – Universidad Libre (2010-2018)",
+      "year": 1985,
+      "achievement": "Impulsó la internacionalización del programa y logró su acreditación de alta calidad en 2004.",
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&auto=format",
+      "category": "Gestión Académica"
+    },
+    {
+      "id": "4",
+      "name": "Ing. Sandra Milena Cárdenas",
+      "title": "Fundadora – SoftCo Labs",
+      "year": 2001,
+      "achievement": "Emprendedora que creó una de las primeras fábricas de software colombianas, con presencia en 5 países.",
+      "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&auto=format",
+      "category": "Emprendimiento"
+    },
+    {
+      "id": "5",
+      "name": "Prof. Jaime Enrique Salcedo",
+      "title": "Director de Programa Emérito",
+      "year": 1979,
+      "achievement": "Fundó el primer grupo de investigación en sistemas de información y formó más de 2.000 ingenieros.",
+      "image": "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&auto=format",
+      "category": "Docencia"
+    },
+    {
+      "id": "6",
+      "name": "Ing. Diana Paola Gómez",
+      "title": "Directora de Innovación – Ministerio TIC",
+      "year": 2009,
+      "achievement": "Diseñó la política nacional de transformación digital del Estado colombiano 2020-2025.",
+      "image": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&auto=format",
+      "category": "Sector Público"
+    }
+  ],
+  "badges": [
+    {
+      "id": "primer-paso",
+      "name": "Primer Paso",
+      "icon": "🏛️"
+    },
+    {
+      "id": "explorador",
+      "name": "Explorador",
+      "icon": "🔍"
+    },
+    {
+      "id": "comentarista",
+      "name": "Comentarista",
+      "icon": "💬"
+    },
+    {
+      "id": "favoritos",
+      "name": "Favoritos",
+      "icon": "⭐"
+    },
+    {
+      "id": "lector-avido",
+      "name": "Lector Ávido",
+      "icon": "📊"
+    },
+    {
+      "id": "punteria",
+      "name": "Puntería",
+      "icon": "🎯"
+    },
+    {
+      "id": "colaborador",
+      "name": "Colaborador",
+      "icon": "🤝"
+    },
+    {
+      "id": "campeon",
+      "name": "Campeón",
+      "icon": "🏆"
+    },
+    {
+      "id": "critica-de-arte",
+      "name": "Crítica de Arte",
+      "icon": "🎨"
+    },
+    {
+      "id": "enciclopedia",
+      "name": "Enciclopedia",
+      "icon": "📚"
+    },
+    {
+      "id": "embajador",
+      "name": "Embajador",
+      "icon": "📣"
+    },
+    {
+      "id": "global",
+      "name": "Global",
+      "icon": "🌐"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "Ana Lucía Bermúdez",
+      "email": "ana.bermudez@unilibre.edu.co",
+      "role": "estudiante",
+      "status": "activo",
+      "joinDate": "2023-08-15",
+      "contributions": 4,
+      "points": 3240,
+      "badgeIds": [
+        "primer-paso",
+        "explorador",
+        "comentarista",
+        "favoritos",
+        "lector-avido",
+        "punteria"
+      ],
+      "researchGroupId": "1"
+    },
+    {
+      "id": "2",
+      "name": "Dr. Hernando Casas",
+      "email": "h.casas@unilibre.edu.co",
+      "role": "docente",
+      "status": "activo",
+      "joinDate": "2022-02-01",
+      "contributions": 18,
+      "points": 7210,
+      "badgeIds": [
+        "primer-paso",
+        "explorador",
+        "comentarista",
+        "favoritos",
+        "lector-avido",
+        "punteria",
+        "colaborador",
+        "campeon"
+      ],
+      "researchGroupId": "1"
+    },
+    {
+      "id": "3",
+      "name": "Carlos Peña Vargas",
+      "email": "c.pena@unilibre.edu.co",
+      "role": "estudiante",
+      "status": "activo",
+      "joinDate": "2024-01-10",
+      "contributions": 1,
+      "points": 6890,
+      "badgeIds": [
+        "primer-paso",
+        "explorador",
+        "comentarista",
+        "favoritos",
+        "lector-avido",
+        "punteria",
+        "colaborador"
+      ]
+    },
+    {
+      "id": "4",
+      "name": "Dra. Paola Jiménez",
+      "email": "p.jimenez@unilibre.edu.co",
+      "role": "docente",
+      "status": "activo",
+      "joinDate": "2021-07-20",
+      "contributions": 12,
+      "points": 2150,
+      "badgeIds": [
+        "primer-paso",
+        "explorador",
+        "comentarista"
+      ]
+    },
+    {
+      "id": "5",
+      "name": "Miguel Torres Soto",
+      "email": "m.torres@unilibre.edu.co",
+      "role": "estudiante",
+      "status": "pendiente",
+      "joinDate": "2024-06-01",
+      "contributions": 0,
+      "points": 0,
+      "badgeIds": []
+    },
+    {
+      "id": "6",
+      "name": "Fernanda Rincón",
+      "email": "f.rincon@unilibre.edu.co",
+      "role": "estudiante",
+      "status": "activo",
+      "joinDate": "2023-09-01",
+      "contributions": 2,
+      "points": 1480,
+      "badgeIds": [
+        "primer-paso",
+        "explorador"
+      ]
+    },
+    {
+      "id": "7",
+      "name": "Prof. Luis Ángel Castro",
+      "email": "l.castro@unilibre.edu.co",
+      "role": "docente",
+      "status": "inactivo",
+      "joinDate": "2020-01-15",
+      "contributions": 7,
+      "points": 3960,
+      "badgeIds": [
+        "primer-paso",
+        "explorador",
+        "comentarista",
+        "favoritos"
+      ]
+    },
+    {
+      "id": "8",
+      "name": "Admin Sistema",
+      "email": "admin@unilibre.edu.co",
+      "role": "admin",
+      "status": "activo",
+      "joinDate": "2019-01-01",
+      "contributions": 0
+    },
+    {
+      "id": "9",
+      "name": "Catalina Restrepo",
+      "email": "egresado@unilibre.edu.co",
+      "role": "egresado",
+      "status": "activo",
+      "joinDate": "2018-11-20",
+      "contributions": 5,
+      "points": 8540,
+      "badgeIds": [
+        "primer-paso",
+        "explorador",
+        "comentarista",
+        "favoritos",
+        "lector-avido",
+        "punteria",
+        "colaborador",
+        "campeon",
+        "critica-de-arte"
+      ],
+      "graduationYear": 2018,
+      "currentPosition": "Directora de Innovación, sector fintech"
+    }
+  ],
+  "contentQueue": [
+    {
+      "id": "q1",
+      "title": "Aplicación Móvil para Gestión de Residuos Sólidos en Comunidades Rurales",
+      "category": "proyectos",
+      "author": "Carlos Andrés Peña Vargas",
+      "date": "2024-06-15",
+      "status": "pendiente",
+      "description": "Solución tecnológica orientada a mejorar la gestión de residuos en municipios con menos de 20.000 habitantes.",
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Móvil",
+        "Flutter",
+        "Sostenibilidad"
+      ],
+      "submittedBy": "Carlos Andrés Peña Vargas"
+    },
+    {
+      "id": "q2",
+      "title": "Blockchain para Trazabilidad de Cadena de Suministro en PyMEs",
+      "category": "investigacion",
+      "author": "Dra. Paola Andrea Jiménez",
+      "date": "2024-06-10",
+      "status": "pendiente",
+      "description": "Prototipo de sistema distribuido basado en Hyperledger Fabric para pequeñas y medianas empresas.",
+      "image": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Blockchain",
+        "PyMEs"
+      ],
+      "submittedBy": "Dra. Paola Andrea Jiménez"
+    },
+    {
+      "id": "q3",
+      "title": "Fotografías del III Congreso Internacional TIC 2023",
+      "category": "eventos",
+      "author": "Fernanda Rincón",
+      "date": "2024-06-08",
+      "status": "pendiente",
+      "description": "Registro fotográfico del evento con más de 200 imágenes de alta resolución de las sesiones principales.",
+      "image": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Fotografía",
+        "Congreso",
+        "Archivo"
+      ],
+      "submittedBy": "Fernanda Rincón"
+    },
+    {
+      "id": "q4",
+      "title": "Semblanza del Profesor Jaime Salcedo – 40 años de docencia",
+      "category": "docentes",
+      "author": "Ana Lucía Bermúdez",
+      "date": "2024-06-05",
+      "status": "devuelto",
+      "description": "Homenaje al profesor fundador con testimonios de exalumnos y una línea de tiempo de su carrera.",
+      "image": "https://images.unsplash.com/photo-1560523159-4a9692d222ef?w=800&h=500&fit=crop&auto=format",
+      "tags": [
+        "Docente",
+        "Historia",
+        "Homenaje"
+      ],
+      "submittedBy": "Ana Lucía Bermúdez",
+      "reviewNote": "Falta adjuntar certificación de autorización del docente y al menos 3 fotografías en alta resolución."
+    }
+  ],
+  "kpiData": {
+    "totalContent": 1353,
+    "published": 1244,
+    "pending": 8,
+    "visitors": 24780,
+    "newThisMonth": 47,
+    "activeUsers": 312,
+    "monthlyVisits": [
+      {
+        "month": "Ene",
+        "visits": 1820
+      },
+      {
+        "month": "Feb",
+        "visits": 2140
+      },
+      {
+        "month": "Mar",
+        "visits": 1980
+      },
+      {
+        "month": "Abr",
+        "visits": 2560
+      },
+      {
+        "month": "May",
+        "visits": 3100
+      },
+      {
+        "month": "Jun",
+        "visits": 2890
+      },
+      {
+        "month": "Jul",
+        "visits": 3340
+      }
+    ]
+  },
+  "researchGroups": [
+    {
+      "id": "1",
+      "name": "SeedAI",
+      "category": "semillero",
+      "lead": "Dr. Hernando Casas",
+      "members": 12,
+      "description": "Semillero de investigación en Inteligencia Artificial y Machine Learning.",
+      "image": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "2",
+      "name": "DataSeed",
+      "category": "semillero",
+      "lead": "Dra. Paola Andrea Jiménez",
+      "members": 8,
+      "description": "Semillero de analítica de datos y visualización.",
+      "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "3",
+      "name": "GISI",
+      "category": "grupo",
+      "lead": "Prof. Luis Ángel Castro",
+      "members": 24,
+      "description": "Grupo de Investigación en Sistemas de Información (Categoría C).",
+      "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "4",
+      "name": "SISDIS",
+      "category": "grupo",
+      "lead": "Dra. Marcela Ospina Ruiz",
+      "members": 18,
+      "description": "Sistemas Distribuidos y Arquitecturas Paralelas.",
+      "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop&auto=format"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "1",
+      "title": "Premio Innova MinTIC",
+      "year": 2015,
+      "category": "premio",
+      "institution": "Ministerio TIC",
+      "description": "Reconocimiento a proyectos de alto impacto tecnológico.",
+      "image": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "2",
+      "title": "Acreditación CNA",
+      "year": 2019,
+      "category": "certificacion",
+      "institution": "CNA",
+      "description": "Acreditación de alta calidad por 8 años.",
+      "image": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "3",
+      "title": "Premio SciHub",
+      "year": 2021,
+      "category": "premio",
+      "institution": "Colciencias",
+      "description": "Reconocimiento al grupo GISI por su aporte a la investigación.",
+      "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "4",
+      "title": "Certificación ISO 27001",
+      "year": 2022,
+      "category": "certificacion",
+      "institution": "Icontec",
+      "description": "Gestión de seguridad de la información en el laboratorio de datos.",
+      "image": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&h=400&fit=crop&auto=format"
+    },
+    {
+      "id": "5",
+      "title": "Reconocimiento Impacto Social",
+      "year": 2023,
+      "category": "reconocimiento",
+      "institution": "Alcaldía de Bogotá",
+      "description": "Por proyectos aplicados a la solución de problemas de la ciudad.",
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop&auto=format"
+    }
+  ],
+  "teacherOptions": [
+    {
+      "name": "Dr. Hernando Casas",
+      "email": "h.casas@unilibre.edu.co"
+    },
+    {
+      "name": "Dra. Paola Andrea Jiménez",
+      "email": "p.jimenez@unilibre.edu.co"
+    },
+    {
+      "name": "Prof. Luis Ángel Castro",
+      "email": "l.castro@unilibre.edu.co"
+    },
+    {
+      "name": "Prof. Jaime Enrique Salcedo",
+      "email": "j.salcedo@unilibre.edu.co"
+    }
+  ],
+  "demoAccounts": [
+    {
+      "email": "estudiante@unilibre.edu.co",
+      "password": "123456",
+      "role": "estudiante",
+      "label": "Estudiante"
+    },
+    {
+      "email": "docente@unilibre.edu.co",
+      "password": "123456",
+      "role": "docente",
+      "label": "Docente"
+    },
+    {
+      "email": "admin@unilibre.edu.co",
+      "password": "123456",
+      "role": "admin",
+      "label": "Admin"
+    },
+    {
+      "email": "egresado@unilibre.edu.co",
+      "password": "123456",
+      "role": "egresado",
+      "label": "Egresado"
+    }
+  ],
+  "pointsPerLevel": 500,
+  "maxLevel": 20
+}

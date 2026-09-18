@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Validación de Contenido — UniLibreTour{% endblock %}
+{% set cm = contentItems | selectattr('title', 'equalto', item.title) | first %}
+{% set confirm_href = url_for('prototipo.admin_confirmacion', iid=cm.id) if (cm is defined and cm) else '' %}
+{% block content %}
+  {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
+  {% set sb_active = 'admin-cola' %}
+  {% set sb_links = [
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('prototipo.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('prototipo.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('prototipo.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('prototipo.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('prototipo.admin_registros')},
+  ] %}
+  {% set placeholder = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop&auto=format' %}
+  <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, sb_active) }}
+      <div class="min-w-0">
+        {% from 'components/macros.html' import status_badge, category_badge %}
+        <a href="{{ url_for('prototipo.admin_cola') }}" class="flex items-center gap-2 text-sm mb-8 btn-outline-primary px-3 py-1.5 rounded">← Volver a la Cola</a>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2">
+            <div class="rounded overflow-hidden mb-5" style="aspect-ratio:16/9;background:var(--card)">
+              <img src="{{ item.image or placeholder }}" alt="{{ item.title }}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex items-center gap-2 mb-3">
+              {{ status_badge(item.status) }}
+              {{ category_badge(item.category) }}
+              <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ item.date }}</span>
+            </div>
+            <h1 class="font-serif text-2xl font-bold mb-3" style="color:var(--foreground)">{{ item.title }}</h1>
+            <p class="text-sm leading-relaxed mb-4" style="color:var(--secondary-foreground)">{{ item.description }}</p>
+
+            {% if item.reviewNote %}
+            <div class="rounded p-4 mb-4 text-sm" style="background:rgba(239,68,68,0.06);color:#fca5a5;border:1px solid rgba(239,68,68,0.15)">
+              <strong>Nota anterior:</strong> {{ item.reviewNote }}
+            </div>
+            {% endif %}
+
+            <div class="museum-card rounded p-4">
+              <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Archivos Adjuntos</div>
+              {% for f in ['documento_principal.pdf', 'evidencia_fotografica.zip', 'certificado_autorizacion.pdf'] %}
+              <div class="flex items-center gap-3 py-2" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                <span class="text-lg">📄</span>
+                <span class="text-sm flex-1" style="color:var(--secondary-foreground)">{{ f }}</span>
+                <button type="button" class="text-xs" style="color:#d32f2f" onclick="toast('Descarga simulada de ' + '{{ f }}')">Descargar</button>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-5">
+            <div class="museum-card rounded p-5">
+              <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Enviado por</div>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold"
+                     style="background:rgba(211,47,47,0.12);color:#d32f2f">{{ (item.submittedBy or 'U')[0] }}</div>
+                <div>
+                  <div class="font-medium text-sm" style="color:var(--card-foreground)">{{ item.submittedBy }}</div>
+                  <div class="text-xs" style="color:var(--muted-foreground)">Docente · Ingeniería de Sistemas</div>
+                </div>
+              </div>
+              <div class="text-xs font-mono" style="color:var(--muted-foreground)">Enviado: {{ item.date }}</div>
+            </div>
+
+            <div class="museum-card rounded p-5">
+              <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Verificación</div>
+              {% for c in ['Contenido original verificado', 'Archivos completos y legibles', 'Relevancia institucional confirmada', 'Metadatos correctos'] %}
+              <div class="flex items-center gap-2 py-2 text-sm" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+                <span style="color:#22c55e">✓</span>
+                <span style="color:var(--secondary-foreground)">{{ c }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <button type="button" id="btn-aprobar" class="w-full py-3 rounded font-semibold text-sm flex items-center justify-center gap-2 btn-float"
+                      style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)">✓ Aprobar y Publicar</button>
+
+              <button type="button" id="btn-devolver" class="w-full py-3 rounded font-semibold text-sm flex items-center justify-center gap-2"
+                      style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25)">↩ Devolver con Nota</button>
+
+              <div id="devolver-form" class="hidden flex-col gap-2">
+                <div class="flex flex-wrap gap-1.5 mb-1">
+                  {% for chip in ['Faltan firmas', 'Mala resolución', 'Datos incompletos', 'No cumple alcance'] %}
+                  <button type="button" data-chip class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.05);color:var(--secondary-foreground)">+ {{ chip }}</button>
+                  {% endfor %}
+                </div>
+                <textarea id="return-note" placeholder="Explica por qué se devuelve y qué debe corregirse…" rows="3"
+                          class="museum-input w-full px-3 py-2 rounded text-sm resize-none"></textarea>
+                <button type="button" id="btn-devolver-confirmar" class="w-full py-2.5 rounded text-sm font-semibold"
+                        style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25)">Confirmar Devolución</button>
+              </div>
+
+              <button type="button" id="btn-institucional" class="w-full py-2.5 rounded text-sm font-semibold"
+                      style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.25)">🏛 Marcar institucional</button>
+
+              {% if not confirm_href %}
+              <div class="text-xs px-3 py-2 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.15)">
+                ℹ Este ítem aún no tiene equivalente en el archivo: la confirmación queda simulada con toast.
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+(function () {
+  var CONFIRM_HREF = {{ confirm_href | tojson }};
+  var ITEM_ID = {{ (item.id | string) | tojson }};
+
+  function toast(msg, type) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2200);
+    setTimeout(function () { box.remove(); }, 2700);
+  }
+  window.toast = toast;
+
+  document.getElementById('btn-aprobar').addEventListener('click', function () {
+    if (CONFIRM_HREF) {
+      toast('Contenido aprobado. Redirigiendo a confirmación…');
+      setTimeout(function () { location.href = CONFIRM_HREF; }, 900);
+    } else {
+      toast('Contenido aprobado (vista de confirmación no disponible para este ítem).');
+      setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+    }
+  });
+
+  var form = document.getElementById('devolver-form');
+  var note = document.getElementById('return-note');
+  document.getElementById('btn-devolver').addEventListener('click', function () {
+    form.classList.toggle('hidden');
+    form.classList.toggle('flex');
+  });
+
+  form.querySelectorAll('[data-chip]').forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      note.value = note.value ? note.value + ', ' + ch.textContent.replace('+ ', '') : ch.textContent.replace('+ ', '');
+    });
+  });
+
+  document.getElementById('btn-devolver-confirmar').addEventListener('click', function () {
+    if (!note.value.trim()) { toast('Escribe una observación antes de devolver', 'err'); return; }
+    toast('Pieza devuelta con observaciones. El autor recibirá una notificación.');
+    setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+  });
+
+  document.getElementById('btn-institucional').addEventListener('click', function () {
+    toast('Marcada como pieza institucional.');
+    setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Hall de la Fama — UniLibreTour{% endblock %}
+{% block content %}
+{% set mid = request.args.get('member', '') %}
+{% set cat_f = request.args.get('cat', '') %}
+{% set cats_ns = namespace(vals=[]) %}
+{% for m in hallMembers %}
+  {% if m.category not in cats_ns.vals %}{% set _ = cats_ns.vals.append(m.category) %}{% endif %}
+{% endfor %}
+{% set member_ns = namespace(member=none) %}
+{% if mid %}
+  {% for m in hallMembers %}{% if m.id == mid %}{% set member_ns.member = m %}{% endif %}{% endfor %}
+{% endif %}
+{% if cat_f %}
+  {% set filtered = hallMembers | selectattr('category', 'equalto', cat_f) | list %}
+{% else %}
+  {% set filtered = hallMembers %}
+{% endif %}
+
+{% if member_ns.member %}
+{% set member = member_ns.member %}
+<div class="max-w-4xl mx-auto px-4 md:px-8 py-10">
+    <a href="{{ url_for('prototipo.hall_fama') }}" class="inline-flex items-center gap-2 text-sm mb-8 btn-outline-primary px-3 py-1.5 rounded">← Volver al Hall</a>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+            <div class="rounded overflow-hidden mb-4" style="aspect-ratio:1 / 1;background:var(--card)">
+                <img src="{{ member.image }}" alt="{{ member.name }}" class="w-full h-full object-cover">
+            </div>
+        </div>
+        <div class="flex flex-col justify-center gap-4">
+            <div>
+                <span class="text-xs px-2 py-1 rounded font-mono" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)">{{ member.category }} · Graduado {{ member.year }}</span>
+            </div>
+            <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ member.name }}</h1>
+            <p class="font-semibold" style="color:#d32f2f">{{ member.title }}</p>
+            <p class="text-base leading-relaxed" style="color:var(--secondary-foreground)">{{ member.achievement }}</p>
+            <div class="museum-card rounded p-4 text-sm leading-relaxed" style="color:var(--muted-foreground)">{{ member.bio | default('Egresado del Programa de Ingeniería de Sistemas de la Universidad Libre, cohorte ' ~ member.year ~ '. Su trayectoria profesional ha sido un referente para las nuevas generaciones de ingenieros formados en la institución.') }}</div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    <div class="relative rounded overflow-hidden mb-10 p-10" style="background:linear-gradient(135deg, #0f0f0d, #1a1400)">
+        <div class="absolute inset-0" style="opacity:0.05;background-image:repeating-linear-gradient(45deg, #d32f2f 0, #d32f2f 1px, transparent 0, transparent 50%);background-size:16px 16px"></div>
+        <div class="relative">
+            <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Reconocimiento</div>
+            <h1 class="font-serif text-4xl md:text-5xl font-black mb-2" style="color:var(--foreground)">Hall de la Fama</h1>
+            <p class="text-base" style="color:var(--muted-foreground)">Egresados y docentes cuya excelencia ha trascendido las aulas.</p>
+        </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-8">
+        <a href="{{ url_for('prototipo.hall_fama') }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if not cat_f %}background:#d32f2f;color:var(--background);border:1px solid #d32f2f{% else %}background:rgba(255,255,255,0.04);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1){% endif %}">Todos</a>
+        {% for c in cats_ns.vals %}
+        <a href="{{ url_for('prototipo.hall_fama') }}?cat={{ c | urlencode }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if cat_f == c %}background:#d32f2f;color:var(--background);border:1px solid #d32f2f{% else %}background:rgba(255,255,255,0.04);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1){% endif %}">{{ c }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for m in filtered %}
+        <a href="{{ url_for('prototipo.hall_fama') }}?member={{ m.id }}" class="museum-card rounded overflow-hidden text-left group block">
+            <div class="relative overflow-hidden" style="aspect-ratio:4 / 3;background:#111827">
+                <img src="{{ m.image }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105">
+                <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-4">
+                    <div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--foreground)">{{ m.name }}</div>
+                    <div class="text-xs" style="color:#d32f2f">{{ m.title }}</div>
+                </div>
+                <div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.7);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">{{ m.year }}</div>
+            </div>
+            <div class="p-4">
+                <div class="text-xs mb-1 font-mono" style="color:var(--muted-foreground)">{{ m.category }}</div>
+                <p class="text-sm line-clamp-2" style="color:var(--secondary-foreground)">{{ m.achievement }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

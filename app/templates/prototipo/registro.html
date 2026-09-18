@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta — UniLibreTour{% endblock %}
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="font-serif text-2xl font-bold mb-1" style="color:var(--foreground)">Crear cuenta</h1>
+            <p class="text-sm" style="color:var(--muted-foreground)">Únete a Herencia Digital · UniLibreTour</p>
+        </div>
+
+        <div id="reg-steps"></div>
+
+        <div class="museum-card rounded-lg p-7">
+            <form id="reg-form" class="flex flex-col gap-4" novalidate>
+                <div id="reg-step-1" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Nombre completo</label>
+                        <input id="reg-nombre" type="text" placeholder="Nombre y apellidos"
+                               class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Correo Institucional</label>
+                        <input id="reg-email" type="email" placeholder="usuario@unilibre.edu.co"
+                               class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Código de Identificación</label>
+                        <input id="reg-codigo" type="text" placeholder="Código estudiantil o docente"
+                               class="museum-input w-full px-4 py-2.5 rounded text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Rol</label>
+                        <select id="reg-rol" class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                            <option value="estudiante" style="background:var(--card)">Estudiante</option>
+                            <option value="docente" style="background:var(--card)">Docente</option>
+                            <option value="egresado" style="background:var(--card)">Egresado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="reg-step-2" class="flex flex-col gap-4" style="display:none">
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Contraseña</label>
+                        <input id="reg-pass" type="password" placeholder="Mínimo 8 caracteres"
+                               class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Confirmar contraseña</label>
+                        <input id="reg-confirm" type="password" placeholder="Repite la contraseña"
+                               class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                    </div>
+                    <div class="text-xs p-3 rounded"
+                         style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">
+                        ℹ Tu cuenta quedará pendiente de aprobación por un administrador.
+                    </div>
+                </div>
+
+                <div id="reg-error" class="text-xs px-3 py-2 rounded"
+                     style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+
+                <div class="flex gap-2">
+                    <button id="reg-prev" type="button" class="btn-outline-primary px-4 py-2.5 rounded text-sm flex-1" style="display:none">Anterior</button>
+                    <button type="submit" class="btn-primary py-2.5 rounded font-semibold text-sm flex-1">Continuar →</button>
+                </div>
+            </form>
+            <div class="mt-4 text-center">
+                <a href="{{ url_for('prototipo.login') }}" class="text-sm hover:underline" style="color:#d32f2f">¿Ya tienes cuenta? Inicia sesión</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.__DATOS = {{ datos | tojson }};
+</script>
+<script>
+(function () {
+    var step = 1;
+    var stepsEl = document.getElementById('reg-steps');
+    var panel1 = document.getElementById('reg-step-1');
+    var panel2 = document.getElementById('reg-step-2');
+    var errorEl = document.getElementById('reg-error');
+    var form = document.getElementById('reg-form');
+    var prevBtn = document.getElementById('reg-prev');
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var campos = {
+        name: document.getElementById('reg-nombre'),
+        email: document.getElementById('reg-email'),
+        rol: document.getElementById('reg-rol'),
+        pass: document.getElementById('reg-pass'),
+        confirm: document.getElementById('reg-confirm')
+    };
+
+    function showError(msg) {
+        if (!errorEl) return;
+        errorEl.textContent = msg;
+        errorEl.style.display = 'block';
+    }
+
+    function setStep(n) {
+        step = n;
+        if (window.UI && typeof UI.stepIndicator === 'function') {
+            stepsEl.innerHTML = UI.stepIndicator(['Datos personales', 'Seguridad'], step);
+        }
+        panel1.style.display = step === 1 ? '' : 'none';
+        panel2.style.display = step === 2 ? '' : 'none';
+        submitBtn.textContent = step === 1 ? 'Continuar →' : 'Crear cuenta';
+        prevBtn.style.display = step === 2 ? '' : 'none';
+        if (errorEl) errorEl.style.display = 'none';
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (step === 1) {
+            if (!campos.name.value.trim() || !campos.email.value.trim() || !campos.rol.value) {
+                showError('Completa todos los campos.');
+                return;
+            }
+            setStep(2);
+        } else {
+            if (!campos.pass.value || campos.pass.value !== campos.confirm.value) {
+                showError('Las contraseñas no coinciden.');
+                return;
+            }
+            if (window.Museo) Museo.login(campos.rol.value);
+        }
+    });
+
+    if (prevBtn) prevBtn.addEventListener('click', function () { setStep(1); });
+    setStep(1);
+})();
+</script>
+{% endblock %}

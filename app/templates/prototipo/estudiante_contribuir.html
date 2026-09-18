@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Registrar Contribución — UniLibreTour{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar %}
+{% set sb_links = [
+  {'page':'est-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('prototipo.estudiante')},
+  {'page':'est-aportes','label':'Mis Aportes','icon':'🗂️','href': url_for('prototipo.estudiante_aportes')},
+  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('prototipo.ranking')},
+  {'page':'est-favoritos','label':'Favoritos','icon':'♡','href': url_for('prototipo.estudiante_favoritos')},
+  {'page':'est-contribuir','label':'Contribuir','icon':'↑','href': url_for('prototipo.estudiante_contribuir')},
+] %}
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+</style>
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar(sb_links, current_page) }}
+    <div class="min-w-0">
+      <div class="mb-8">
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Nuevo aporte</div>
+        <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Registrar Contribución</h2>
+        <p class="mt-2 text-base" style="color:var(--muted-foreground)">Comparte proyectos, investigaciones o documentos con el museo.</p>
+      </div>
+
+      <div id="step-indicator"></div>
+
+      <div id="wizard-root">
+        <form id="wizard-form" novalidate class="max-w-2xl flex flex-col gap-6">
+
+          <div id="step-1" class="museum-card rounded p-6 flex flex-col gap-4">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Información General</h3>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="inp-title" style="color:var(--secondary-foreground)">Título *</label>
+              <input type="text" id="inp-title" placeholder="Título descriptivo de la contribución" class="museum-input w-full px-4 py-2.5 rounded text-sm" required />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="inp-category" style="color:var(--secondary-foreground)">Categoría *</label>
+                <select id="inp-category" class="museum-input w-full px-3 py-2.5 rounded text-sm" required>
+                  <option value="" style="background:var(--card)">Seleccionar…</option>
+                  {% for c in ['historia', 'investigacion', 'proyectos', 'eventos', 'logros', 'docentes'] %}
+                  <option value="{{ c }}" style="background:var(--card)">{{ c[0] | upper }}{{ c[1:] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="inp-year" style="color:var(--secondary-foreground)">Año</label>
+                <input type="number" id="inp-year" placeholder="2024" min="1975" max="2025" class="museum-input w-full px-3 py-2.5 rounded text-sm" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="inp-autor" style="color:var(--secondary-foreground)">Autor</label>
+                <input type="text" id="inp-autor" value="Ana Lucía Bermúdez" class="museum-input w-full px-3 py-2.5 rounded text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium mb-1.5" for="inp-teacher" style="color:var(--secondary-foreground)">Docente Involucrado *</label>
+                <select id="inp-teacher" class="museum-input w-full px-3 py-2.5 rounded text-sm" required>
+                  <option value="" style="background:var(--card)">Seleccionar docente…</option>
+                  {% for t in teacherOptions %}
+                  <option value="{{ t.name }}" style="background:var(--card)">{{ t.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="step-2" class="museum-card rounded p-6 flex flex-col gap-4" style="display:none">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Detalles del Aporte</h3>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="inp-desc" style="color:var(--secondary-foreground)">Descripción *</label>
+              <textarea id="inp-desc" placeholder="Describe el contenido y relevancia de esta contribución…" rows="4" class="museum-input w-full px-4 py-2.5 rounded text-sm resize-none" required></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="inp-imagen" style="color:var(--secondary-foreground)">URL de la imagen</label>
+              <input type="url" id="inp-imagen" placeholder="https://images.unsplash.com/…"
+                     class="museum-input w-full px-4 py-2.5 rounded text-sm" />
+              <p class="text-xs mt-1.5" style="color:var(--muted-foreground)">Si la dejas vacía se usará una imagen por defecto.</p>
+            </div>
+            <div>
+              <label class="block text-xs font-medium mb-1.5" for="inp-tags" style="color:var(--secondary-foreground)">Etiquetas (separadas por comas)</label>
+              <input type="text" id="inp-tags" placeholder="IA, Python, Educación, Datos" class="museum-input w-full px-4 py-2.5 rounded text-sm" />
+            </div>
+          </div>
+
+          <div id="step-3" style="display:none">
+            <div class="flex flex-col gap-5">
+              <div class="museum-card rounded p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="font-serif text-xl font-bold" style="color:var(--foreground)">Vista Previa</h3>
+                  <span class="text-xs font-mono px-2 py-0.5 rounded-full" style="background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.25)">En Revisión</span>
+                </div>
+                <div class="max-w-sm" id="preview-card"></div>
+                <div class="mt-4 pt-4 flex flex-col gap-2 text-sm" style="border-top:1px solid rgba(255,255,255,0.05)">
+                  <div class="flex justify-between gap-4"><span style="color:var(--muted-foreground)">Año</span><span id="sum-year" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between gap-4"><span style="color:var(--muted-foreground)">Docente Involucrado</span><span id="sum-teacher" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between gap-4"><span style="color:var(--muted-foreground)">Etiquetas</span><span id="sum-tags" class="text-right" style="color:var(--secondary-foreground)">—</span></div>
+                </div>
+              </div>
+              <div class="text-xs px-3 py-2 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">
+                Al confirmar, tu contribución quedará en estado <strong>En Revisión</strong> y un docente la validará antes de publicarla.
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-4" style="border-top:1px solid rgba(255,255,255,0.05)">
+            <button type="button" id="btn-prev" class="btn-outline-primary px-6 py-2.5 rounded text-sm">← Anterior</button>
+            <button type="submit" id="btn-next" class="btn-primary px-8 py-2.5 rounded font-semibold text-sm flex-1">Siguiente paso →</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="wizard-ok" style="display:none">
+        <div class="flex items-center justify-center min-h-[24rem]">
+          <div class="text-center max-w-sm">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)">✓</div>
+            <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Contribución enviada!</h2>
+            <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu contribución ha sido registrada y está en revisión. Un docente la validará antes de que un administrador la publique.</p>
+            <div class="flex flex-col gap-2">
+              <div class="text-xs px-3 py-2 rounded" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.2)">Estado: <strong>En Revisión</strong> · Recibirás una notificación al ser procesada</div>
+              <a href="{{ url_for('prototipo.estudiante') }}" class="btn-primary px-5 py-2.5 rounded text-sm mt-2">Volver a mi panel</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var ROOT = '{{ url_for("prototipo.estudiante") }}';
+  var DEFAULT_IMG = 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&h=500&fit=crop&auto=format';
+  var steps = ['Info', 'Detalles', 'Revisar y enviar'];
+  var step = 1;
+  var form = document.getElementById('wizard-form');
+  var btnPrev = document.getElementById('btn-prev');
+  var btnNext = document.getElementById('btn-next');
+  var indicator = document.getElementById('step-indicator');
+  var wizardRoot = document.getElementById('wizard-root');
+  var wizardOk = document.getElementById('wizard-ok');
+  var previewCard = document.getElementById('preview-card');
+
+  function toast(msg, type) {
+    var box = document.createElement('div');
+    box.textContent = msg;
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    document.body.appendChild(box);
+    requestAnimationFrame(function () { box.style.opacity = '1'; });
+    setTimeout(function () { box.style.opacity = '0'; }, 2400);
+    setTimeout(function () { box.remove(); }, 2900);
+  }
+
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+  function showStep(n) {
+    step = n;
+    indicator.innerHTML = UI.stepIndicator(steps, step);
+    document.getElementById('step-1').style.display = n === 1 ? '' : 'none';
+    document.getElementById('step-2').style.display = n === 2 ? '' : 'none';
+    document.getElementById('step-3').style.display = n === 3 ? '' : 'none';
+    btnPrev.textContent = n > 1 ? '← Anterior' : 'Cancelar';
+    btnNext.textContent = n < 3 ? 'Siguiente paso →' : 'Confirmar y Enviar';
+    if (n === 3) updatePreview();
+  }
+
+  function previewItem() {
+    var tags = val('inp-tags').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    return {
+      id: 'prev-' + Date.now(),
+      title: val('inp-title') || 'Título de la contribución',
+      category: val('inp-category') || 'investigacion',
+      author: val('inp-autor') || 'Ana Lucía Bermúdez',
+      date: new Date().toISOString().slice(0, 10),
+      status: 'pendiente',
+      description: val('inp-desc') || 'Describe el contenido y relevancia de esta contribución…',
+      image: val('inp-imagen') || DEFAULT_IMG,
+      tags: tags
+    };
+  }
+
+  function updatePreview() {
+    var item = previewItem();
+    previewCard.innerHTML = UI.contentCard(item, { showStatus: true });
+    document.getElementById('sum-year').textContent = val('inp-year') || '—';
+    document.getElementById('sum-teacher').textContent = val('inp-teacher') || '—';
+    document.getElementById('sum-tags').textContent = item.tags.length ? item.tags.map(function (t) { return '#' + t; }).join(', ') : '—';
+  }
+
+  form.querySelectorAll('input, select, textarea').forEach(function (el) {
+    el.addEventListener('input', function () { if (step === 3) updatePreview(); });
+  });
+
+  btnPrev.addEventListener('click', function () {
+    if (step > 1) showStep(step - 1); else window.location.href = ROOT;
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (step === 1) {
+      if (!val('inp-title')) { toast('Escribe un título para la contribución', 'err'); return; }
+      if (!val('inp-category')) { toast('Selecciona una categoría', 'err'); return; }
+      if (!val('inp-teacher')) { toast('Selecciona el docente involucrado', 'err'); return; }
+      showStep(2);
+      return;
+    }
+    if (step === 2) {
+      if (!val('inp-desc')) { toast('Describe el contenido de la contribución', 'err'); return; }
+      showStep(3);
+      return;
+    }
+    wizardRoot.style.display = 'none';
+    wizardOk.style.display = '';
+    toast('¡Contribución enviada! Estado: En Revisión');
+  });
+
+  showStep(1);
+})();
+</script>
+{% endblock %}

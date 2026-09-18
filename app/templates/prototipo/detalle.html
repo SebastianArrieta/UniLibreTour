@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% from 'components/macros.html' import status_badge, category_badge, tag_list %}
+{% block title %}{{ item.title }} — UniLibreTour{% endblock %}
+{% block content %}
+{% set authorUser = users | selectattr('name', 'equalto', item.author) | selectattr('role', 'ne', 'admin') | list | first %}
+{% set related = contentItems | selectattr('category', 'equalto', item.category) | selectattr('id', 'ne', item.id) | list %}
+
+<div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
+    <nav class="flex items-center gap-2 text-sm mb-8 flex-wrap" style="color:var(--muted-foreground)">
+        <a href="{{ url_for('prototipo.home') }}" class="hover:text-primary transition-colors">Inicio</a>
+        <span>/</span>
+        <a href="{{ url_for('prototipo.explorar') }}" class="hover:text-primary transition-colors">Explorar</a>
+        <span>/</span>
+        <span class="truncate" style="color:var(--secondary-foreground)">{{ item.title }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <div class="relative rounded overflow-hidden mb-6" style="aspect-ratio:16 / 9;background:#111827">
+                <img src="{{ item.image }}" alt="{{ item.title }}" class="w-full h-full object-cover">
+                <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)"></div>
+                <div class="absolute" style="bottom:1rem;left:1rem">{{ status_badge(item.status) }}</div>
+            </div>
+
+            <div class="flex items-center gap-2 mb-3 flex-wrap">
+                {{ category_badge(item.category) }}
+                <span class="text-sm font-mono" style="color:var(--muted-foreground)">{{ item.date | fmt_fecha }}</span>
+            </div>
+
+            <h1 class="font-serif text-3xl md:text-4xl font-bold leading-tight mb-4" style="color:var(--foreground)">{{ item.title }}</h1>
+
+            <div class="flex items-center gap-3 mb-6 flex-wrap">
+                {% if authorUser %}
+                <a href="{{ url_for('prototipo.perfil') }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity text-left">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold flex-shrink-0" style="background:rgba(211,47,47,0.15);color:#d32f2f">{{ item.author[0] }}</div>
+                    <div>
+                        <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ item.author }}</div>
+                        <div class="text-xs" style="color:var(--muted-foreground)">Autor</div>
+                    </div>
+                </a>
+                {% else %}
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold" style="background:rgba(211,47,47,0.15);color:#d32f2f">{{ item.author[0] }}</div>
+                    <div>
+                        <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ item.author }}</div>
+                        <div class="text-xs" style="color:var(--muted-foreground)">Autor</div>
+                    </div>
+                </div>
+                {% endif %}
+                <button type="button" class="fav-toggle ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded text-sm btn-outline-primary" data-id="{{ item.id }}" style="color:var(--muted-foreground)">
+                    <span data-fav-icon>♡</span>
+                    <span>Guardar</span>
+                </button>
+                <button type="button" id="share-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm transition-colors" style="background:rgba(255,255,255,0.06);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)">🔗 Compartir</button>
+            </div>
+
+            <p class="text-base leading-relaxed mb-6" style="color:var(--secondary-foreground)">{{ item.description }}</p>
+            <p class="text-sm leading-relaxed mb-6" style="color:var(--muted-foreground)">
+                Este trabajo representa una contribución significativa al campo de la ingeniería de sistemas, demostrando la capacidad innovadora de los miembros del programa para abordar problemáticas reales con soluciones tecnológicas de alto impacto. La metodología empleada sigue los estándares internacionales de investigación aplicada.
+            </p>
+
+            {{ tag_list(item.tags) }}
+
+            <div class="mt-10">
+                <h3 class="font-serif text-xl font-semibold mb-5" style="color:var(--card-foreground)">Comentarios (2)</h3>
+                <div class="museum-card rounded p-4 mb-5 text-sm text-center" style="color:var(--muted-foreground)">
+                    <a href="{{ url_for('prototipo.login') }}" class="hover:underline" style="color:#d32f2f">Inicia sesión</a> para dejar un comentario.
+                </div>
+                <div class="flex flex-col gap-4">
+                    <div class="museum-card rounded p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:rgba(211,47,47,0.15);color:#d32f2f">L</div>
+                            <span class="text-sm font-medium" style="color:var(--card-foreground)">Prof. Luis Castro</span>
+                            <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">2024-04-10</span>
+                        </div>
+                        <p class="text-sm" style="color:var(--secondary-foreground)">Trabajo excepcional. La metodología aplicada es un referente para futuros proyectos.</p>
+                    </div>
+                    <div class="museum-card rounded p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:rgba(211,47,47,0.15);color:#d32f2f">A</div>
+                            <span class="text-sm font-medium" style="color:var(--card-foreground)">Ana Bermúdez</span>
+                            <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">2024-04-12</span>
+                        </div>
+                        <p class="text-sm" style="color:var(--secondary-foreground)">Los resultados obtenidos superan expectativas. Felicitaciones al equipo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-5">
+            <div class="museum-card rounded p-5">
+                <h4 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Ficha Técnica</h4>
+                <div class="flex flex-col gap-3 text-sm">
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                        <span style="color:var(--muted-foreground)">Categoría</span>
+                        <span style="color:var(--secondary-foreground)">{{ item.category }}</span>
+                    </div>
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                        <span style="color:var(--muted-foreground)">Estado</span>
+                        <span>{{ status_badge(item.status) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                        <span style="color:var(--muted-foreground)">Fecha</span>
+                        <span style="color:var(--secondary-foreground)">{{ item.date }}</span>
+                    </div>
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                        <span style="color:var(--muted-foreground)">Autor</span>
+                        <span style="color:var(--secondary-foreground)">{{ item.author }}</span>
+                    </div>
+                    {% if item.involvedTeacher %}
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                        <span style="color:var(--muted-foreground)">Docente Responsable</span>
+                        <span style="color:var(--secondary-foreground)">{{ item.involvedTeacher }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="museum-card rounded p-5">
+                <h4 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Evidencias y Archivos</h4>
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)">
+                        <div class="text-xl">📄</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">documento_investigacion.pdf</div>
+                            <div class="text-xs" style="color:var(--muted-foreground)">PDF · 2.4 MB</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)">
+                        <div class="text-xl">🖼️</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">diagrama_arquitectura.png</div>
+                            <div class="text-xs" style="color:var(--muted-foreground)">PNG · 850 KB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if related %}
+            <div>
+                <h4 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Contenido Relacionado</h4>
+                <div class="flex flex-col gap-3">
+                    {% for r in related[:3] %}
+                    <a href="{{ url_for('prototipo.detalle', cid=r.id) }}" class="museum-card rounded p-3 text-left flex gap-3 hover:border-primary/40">
+                        <img src="{{ r.image }}" alt="{{ r.title }}" class="w-14 h-14 object-cover rounded flex-shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="text-xs font-semibold line-clamp-2" style="color:var(--secondary-foreground)">{{ r.title }}</div>
+                            <div class="text-xs mt-1" style="color:var(--muted-foreground)">{{ r.author }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="rounded p-5 text-center" style="background:rgba(211,47,47,0.06);border:1px solid rgba(211,47,47,0.2)">
+                <p class="text-sm mb-3" style="color:var(--secondary-foreground)">¿Tienes una contribución para el museo?</p>
+                <a href="{{ url_for('prototipo.registro') }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Registrarse</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var fav = document.querySelector('.fav-toggle');
+    if (window.Museo) {
+        if (Museo.role === 'visitante') { if (fav) fav.classList.add('hidden'); }
+        Museo.bindFavButtons(document);
+    }
+    var share = document.getElementById('share-btn');
+    if (share) {
+        share.addEventListener('click', function () {
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href);
+            share.innerHTML = '✓ ¡Copiado!';
+            share.style.background = '#22c55e';
+            share.style.color = '#ffffff';
+            setTimeout(function () {
+                share.innerHTML = '🔗 Compartir';
+                share.style.background = 'rgba(255,255,255,0.06)';
+                share.style.color = 'var(--secondary-foreground)';
+            }, 2000);
+        });
+    }
+})();
+</script>
+{% endblock %}

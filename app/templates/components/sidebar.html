@@ -1,0 +1,45 @@
+{#
+    Sidebar "Mi Espacio" — port de DashboardSidebar (Layout.tsx).
+    Uso:
+      {% from 'components/sidebar.html' import sidebar %}
+      {{ sidebar(sb_links, sb_active, sb_title='Menú') }}
+
+    sb_links: lista de dicts { page, label, icon, href, badge }
+    sb_active: id de la página actual
+#}
+
+{% macro sidebar(sb_links, sb_active, sb_title='Menú') %}
+<aside class="sidebar-shell">
+    <div class="sidebar-box">
+        <div class="text-xs font-semibold uppercase tracking-widest mb-3 px-2" style="color:var(--muted-foreground)">{{ sb_title }}</div>
+        <div class="relative">
+            {% for l in sb_links %}
+            {% set active = (l.page == sb_active) %}
+            <a href="{{ l.href }}" class="sb-item {{ 'sb-active' if active }}"
+               style="color:{{ '#ffffff' if active else 'var(--secondary-foreground)' }}; animation-delay: {{ loop.index0 * 60 }}ms">
+                <span class="sb-chip {{ 'sb-chip-on' if active }}">{{ l.icon }}</span>
+                <span class="flex-1 leading-tight">{{ l.label }}</span>
+                {% if l.badge and l.badge > 0 %}
+                <span class="text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full"
+                      style="{{ 'background:#ffffff;color:#b71c1c' if active else 'background:#d32f2f;color:#ffffff' }}">{{ l.badge }}</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</aside>
+
+<nav class="sb-mobile md:hidden">
+    {% for l in sb_links %}
+    {% set active = (l.page == sb_active) %}
+    <a href="{{ l.href }}" class="sb-mobile-item {{ 'sb-active' if active }}" style="color:{{ '#d32f2f' if active else 'var(--muted-foreground)' }}">
+        <span class="sb-mobile-bar"></span>
+        <span class="text-base leading-none">{{ l.icon }}</span>
+        <span class="text-[10px] font-medium leading-none truncate max-w-full px-1">{{ l.label }}</span>
+        {% if l.badge and l.badge > 0 %}
+        <span class="absolute top-1 right-[22%] text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 flex items-center justify-center rounded-full" style="background:#d32f2f;color:#ffffff">{{ l.badge }}</span>
+        {% endif %}
+    </a>
+    {% endfor %}
+</nav>
+{% endmacro %}
