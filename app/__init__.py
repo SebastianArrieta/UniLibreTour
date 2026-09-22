@@ -54,7 +54,7 @@ def create_app(config_name: str | None = None) -> Flask:
     from app.models import Usuario  # noqa: F401
 
     register_blueprints(app)
-
+    
     with app.app_context():
         db.create_all()
         from app.services.usuario import seed_usuarios

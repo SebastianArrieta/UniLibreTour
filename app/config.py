@@ -18,6 +18,7 @@ class Config:
     SQLALCHEMY_DATABASE_URI = _database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
+    JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hora
 
 
 class DevelopmentConfig(Config):
