@@ -1,0 +1,266 @@
+// ============================================================
+// UniLibreTour — ERD (SOLO DOCUMENTACIÓN)
+// ============================================================
+// DSL de diagrama-as-code de Eraser.io (entity-relationship-diagram).
+// Para regenerar el diagrama con el MCP de Eraser:
+//   diagramType: entity-relationship-diagram
+//   code: contenido de este archivo
+// Fuente: dbdiagram schema -> Eraser (sintaxis oficial, sin "ref:"/note).
+// ============================================================
+
+usuarios [icon: user, color: purple] {
+  id integer pk
+  nombre varchar
+  email varchar unique
+  password_hash varchar
+  rol varchar
+  estado varchar
+  puntos integer
+  nivel integer
+  semillero_id integer
+  two_factor_enabled boolean
+  created_at timestamp
+}
+
+semilleros [icon: users] {
+  id integer pk
+  nombre varchar
+  categoria varchar
+  lider_id integer
+  descripcion text
+  imagen varchar
+}
+
+notificaciones [icon: bell] {
+  id integer pk
+  usuario_id integer
+  mensaje varchar
+  tipo varchar
+  referencia_tipo varchar
+  referencia_id integer
+  leido boolean
+  created_at timestamp
+}
+
+comentarios [icon: message-square] {
+  id integer pk
+  usuario_id integer
+  entidad_tipo varchar
+  entidad_id integer
+  texto text
+  created_at timestamp
+}
+
+reacciones {
+  usuario_id integer pk
+  entidad_tipo varchar pk
+  entidad_id integer pk
+  tipo varchar
+  created_at timestamp
+}
+
+evidencias [icon: file] {
+  id integer pk
+  entidad_tipo varchar
+  entidad_id integer
+  tipo_archivo varchar
+  url varchar
+  descripcion varchar
+  created_at timestamp
+}
+
+colecciones [icon: folder] {
+  id integer pk
+  titulo varchar
+  descripcion text
+  icono varchar
+  imagen varchar
+}
+
+contenidos [icon: file-text] {
+  id integer pk
+  titulo varchar
+  categoria varchar
+  descripcion text
+  fecha date
+  imagen varchar
+  autor varchar
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  coleccion_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+etiquetas [icon: tag] {
+  id integer pk
+  nombre varchar unique
+}
+
+contenido_etiquetas {
+  contenido_id integer pk
+  etiqueta_id integer pk
+}
+
+favoritos [icon: star] {
+  usuario_id integer pk
+  contenido_id integer pk
+  fecha timestamp
+}
+
+insignias [icon: award] {
+  id integer pk
+  nombre varchar
+  descripcion text
+  icono varchar
+}
+
+usuarios_insignias {
+  usuario_id integer pk
+  insignia_id integer pk
+  fecha_obtenida timestamp
+}
+
+proyectos [icon: briefcase] {
+  id integer pk
+  titulo varchar
+  anio integer
+  linea_investigacion varchar
+  docente_id integer
+  descripcion text
+  tecnologias text
+  resultados_impacto text
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+proyecto_integrantes {
+  proyecto_id integer pk
+  usuario_id integer pk
+  rol_en_proyecto varchar
+}
+
+premios [icon: trophy] {
+  id integer pk
+  nombre varchar
+  anio integer
+  lugar varchar
+  descripcion text
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+premio_participantes {
+  premio_id integer pk
+  usuario_id integer pk
+}
+
+cronologia_hitos [icon: calendar] {
+  id integer pk
+  anio integer
+  titulo varchar
+  descripcion text
+  tipo varchar
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+eventos [icon: calendar-check] {
+  id integer pk
+  titulo varchar
+  fecha date
+  hora time
+  ubicacion varchar
+  tipo varchar
+  descripcion text
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+hall_de_la_fama [icon: star] {
+  id integer pk
+  nombre varchar
+  titulo varchar
+  anio integer
+  logro text
+  categoria varchar
+  imagen varchar
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+noticias [icon: newspaper] {
+  id integer pk
+  titulo varchar
+  resumen text
+  fecha date
+  categoria varchar
+  imagen varchar
+  estado varchar
+  observaciones text
+  validado_por integer
+  fecha_validacion timestamp
+  creador_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+usuarios.semillero_id > semilleros.id
+semilleros.lider_id > usuarios.id
+notificaciones.usuario_id > usuarios.id
+comentarios.usuario_id > usuarios.id
+reacciones.usuario_id > usuarios.id
+contenidos.creador_id > usuarios.id
+contenidos.validado_por > usuarios.id
+contenidos.coleccion_id > colecciones.id
+contenido_etiquetas.contenido_id > contenidos.id
+contenido_etiquetas.etiqueta_id > etiquetas.id
+favoritos.usuario_id > usuarios.id
+favoritos.contenido_id > contenidos.id
+usuarios_insignias.usuario_id > usuarios.id
+usuarios_insignias.insignia_id > insignias.id
+proyectos.docente_id > usuarios.id
+proyectos.creador_id > usuarios.id
+proyectos.validado_por > usuarios.id
+proyecto_integrantes.proyecto_id > proyectos.id
+proyecto_integrantes.usuario_id > usuarios.id
+premios.creador_id > usuarios.id
+premios.validado_por > usuarios.id
+premio_participantes.premio_id > premios.id
+premio_participantes.usuario_id > usuarios.id
+cronologia_hitos.creador_id > usuarios.id
+cronologia_hitos.validado_por > usuarios.id
+eventos.creador_id > usuarios.id
+eventos.validado_por > usuarios.id
+hall_de_la_fama.creador_id > usuarios.id
+hall_de_la_fama.validado_por > usuarios.id
+noticias.creador_id > usuarios.id
+noticias.validado_por > usuarios.id
