@@ -51,7 +51,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.jinja_env.filters["fmt_fecha"] = _fmt_fecha
 
     from app.controllers import register_blueprints
-    from app.models import Usuario  # noqa: F401
+    from app import models as _models  # noqa: F401 — registra todos los modelos para db.create_all()
 
     register_blueprints(app)
     

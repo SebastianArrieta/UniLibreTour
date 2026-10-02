@@ -7,6 +7,7 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: unilibretour_root
+      MYSQL_ROOT_HOST: "%"          # permite root desde el host en dev (TablePlus/DBeaver)
       MYSQL_DATABASE: unilibretour_db
       MYSQL_USER: unilibretour
       MYSQL_PASSWORD: unilibretour
