@@ -52,8 +52,10 @@ def create_app(config_name: str | None = None) -> Flask:
 
     from app.controllers import register_blueprints
     from app import models as _models  # noqa: F401 — registra todos los modelos para db.create_all()
+    from app.routes import register_routes
 
     register_blueprints(app)
+    register_routes(app)
     
     with app.app_context():
         db.create_all()
