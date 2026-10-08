@@ -1,17 +1,17 @@
 /* ============================================================================
-   UniLibreTour — App shell (port del prototipo React: DataContext + Layout
-   + Auth). Estado global gestionado en localStorage igual que el mockup.
+   UniLibreTour — App shell (DataContext + Layout + Auth).
+   Estado global institucional y sesión de usuario.
 
    API global: window.Museo
    Estado (claves localStorage):
      museo-theme   : 'dark' | 'light'
      museo-rol     : Role  ('visitante' por defecto)
      museo-favs    : string[] ids de contenido favorito
-     museo-datos-v1: snapshot del dataset demo (cache de /api/demo-data)
+     museo-datos-v2: snapshot del dataset (cache de /api/museo/data)
      museo-perfil  : objeto con preferencias del usuario (opcional)
 
    Datos:
-     Museo.loadData()          -> Promise<Object> (fetch /api/demo-data, cachea)
+     Museo.loadData()          -> Promise<Object> (fetch /api/museo/data, cachea)
      Museo.data()              -> dataset actual (null hasta cargar)
      Museo.getUser()           -> Promise<User|undefined> (demo por rol)
      Museo.getContributions(pt) -> filtro de aportes (author/submittedBy)
@@ -40,11 +40,15 @@
         THEME: 'museo-theme',
         ROLE: 'museo-rol',
         FAVS: 'museo-favs',
-        DATA: 'museo-datos-v1',
+        DATA: 'museo-datos-v2',
         PERFIL: 'museo-perfil',
+        TOKEN: 'museo-token',
+        USUARIO: 'museo-usuario',
+        PEND_TOKEN: 'museo-pending-token',
+        PEND_USUARIO: 'museo-pending-usuario',
     };
 
-    var DATA_ENDPOINT = '/api/demo-data';
+    var DATA_ENDPOINT = '/api/museo/data';
     var POINTS_PER_LEVEL = 500;
     var MAX_LEVEL = 20;
 
@@ -118,13 +122,24 @@
         return null;
     }
 
-    function getUser() {
+    function getUserPorRol() {
         return loadData().then(function (d) {
             var emails = USER_EMAIL;
             var u = (d.users || []).find(function (x) {
                 return x.email === emails[Museo.role] || x.email === USER_EMAIL[Museo.role];
             });
             return u;
+        });
+    }
+
+    function getUser() {
+        var tok = lsGet(KEYS.TOKEN);
+        if (!tok) return getUserPorRol();
+        return apiJson('/api/auth/me', 'GET', null, tok).then(function (u) {
+            if (u) lsSet(KEYS.USUARIO, u);
+            return u || lsGet(KEYS.USUARIO) || getUserPorRol();
+        }).catch(function () {
+            return lsGet(KEYS.USUARIO) || getUserPorRol();
         });
     }
 
@@ -191,7 +206,90 @@
         lsRemove(KEYS.ROLE);
         lsRemove(KEYS.FAVS);
         lsRemove(KEYS.PERFIL);
+        lsRemove(KEYS.TOKEN);
+        lsRemove(KEYS.USUARIO);
+        lsRemove(KEYS.PEND_TOKEN);
+        lsRemove(KEYS.PEND_USUARIO);
         window.location.href = '/';
+    }
+
+    /* ---------- sesión real (JWT) ---------- */
+    function apiJson(url, method, body, token) {
+        var headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+        if (token) headers.Authorization = 'Bearer ' + token;
+        return fetch(url, {
+            method: method,
+            headers: headers,
+            body: body ? JSON.stringify(body) : undefined,
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (j) {
+                if (!r.ok || j.ok === false) {
+                    var msg = j.error;
+                    if (msg && typeof msg === 'object') msg = 'Datos inválidos en el formulario';
+                    var err = new Error(msg || ('Error ' + r.status));
+                    err.status = r.status;
+                    throw err;
+                }
+                return j.data;
+            });
+        });
+    }
+
+    function isAuthenticated() { return !!lsGet(KEYS.TOKEN); }
+    function getToken() { return lsGet(KEYS.TOKEN); }
+    function getSesion() { return lsGet(KEYS.USUARIO); }
+
+    /* Paso 1 (login.html): valida credenciales reales; guarda sesión pendiente
+       hasta superar el 2FA en /2fa. */
+    function iniciarSesion(email, password) {
+        return apiJson('/api/auth/login', 'POST', { email: email, password: password })
+            .then(function (data) {
+                lsSet(KEYS.PEND_TOKEN, data.access_token);
+                lsSet(KEYS.PEND_USUARIO, data.usuario);
+                try {
+                    localStorage.setItem('museo-pending-role', data.usuario.rol);
+                    localStorage.setItem('museo-pending-email', data.usuario.email);
+                } catch (e) { /* noop */ }
+                return data.usuario;
+            });
+    }
+
+    /* Paso 2 (2fa.html): código OTP OK → sesión activa + redirect por rol. */
+    function completarInicioSesion() {
+        var tok = lsGet(KEYS.PEND_TOKEN);
+        var u = lsGet(KEYS.PEND_USUARIO);
+        if (!tok) { window.location.href = '/login'; return; }
+        lsSet(KEYS.TOKEN, tok);
+        lsSet(KEYS.USUARIO, u || null);
+        lsRemove(KEYS.PEND_TOKEN);
+        lsRemove(KEYS.PEND_USUARIO);
+        var rol = (u && u.rol) || getRole();
+        Museo.role = rol;
+        setRole(rol);
+        redirectForRole(rol);
+    }
+
+    /* registro.html: alta real + sesión inmediata (sin 2FA). */
+    function registrarse(nombre, email, password, rol) {
+        return apiJson('/api/auth/register', 'POST', {
+            nombre: nombre, email: email, password: password, rol: rol,
+        }).then(function (data) {
+            lsSet(KEYS.TOKEN, data.access_token);
+            lsSet(KEYS.USUARIO, data.usuario);
+            Museo.role = data.usuario.rol;
+            setRole(data.usuario.rol);
+            redirectForRole(data.usuario.rol);
+            return data.usuario;
+        });
+    }
+
+    /* estudiante_contribuir / docente_evidencia: aporte → cola de validación. */
+    function crearContenido(payload) {
+        if (!isAuthenticated()) {
+            window.location.href = '/login';
+            return Promise.reject(new Error('Inicia sesión para aportar'));
+        }
+        return apiJson('/api/museo/contenidos', 'POST', payload, getToken());
     }
 
     /* ---------- header dinámico ---------- */
@@ -347,6 +445,14 @@
         redirectForRole: redirectForRole,
         login: login,
         logout: logout,
+        apiJson: apiJson,
+        isAuthenticated: isAuthenticated,
+        getToken: getToken,
+        getSesion: getSesion,
+        iniciarSesion: iniciarSesion,
+        completarInicioSesion: completarInicioSesion,
+        registrarse: registrarse,
+        crearContenido: crearContenido,
         theme: getTheme(),
         setTheme: setTheme,
         toggleTheme: toggleTheme,

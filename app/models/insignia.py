@@ -16,6 +16,7 @@ class Insignia(db.Model):
     __tablename__ = "insignias"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True)
     nombre: Mapped[str] = mapped_column(String(150), nullable=False)
     descripcion: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     icono: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
@@ -26,6 +27,7 @@ class Insignia(db.Model):
     def to_dict(self) -> dict:
         return {
             "id": self.id,
+            "slug": self.slug,
             "nombre": self.nombre,
             "descripcion": self.descripcion,
             "icono": self.icono,

@@ -1,5 +1,5 @@
 /* ============================================================================
-   UniLibreTour — UI renderers (port del prototipo React: src/components/UI.tsx)
+   UniLibreTour — UI renderers y Componentes de interfaz
    Builders que devuelven HTML como string. Cada ficha/tarjeta se emite como un
    <a href> para navegación server-side real.
 

@@ -1,8 +1,7 @@
 /* ============================================================
-   UniLibreTour — Sistema de diseño (port del prototipo)
-   Hereda el diseño del mockup React: tipografía museo
-   (Playfair Display / Inter / JetBrains Mono), tema oscuro,
-   acento institucional U. Libre #d32f2f.
+   UniLibreTour — Sistema de diseño y estilos globales
+   Tipografía museo (Playfair Display / Inter / JetBrains Mono),
+   tema oscuro/claro, acento institucional U. Libre #d32f2f.
    Organización:
      1. Fuentes
      2. Tokens de tema (dark / light)

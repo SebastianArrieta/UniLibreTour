@@ -58,7 +58,13 @@ def create_app(config_name: str | None = None) -> Flask:
     with app.app_context():
         db.create_all()
         from app.services.usuario import seed_usuarios
+        from app.services.seed_demo import seed_desde_demo
 
-        seed_usuarios()
+        try:
+            seed_usuarios()
+            seed_desde_demo()
+        except Exception as exc:  # no bloquear el arranque; las vistas tienen fallback
+            db.session.rollback()
+            print(f"[seed] omitido (esquema desactualizado?): {exc}")
 
     return app

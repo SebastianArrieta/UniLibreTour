@@ -29,6 +29,20 @@ def crear_usuario(data: dict) -> Usuario:
     return usuario
 
 
+def registrar_usuario(data: dict) -> Usuario:
+    """Alta pública (registro): queda pendiente de aprobación del administrador."""
+    usuario = Usuario(
+        nombre=data["nombre"],
+        email=data["email"],
+        password_hash=hash_password(data["password"]),
+        rol=data.get("rol", "estudiante"),
+        estado="pendiente",
+    )
+    db.session.add(usuario)
+    db.session.commit()
+    return usuario
+
+
 def actualizar_usuario(usuario: Usuario, data: dict) -> Usuario:
     for campo in ("nombre", "email", "rol"):
         if campo in data:
