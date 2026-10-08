@@ -2,11 +2,11 @@
 {% block title %}Añadir Información — UniLibreTour{% endblock %}
 {% block content %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   {% macro field(label) %}
   <label class="block">
@@ -26,16 +26,16 @@
         <div class="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6 items-start">
           <nav class="relative flex lg:flex-col gap-1 overflow-x-auto pb-1" id="anadir-nav">
             {% set tabs = [
-              {'id': 'timeline', 'label': 'Línea de Tiempo', 'icon': '📅'},
-              {'id': 'premio', 'label': 'Premios y Reconocimientos', 'icon': '🏆'},
-              {'id': 'proyecto', 'label': 'Proyectos Destacados', 'icon': '🎓'},
-              {'id': 'hall', 'label': 'Hall de la Fama', 'icon': '⭐'},
-              {'id': 'evento', 'label': 'Eventos del Calendario', 'icon': '🗓️'},
-              {'id': 'noticias', 'label': 'Noticias', 'icon': '📰'},
+              {'id': 'timeline', 'label': 'Línea de Tiempo', 'icon': 'fa-solid fa-timeline'},
+              {'id': 'premio', 'label': 'Premios y Reconocimientos', 'icon': 'fa-solid fa-trophy'},
+              {'id': 'proyecto', 'label': 'Proyectos Destacados', 'icon': 'fa-solid fa-diagram-project'},
+              {'id': 'hall', 'label': 'Hall de la Fama', 'icon': 'fa-solid fa-star'},
+              {'id': 'evento', 'label': 'Eventos del Calendario', 'icon': 'fa-solid fa-calendar-days'},
+              {'id': 'noticias', 'label': 'Noticias', 'icon': 'fa-solid fa-newspaper'},
             ] %}
             {% for t in tabs %}
             <button type="button" data-tab="{{ t.id }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap {{ 'sb-active' if loop.first }}">
-              <span class="sb-chip">{{ t.icon }}</span>
+              <span class="sb-chip"><i class="{{ t.icon }} text-xs"></i></span>
               <span class="truncate">{{ t.label }}</span>
             </button>
             {% endfor %}
@@ -48,7 +48,7 @@
                      style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.25)"></div>
 
                 <div class="tab-panel" data-panel="timeline">
-                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">📅 Nuevo hito de la línea de tiempo</h3>
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-timeline" style="color:#d32f2f"></i> Nuevo hito de la línea de tiempo</h3>
                   <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {% call field('Año *') %}<input type="number" min="1900" max="2100" name="year" data-required placeholder="2024" class="{{ inputCls }}">{% endcall %}
@@ -68,7 +68,7 @@
                       <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Evidencias Multimedia *</span>
                       <button type="button" id="media-drop" class="w-full rounded-lg border-2 border-dashed p-6 text-center transition-all"
                               style="border-color:rgba(211,47,47,0.2);background:transparent">
-                        <div class="text-2xl mb-1.5 opacity-50">📎</div>
+                        <div class="text-2xl mb-1.5 opacity-50"><i class="fa-solid fa-paperclip"></i></div>
                         <p class="text-sm font-medium" style="color:var(--secondary-foreground)">Arrastra archivos aquí o haz clic para seleccionar</p>
                         <p class="text-xs mt-1" style="color:var(--muted-foreground)">Fotos, videos, audios o documentos que respalden el hito (máx. 50 MB por archivo)</p>
                       </button>
@@ -78,7 +78,7 @@
                 </div>
 
                 <div class="tab-panel hidden" data-panel="premio">
-                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">🏆 Nuevo premio o reconocimiento</h3>
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-trophy" style="color:#d32f2f"></i> Nuevo premio o reconocimiento</h3>
                   <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {% call field('Año *') %}<input type="number" min="1900" max="2100" name="year" data-required placeholder="2025" class="{{ inputCls }}">{% endcall %}
@@ -97,7 +97,7 @@
                 </div>
 
                 <div class="tab-panel hidden" data-panel="proyecto">
-                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">🎓 Nuevo proyecto destacado</h3>
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-diagram-project" style="color:#d32f2f"></i> Nuevo proyecto destacado</h3>
                   <div class="flex flex-col gap-4">
                     {% call field('Título *') %}<input name="title" data-required placeholder="Plataforma web para… " class="{{ inputCls }}">{% endcall %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="tab-panel hidden" data-panel="hall">
-                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">⭐ Nuevo miembro del Hall de la Fama</h3>
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-star" style="color:#d32f2f"></i> Nuevo miembro del Hall de la Fama</h3>
                   <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {% call field('Nombre completo *') %}<input name="name" data-required placeholder="Ing. Nombre Apellido…" class="{{ inputCls }}">{% endcall %}
@@ -147,7 +147,7 @@
                 </div>
 
                 <div class="tab-panel hidden" data-panel="evento">
-                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">🗓️ Nuevo evento en el calendario</h3>
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-calendar-days" style="color:#d32f2f"></i> Nuevo evento en el calendario</h3>
                   <div class="flex flex-col gap-4">
                     {% call field('Título *') %}<input name="title" data-required placeholder="Conferencia: …" class="{{ inputCls }}">{% endcall %}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -169,7 +169,7 @@
                 </div>
 
                 <div class="tab-panel hidden" data-panel="noticias">
-                  <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">📰 Nueva noticia</h3>
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-newspaper" style="color:#d32f2f"></i> Nueva noticia</h3>
                   <div class="flex flex-col gap-4">
                     {% call field('Título *') %}<input name="title" data-required placeholder="Título de la noticia…" class="{{ inputCls }}">{% endcall %}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -244,7 +244,7 @@ window.__DATOS = {{ datos | tojson }};
 
   function showError(msg) {
     var el = document.getElementById('anadir-error');
-    el.textContent = '⚠ ' + msg;
+    el.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="margin-right:4px"></i>' + msg;
     el.classList.remove('hidden');
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -329,8 +329,8 @@ window.__DATOS = {{ datos | tojson }};
     var list = document.getElementById('media-list');
     list.innerHTML = mediaFiles.map(function (f, i) {
       return '<div class="flex items-center gap-2 text-sm px-3 py-2 rounded" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2)">' +
-        '<span style="color:#22c55e">✓</span><span style="color:var(--secondary-foreground)">' + esc(f) + '</span>' +
-        '<button type="button" data-i="' + i + '" class="ml-auto text-xs" style="color:var(--muted-foreground)">✕</button></div>';
+        '<i class="fa-solid fa-check" style="color:#22c55e;font-size:11px"></i><span style="color:var(--secondary-foreground)">' + esc(f) + '</span>' +
+        '<button type="button" data-i="' + i + '" class="ml-auto text-xs" style="color:var(--muted-foreground)"><i class="fa-solid fa-xmark"></i></button></div>';
     }).join('');
   }
 

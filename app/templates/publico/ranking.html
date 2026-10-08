@@ -6,7 +6,11 @@
 {% for b in badges %}{% if badges_map.update({b.id: b}) %}{% endif %}{% endfor %}
 {% set participants = users | selectattr('role', 'in', ['estudiante', 'egresado', 'docente']) | list %}
 {% set ranking = participants | sort(attribute='points', reverse=true) %}
-{% set medals = ['🥇', '🥈', '🥉'] %}
+{% set podium_icons = [
+  '<i class="fa-solid fa-medal text-2xl" style="color:#cbd5e1"></i>',
+  '<i class="fa-solid fa-trophy text-3xl" style="color:#eab308"></i>',
+  '<i class="fa-solid fa-medal text-2xl" style="color:#d97706"></i>'
+] %}
 
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="flex gap-8">
@@ -27,7 +31,7 @@
                 {% set prog = (p.points % pointsPerLevel) / pointsPerLevel * 100 %}
                 <div data-email="{{ p.email }}" class="podium-card museum-card rounded p-6 text-center"
                      style="{{ 'border-color:rgba(255,215,0,0.45);box-shadow:0 0 28px rgba(255,215,0,0.10)' if loop.index0 == 1 else '' }}">
-                    <div class="text-3xl mb-2">{{ medals[loop.index0] }}</div>
+                    <div class="h-10 flex items-center justify-center mb-2">{{ podium_icons[loop.index0] | safe }}</div>
                     <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-xl font-bold"
                          style="background:rgba(211,47,47,0.12);color:#d32f2f">{{ p.name[0] }}</div>
                     <div data-name class="font-serif text-lg font-bold mt-3 {{ 'text-xl' if loop.index0 == 1 else '' }}"
@@ -42,10 +46,14 @@
                         </div>
                         <span class="text-[10px] font-mono" style="color:var(--muted-foreground)">{{ '%.0f'|format(prog) }}%</span>
                     </div>
-                    <div class="flex flex-wrap justify-center gap-1 mt-3 text-base">
+                    <div class="flex flex-wrap justify-center gap-1.5 mt-3 text-sm">
                         {% for bid in p.badgeIds or [] %}
                         {% set b = badges_map.get(bid) %}
-                        {% if b %}<span title="{{ b.name }}" style="cursor:pointer">{{ b.icon }}</span>{% endif %}
+                        {% if b %}
+                        <span title="{{ b.name }}" class="w-6 h-6 rounded flex items-center justify-center" style="background:rgba(211,47,47,0.08);color:#d32f2f;cursor:pointer">
+                            {% if 'fa-' in b.icon %}<i class="{{ b.icon }} text-xs"></i>{% else %}{{ b.icon }}{% endif %}
+                        </span>
+                        {% endif %}
                         {% endfor %}
                     </div>
                 </div>
@@ -76,7 +84,17 @@
                             {% set remain = pointsPerLevel - (u.points % pointsPerLevel) %}
                             <tr data-email="{{ u.email }}"
                                 style="border-bottom:{{ '1px solid rgba(255,255,255,0.04)' if not loop.last else 'none' }};transition:background .2s">
-                                <td class="px-5 py-3 text-base">{{ medals[loop.index0] if loop.index0 < 3 else loop.index0 + 1 }}</td>
+                                <td class="px-5 py-3 font-mono font-bold">
+                                    {% if loop.index0 == 0 %}
+                                    <i class="fa-solid fa-trophy" style="color:#eab308" title="1° Lugar"></i>
+                                    {% elif loop.index0 == 1 %}
+                                    <i class="fa-solid fa-medal" style="color:#cbd5e1" title="2° Lugar"></i>
+                                    {% elif loop.index0 == 2 %}
+                                    <i class="fa-solid fa-medal" style="color:#d97706" title="3° Lugar"></i>
+                                    {% else %}
+                                    <span style="color:var(--muted-foreground)">{{ loop.index0 + 1 }}</span>
+                                    {% endif %}
+                                </td>
                                 <td class="px-5 py-3">
                                     <div class="flex items-center gap-2.5 text-left">
                                         <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
@@ -104,10 +122,14 @@
                                 <td class="px-5 py-3 font-mono" style="color:var(--secondary-foreground)">{{ '{:,}'.format(u.points) }}</td>
                                 <td class="px-5 py-3">
                                     {% if u.badgeIds %}
-                                    <div class="flex gap-1 text-sm">
+                                    <div class="flex gap-1.5 text-sm">
                                         {% for bid in u.badgeIds %}
                                         {% set b = badges_map.get(bid) %}
-                                        {% if b %}<span title="{{ b.name }}" style="cursor:pointer">{{ b.icon }}</span>{% endif %}
+                                        {% if b %}
+                                        <span title="{{ b.name }}" class="w-6 h-6 rounded flex items-center justify-center" style="background:rgba(211,47,47,0.08);color:#d32f2f;cursor:pointer">
+                                            {% if 'fa-' in b.icon %}<i class="{{ b.icon }} text-xs"></i>{% else %}{{ b.icon }}{% endif %}
+                                        </span>
+                                        {% endif %}
                                         {% endfor %}
                                     </div>
                                     {% else %}
@@ -142,12 +164,13 @@ window.__DATOS = {{ datos | tojson }};
         var badges = D.badges || [];
         var badgeGrid = badges.map(function (b) {
             var earned = earnedIds.indexOf(b.id) !== -1;
-            return '<div class="flex flex-col items-center gap-1.5 p-3 rounded text-center" style="background:' +
+            var iconHtml = earned ? (b.icon && b.icon.indexOf('fa-') !== -1 ? '<i class="' + window.UI.esc(b.icon) + ' text-lg"></i>' : b.icon) : '<i class="fa-solid fa-lock text-sm opacity-40"></i>';
+            return '<div class="flex flex-col items-center justify-center gap-1.5 p-3 rounded text-center min-h-[85px]" style="background:' +
                 (earned ? 'rgba(211,47,47,0.08)' : 'rgba(255,255,255,0.02)') +
                 ';border:1px solid ' + (earned ? 'rgba(211,47,47,0.3)' : 'rgba(255,255,255,0.06)') +
                 ';opacity:' + (earned ? 1 : 0.45) + '">' +
-                '<span class="text-2xl">' + (earned ? b.icon : '🔒') + '</span>' +
-                '<span class="text-xs font-medium text-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' +
+                '<span class="h-7 flex items-center justify-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + iconHtml + '</span>' +
+                '<span class="text-xs font-medium text-center line-clamp-1" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' +
                 window.UI.esc(b.name) + '</span></div>';
         }).join('');
 

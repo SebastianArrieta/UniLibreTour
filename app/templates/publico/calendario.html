@@ -92,7 +92,7 @@
                 '<span class="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider" style="padding:0.125rem 0.375rem;background:' + c + '14;color:' + c + ';border:1px solid ' + c + '30">' + esc(ev.type) + '</span>' +
                 '</div>' +
                 '<div class="text-sm font-serif font-semibold leading-snug" style="color:var(--card-foreground)">' + esc(ev.title) + '</div>' +
-                '<div class="text-xs mt-0.5" style="color:var(--muted-foreground)">📍 ' + esc(ev.location) + '</div>' +
+                '<div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)"><i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>' + esc(ev.location) + '</div>' +
                 '<p class="text-xs mt-1.5 leading-relaxed" style="color:var(--muted-foreground)">' + esc(ev.description) + '</p>' +
                 '</div>';
         });

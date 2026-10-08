@@ -4,11 +4,11 @@
 {% from 'components/sidebar.html' import sidebar %}
 {% from 'components/macros.html' import content_card, status_badge, empty_state %}
 {% set sb_links = [
-  {'page':'est-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('web.estudiante')},
-  {'page':'est-aportes','label':'Mis Aportes','icon':'🗂️','href': url_for('web.estudiante_aportes')},
-  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('web.ranking')},
-  {'page':'est-favoritos','label':'Favoritos','icon':'♡','href': url_for('web.estudiante_favoritos')},
-  {'page':'est-contribuir','label':'Contribuir','icon':'↑','href': url_for('web.estudiante_contribuir')},
+  {'page':'est-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.estudiante')},
+  {'page':'est-aportes','label':'Mis Aportes','icon':'fa-solid fa-folder-open','href': url_for('web.estudiante_aportes')},
+  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
+  {'page':'est-favoritos','label':'Favoritos','icon':'fa-regular fa-heart','href': url_for('web.estudiante_favoritos')},
+  {'page':'est-contribuir','label':'Contribuir','icon':'fa-solid fa-arrow-up-from-bracket','href': url_for('web.estudiante_contribuir')},
 ] %}
 {% set egresado = users | selectattr('email', 'equalto', 'egresado@unilibre.edu.co') | first %}
 {% set pts = egresado.points if egresado and egresado.points else 8540 %}
@@ -55,8 +55,8 @@
             </div>
             <p class="text-sm font-medium mb-1" style="color:var(--secondary-foreground)">{{ cargo }}</p>
             <div class="flex flex-wrap gap-4 text-xs font-mono" style="color:var(--muted-foreground)">
-              <span>🎓 Graduación: {{ grado }}</span>
-              <span>🧾 {{ contribs }} contribuciones</span>
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-graduation-cap text-xs"></i> Graduación: {{ grado }}</span>
+              <span class="flex items-center gap-1.5"><i class="fa-solid fa-folder-open text-xs"></i> {{ contribs }} contribuciones</span>
             </div>
             <p class="text-sm mt-3 leading-relaxed" style="color:var(--muted-foreground)">
               Ingeniera de Sistemas de la Universidad Libre, cohorte 2018. Lidera proyectos de transformación digital en el sector fintech colombiano y mantiene un vínculo activo con el programa como mentora de semilleros.
@@ -154,7 +154,7 @@
               </div>
               {% endfor %}
             {% else %}
-              {{ empty_state('No tienes contribuciones pendientes de revisión.', '✓') }}
+              {{ empty_state('No tienes contribuciones pendientes de revisión.', 'fa-solid fa-check') }}
             {% endif %}
             <div class="grid grid-cols-2 gap-2 mt-1">
               <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">Ver mis aportes →</a>
@@ -185,14 +185,14 @@
               <p class="text-xs line-clamp-2" style="color:var(--muted-foreground)">{{ item.description }}</p>
             </div>
             <button type="button" class="fav-toggle flex-shrink-0 self-center w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
-              <span data-fav-icon>♡</span>
+              <span data-fav-icon><i class="fa-regular fa-heart"></i></span>
             </button>
           </div>
           {% endfor %}
         </div>
         {% else %}
         <div class="museum-card rounded p-4">
-          {{ empty_state('Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.', '🗂️') }}
+          {{ empty_state('Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.', 'fa-solid fa-folder-open') }}
         </div>
         {% endif %}
       </div>

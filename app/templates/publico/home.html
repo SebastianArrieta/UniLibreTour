@@ -143,7 +143,9 @@
             <div class="relative h-40 overflow-hidden" style="background:#111827">
                 <img src="{{ col.image }}" alt="{{ col.title }}" class="w-full h-full object-cover opacity-70 transition-all duration-500 group-hover:opacity-90 group-hover:scale-105">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)"></div>
-                <span class="absolute bottom-3 left-3 text-2xl">{{ col.icon }}</span>
+                <span class="absolute bottom-3 left-3 w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(0,0,0,0.65);border:1px solid rgba(211,47,47,0.4);color:#ffffff">
+                    {% if 'fa-' in col.icon %}<i class="{{ col.icon }}"></i>{% else %}{{ col.icon }}{% endif %}
+                </span>
                 <span class="absolute top-3 right-3 text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.6);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">{{ col.count }} piezas</span>
             </div>
             <div class="p-4">
@@ -164,7 +166,7 @@
         <div class="museum-card rounded overflow-hidden flex flex-col group">
             <div class="h-32 relative" style="background:#111827">
                 <img src="{{ ach.image }}" alt="{{ ach.title }}" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
-                <div class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center" style="background:rgba(0,0,0,0.6);border:1px solid rgba(211,47,47,0.3)">🏆</div>
+                <div class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs" style="background:rgba(0,0,0,0.6);border:1px solid rgba(211,47,47,0.3);color:#fbbf24"><i class="fa-solid fa-trophy"></i></div>
             </div>
             <div class="p-4 flex-1 flex flex-col">
                 <div class="text-xs font-mono mb-1" style="color:#d32f2f">{{ ach.year }} · {{ ach.institution }}</div>
@@ -188,7 +190,9 @@
             <div class="flex flex-col">
                 {% for g in researchGroups %}
                 <div class="flex items-center gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid rgba(255,255,255,0.05){% endif %}">
-                    <div class="w-8 h-8 rounded flex items-center justify-center text-sm flex-shrink-0" style="background:rgba(211,47,47,0.08)">{{ '🔬' if g.category == 'semillero' else '🧪' }}</div>
+                    <div class="w-8 h-8 rounded flex items-center justify-center text-sm flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f">
+                        {% if g.category == 'semillero' %}<i class="fa-solid fa-microscope text-xs"></i>{% else %}<i class="fa-solid fa-flask text-xs"></i>{% endif %}
+                    </div>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-serif font-semibold group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ g.name }}</div>
                         <div class="text-xs" style="color:var(--muted-foreground)">{{ g.lead }}</div>
@@ -213,7 +217,7 @@
                     </div>
                     <a href="{{ url_for('web.detalle', cid=ev.id) }}" class="flex-1 min-w-0 block">
                         <div class="text-sm font-serif font-semibold leading-tight group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ ev.title }}</div>
-                        <div class="text-xs mt-0.5" style="color:var(--muted-foreground)">📍 Auditorio Principal</div>
+                        <div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)"><i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>Auditorio Principal</div>
                     </a>
                 </div>
                 {% endfor %}

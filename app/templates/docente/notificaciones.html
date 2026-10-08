@@ -3,15 +3,15 @@
 {% block content %}
 {% from 'components/sidebar.html' import sidebar %}
 {% set sb_links = [
-  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('web.docente')},
-  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('web.ranking')},
-  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'✎','href': url_for('web.docente_evidencia')},
+  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.docente')},
+  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
+  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'fa-solid fa-file-signature','href': url_for('web.docente_evidencia')},
 ] %}
 {% set notifs = [
-  {'id':1, 'type':'aprobado', 'title':'Contribución aprobada y publicada', 'body':'"Sistema de Predicción de Deserción Estudiantil" fue aprobada por el administrador y está disponible en el archivo.', 'time':'28 Jun 2024, 10:45', 'color':'#22c55e', 'icon':'✓', 'read':false},
-  {'id':2, 'type':'pendiente', 'title':'Evidencia en revisión', 'body':'"Blockchain para Trazabilidad de Cadena de Suministro en PyMEs" está siendo revisada por el equipo administrativo.', 'time':'25 Jun 2024, 15:30', 'color':'#f97316', 'icon':'⏳', 'read':false},
-  {'id':3, 'type':'sistema', 'title':'Convocatoria de investigación abierta', 'body':'La Vicerrectoría de Investigaciones anuncia la convocatoria interna 2025-1. Fecha límite: 31 julio.', 'time':'22 Jun 2024, 9:00', 'color':'#3b82f6', 'icon':'ℹ', 'read':false},
-  {'id':4, 'type':'devuelto', 'title':'Evidencia devuelta para corrección', 'body':'"Análisis de Vulnerabilidades en Aplicaciones Web Universitarias" fue devuelta. Ver nota del revisor.', 'time':'20 Jun 2024, 14:15', 'color':'#ef4444', 'icon':'↩', 'read':true},
+  {'id':1, 'type':'aprobado', 'title':'Contribución aprobada y publicada', 'body':'"Sistema de Predicción de Deserción Estudiantil" fue aprobada por el administrador y está disponible en el archivo.', 'time':'28 Jun 2024, 10:45', 'color':'#22c55e', 'icon':'fa-solid fa-check', 'read':false},
+  {'id':2, 'type':'pendiente', 'title':'Evidencia en revisión', 'body':'"Blockchain para Trazabilidad de Cadena de Suministro en PyMEs" está siendo revisada por el equipo administrativo.', 'time':'25 Jun 2024, 15:30', 'color':'#f97316', 'icon':'fa-solid fa-clock', 'read':false},
+  {'id':3, 'type':'sistema', 'title':'Convocatoria de investigación abierta', 'body':'La Vicerrectoría de Investigaciones anuncia la convocatoria interna 2025-1. Fecha límite: 31 julio.', 'time':'22 Jun 2024, 9:00', 'color':'#3b82f6', 'icon':'fa-solid fa-info', 'read':false},
+  {'id':4, 'type':'devuelto', 'title':'Evidencia devuelta para corrección', 'body':'"Análisis de Vulnerabilidades en Aplicaciones Web Universitarias" fue devuelta. Ver nota del revisor.', 'time':'20 Jun 2024, 14:15', 'color':'#ef4444', 'icon':'fa-solid fa-arrow-rotate-left', 'read':true},
 ] %}
 {% set unread_count = notifs | rejectattr('read') | list | length %}
 <style>
@@ -42,7 +42,9 @@
         <div class="museum-card rounded p-5 flex gap-4 transition-all duration-300"
              data-nid="{{ n.id }}" data-read="{{ 'true' if n.read else 'false' }}"
              style="border-left:4px solid {{ n.color }};animation-delay:{{ loop.index0 * 0.08 }}s">
-          <div class="w-11 h-11 rounded-full flex items-center justify-center text-base flex-shrink-0" style="background:{{ n.color }}12;color:{{ n.color }};border:1.5px solid {{ n.color }}30">{{ n.icon }}</div>
+          <div class="w-11 h-11 rounded-full flex items-center justify-center text-sm flex-shrink-0" style="background:{{ n.color }}12;color:{{ n.color }};border:1.5px solid {{ n.color }}30">
+            {% if 'fa-' in n.icon %}<i class="{{ n.icon }}"></i>{% else %}{{ n.icon }}{% endif %}
+          </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2">
@@ -152,7 +154,7 @@
       if (on) {
         if (check) check.remove();
       } else {
-        box.insertAdjacentHTML('beforeend', '<span class="text-xs text-black font-bold">✓</span>');
+        box.insertAdjacentHTML('beforeend', '<i class="fa-solid fa-check" style="font-size:10px;color:#000"></i>');
       }
     });
   });

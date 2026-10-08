@@ -179,7 +179,7 @@
         var knob = btn.querySelector('.theme-toggle-knob');
         var icon = btn.querySelector('[data-theme-icon]');
         if (knob) knob.style.left = theme === 'dark' ? '18px' : '2px';
-        if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        if (icon) icon.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun" style="font-size:11px;color:#facc15"></i>' : '<i class="fa-solid fa-moon" style="font-size:11px;color:#818cf8"></i>';
         btn.setAttribute('data-theme', theme);
     }
 
@@ -365,6 +365,8 @@
             if (!id) return;
             btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
             btn.classList.toggle('is-fav', Museo.isFav(id));
+            var initIcon = btn.querySelector('[data-fav-icon]');
+            if (initIcon) initIcon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:#d32f2f"></i>' : '<i class="fa-regular fa-heart"></i>';
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -372,7 +374,7 @@
                 btn.classList.toggle('is-fav', Museo.isFav(id));
                 btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
                 var icon = btn.querySelector('[data-fav-icon]');
-                if (icon) icon.textContent = Museo.isFav(id) ? '♥' : '♡';
+                if (icon) icon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:#d32f2f"></i>' : '<i class="fa-regular fa-heart"></i>';
                 if (typeof onChanged === 'function') onChanged(Museo.countFavs());
             });
         });

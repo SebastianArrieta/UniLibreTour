@@ -8,11 +8,11 @@
 {% block content %}
   {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   {% set filtros = [
     {'value': '', 'label': 'Todo'},
@@ -69,7 +69,7 @@
               {% if item.status == 'pendiente' %}
               <a href="{{ url_for('web.admin_validacion', iid=item.id) }}" class="btn-primary px-4 py-2 rounded text-xs font-semibold whitespace-nowrap">Validar →</a>
               {% else %}
-              <a href="{{ url_for('web.admin_hall_registro') }}" class="btn-primary px-4 py-2 rounded text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-1">⭐ Destacar</a>
+              <a href="{{ url_for('web.admin_hall_registro') }}" class="btn-primary px-4 py-2 rounded text-xs font-semibold whitespace-nowrap flex items-center justify-center gap-1"><i class="fa-solid fa-star"></i> Destacar</a>
               {% endif %}
               <a href="{{ detalle_href }}" class="btn-outline-primary px-4 py-2 rounded text-xs whitespace-nowrap">Ver Contenido</a>
             </div>

@@ -100,8 +100,18 @@
     }
 
     function emptyState(message, icon) {
+        var iconHtml = '<i class="fa-solid fa-folder-open text-3xl opacity-30"></i>';
+        if (icon) {
+            if (icon.indexOf('<') !== -1) {
+                iconHtml = icon;
+            } else if (icon.indexOf('fa-') !== -1) {
+                iconHtml = '<i class="' + esc(icon) + ' text-3xl opacity-30"></i>';
+            } else {
+                iconHtml = '<span class="text-3xl opacity-30">' + icon + '</span>';
+            }
+        }
         return '<div class="flex flex-col items-center justify-center py-20 text-center gap-3">' +
-            '<span class="text-4xl opacity-30">' + (icon || '📂') + '</span>' +
+            iconHtml +
             '<p style="color:var(--muted-foreground)">' + esc(message) + '</p>' +
             '</div>';
     }
@@ -147,7 +157,7 @@
             var circleBorder = isActive ? 'none' : '1px solid rgba(255,255,255,0.1)';
             out += '<div class="flex items-center gap-2 flex-1">' +
                 '<div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all" style="background:' + circleBg + ';color:' + circleColor + ';border:' + circleBorder + '">' +
-                (isCompleted ? '✓' : num) + '</div>' +
+                (isCompleted ? '<i class="fa-solid fa-check text-xs"></i>' : num) + '</div>' +
                 '<span class="text-xs hidden md:inline truncate" style="color:' + (isActive ? 'var(--secondary-foreground)' : 'var(--muted-foreground)') + '">' + esc(label) + '</span>';
             if (num < steps.length) {
                 out += '<div class="h-px flex-1 mx-2" style="background:' + (isCompleted ? '#22c55e' : isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)') + '"></div>';
@@ -161,7 +171,7 @@
         cfg = cfg || {};
         return '<label class="flex items-start gap-3 cursor-pointer group">' +
             '<div class="w-5 h-5 rounded flex-shrink-0 mt-0.5 flex items-center justify-center transition-all" role="checkbox" aria-checked="' + (cfg.checked ? 'true' : 'false') + '" data-checkbox="' + esc(cfg.name || '') + '" data-value="' + esc(cfg.value || '') + '" style="background:' + (cfg.checked ? 'var(--primary)' : 'rgba(255,255,255,0.04)') + ';border:1px solid ' + (cfg.checked ? 'var(--primary)' : 'rgba(255,255,255,0.15)') + '">' +
-            (cfg.checked ? '<span class="text-xs text-black font-bold">✓</span>' : '') + '</div>' +
+            (cfg.checked ? '<i class="fa-solid fa-check text-xs text-black font-bold"></i>' : '') + '</div>' +
             '<span class="text-sm" style="color:var(--secondary-foreground)">' + esc(cfg.label) + '</span></label>';
     }
 

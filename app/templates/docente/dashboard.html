@@ -4,18 +4,18 @@
 {% from 'components/sidebar.html' import sidebar %}
 {% from 'components/macros.html' import empty_state, status_badge, category_badge %}
 {% set sb_links = [
-  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('web.docente')},
-  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('web.ranking')},
-  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'✎','href': url_for('web.docente_evidencia')},
+  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.docente')},
+  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
+  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'fa-solid fa-file-signature','href': url_for('web.docente_evidencia')},
 ] %}
 {% set casas = users | selectattr('email', 'equalto', 'h.casas@unilibre.edu.co') | first %}
 {% set cola = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
 {% set involucrados = contentItems | selectattr('involvedTeacher', 'in', ['Dr. Hernando Casas', 'Hernando Casas']) | list %}
 {% set involved_pending = involucrados | selectattr('status', 'equalto', 'pendiente') | list %}
 {% set notifs = [
-  {'type':'aprobado','message':'Tu contribución "Sistema de Predicción..." fue aprobada','time':'Hace 2h','icon':'✓','color':'#22c55e'},
-  {'type':'pendiente','message':'Tienes 1 pieza pendiente de revisión','time':'Hace 5h','icon':'⏳','color':'#f97316'},
-  {'type':'sistema','message':'Convocatoria de investigación 2025-1 abierta','time':'Ayer','icon':'ℹ','color':'#3b82f6'},
+  {'type':'aprobado','message':'Tu contribución "Sistema de Predicción..." fue aprobada','time':'Hace 2h','icon':'fa-solid fa-check','color':'#22c55e'},
+  {'type':'pendiente','message':'Tienes 1 pieza pendiente de revisión','time':'Hace 5h','icon':'fa-solid fa-clock','color':'#f97316'},
+  {'type':'sistema','message':'Convocatoria de investigación 2025-1 abierta','time':'Ayer','icon':'fa-solid fa-info','color':'#3b82f6'},
 ] %}
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
@@ -42,7 +42,7 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #d32f2f">
           <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(211,47,47,0.06);color:#d32f2f">📝</div>
+            <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:rgba(211,47,47,0.06);color:#d32f2f"><i class="fa-solid fa-file-pen"></i></div>
             <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Contribuciones</div>
           </div>
           <div class="font-serif text-3xl font-bold" style="color:#d32f2f">{{ casas.contributions if casas and casas.contributions else 18 }}</div>
@@ -50,7 +50,7 @@
         </div>
         <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #22c55e">
           <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(34,197,94,0.06);color:#22c55e">✓</div>
+            <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:rgba(34,197,94,0.06);color:#22c55e"><i class="fa-solid fa-check"></i></div>
             <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Publicadas</div>
           </div>
           <div class="font-serif text-3xl font-bold" style="color:#22c55e">15</div>
@@ -58,7 +58,7 @@
         </div>
         <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #f97316">
           <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(249,115,22,0.06);color:#f97316">⏳</div>
+            <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:rgba(249,115,22,0.06);color:#f97316"><i class="fa-solid fa-hourglass-half"></i></div>
             <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">En Revisión</div>
           </div>
           <div class="font-serif text-3xl font-bold" style="color:#f97316">{{ cola | length }}</div>
@@ -66,7 +66,7 @@
         </div>
         <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default" style="border-left:3px solid #a855f7">
           <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(168,85,247,0.06);color:#a855f7">🎓</div>
+            <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:rgba(168,85,247,0.06);color:#a855f7"><i class="fa-solid fa-graduation-cap"></i></div>
             <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Estudiantes</div>
           </div>
           <div class="font-serif text-3xl font-bold" style="color:#a855f7">34</div>
@@ -75,9 +75,9 @@
       </div>
 
       <div class="flex gap-0 border-b mb-6" style="border-color:rgba(255,255,255,0.08)" id="doc-tabs">
-        <button type="button" data-tab="mio" class="py-3 px-4 border-b-2 text-sm font-medium transition-all duration-200" style="border-color:#d32f2f;color:#d32f2f;background:rgba(211,47,47,0.04)">📄 Mi Contenido</button>
+        <button type="button" data-tab="mio" class="py-3 px-4 border-b-2 text-sm font-medium transition-all duration-200 flex items-center gap-2" style="border-color:#d32f2f;color:#d32f2f;background:rgba(211,47,47,0.04)"><i class="fa-solid fa-file-lines text-xs"></i> Mi Contenido</button>
         <button type="button" data-tab="involucrado" class="py-3 px-4 border-b-2 text-sm font-medium flex items-center gap-2 transition-all duration-200" style="border-color:transparent;color:var(--muted-foreground);background:transparent">
-          👥 Me Involucran
+          <i class="fa-solid fa-users text-xs"></i> Me Involucran
         </button>
       </div>
 
@@ -94,7 +94,7 @@
               </div>
               <div class="flex flex-col gap-3">
                 {% if cola | length == 0 %}
-                  {{ empty_state('No hay contenido pendiente en la cola.', '✓') }}
+                  {{ empty_state('No hay contenido pendiente en la cola.', 'fa-solid fa-check') }}
                 {% endif %}
                 {% for item in cola %}
                 <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03)">
@@ -120,7 +120,7 @@
               <div class="flex flex-col gap-3">
                 {% set mi_pend = casas and ((contentItems + contentQueue) | selectattr('author', 'equalto', casas.name) | list + (contentItems + contentQueue) | selectattr('submittedBy', 'equalto', casas.name) | list) | unique(attribute='id') | list | rejectattr('status', 'in', ['publicado', 'institucional']) | list %}
                 {% if (mi_pend | default([])) | length == 0 %}
-                  {{ empty_state('No tienes contribuciones pendientes de revisión.', '✓') }}
+                  {{ empty_state('No tienes contribuciones pendientes de revisión.', 'fa-solid fa-check') }}
                 {% endif %}
               </div>
             </div>
@@ -150,7 +150,7 @@
         <div class="museum-card rounded p-5">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">🔔 Notificaciones</h3>
+              <h3 class="font-serif font-semibold flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-regular fa-bell text-xs"></i> Notificaciones</h3>
               <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(211,47,47,0.12);color:#d32f2f">3</span>
             </div>
             <a href="{{ url_for('web.docente_notificaciones') }}" class="text-xs" style="color:#d32f2f">Ver todas</a>
@@ -158,7 +158,9 @@
           <div class="flex flex-col gap-2">
             {% for n in notifs %}
             <div class="flex gap-3 items-start p-3 rounded transition-colors hover:bg-white/[0.02]" style="border-left:3px solid {{ n.color }}">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0" style="background:{{ n.color }}15;color:{{ n.color }}">{{ n.icon }}</div>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0" style="background:{{ n.color }}15;color:{{ n.color }}">
+                {% if 'fa-' in n.icon %}<i class="{{ n.icon }}"></i>{% else %}{{ n.icon }}{% endif %}
+              </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm" style="color:var(--secondary-foreground)">{{ n.message }}</p>
                 <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ n.time }}</span>

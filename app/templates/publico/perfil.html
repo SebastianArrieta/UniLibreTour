@@ -55,7 +55,7 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         docente: 'h.casas@unilibre.edu.co',
         admin: 'admin@unilibre.edu.co'
     };
-    var CATEGORY_ICON = { premio: '🏆', certificacion: '📜', reconocimiento: '🤝' };
+    var CATEGORY_ICON = { premio: 'fa-solid fa-trophy', certificacion: 'fa-solid fa-certificate', reconocimiento: 'fa-solid fa-handshake' };
 
     function findSelf() {
         var role = (window.Museo && Museo.role) || 'visitante';
@@ -84,8 +84,8 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
             '<div class="relative w-24 h-24 mx-auto">' +
             '<img src="' + esc(photo) + '" alt="' + esc(user.name) + '" class="w-24 h-24 rounded-full object-cover" ' +
             'style="border:2px solid rgba(211,47,47,0.35)">' +
-            '<div class="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-sm"' +
-            'style="background:#d32f2f;color:#fff;border:2px solid var(--card)" title="Foto de perfil">📷</div>' +
+            '<div class="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-xs"' +
+            'style="background:#d32f2f;color:#fff;border:2px solid var(--card)" title="Foto de perfil"><i class="fa-solid fa-camera"></i></div>' +
             '</div>' +
             '<h2 class="font-serif text-xl font-bold mt-3" style="color:var(--foreground)">' + esc(user.name) + '</h2>' +
             '<div class="flex flex-wrap items-center justify-center gap-2 mt-2">' +
@@ -143,7 +143,7 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         if (group) {
             var leader = group.lead === user.name;
             body += '<div class="flex items-center gap-3">' +
-                '<div class="w-9 h-9 rounded flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(211,47,47,0.08)">' + (group.category === 'semillero' ? '🔬' : '🧪') + '</div>' +
+                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f">' + (group.category === 'semillero' ? '<i class="fa-solid fa-microscope text-sm"></i>' : '<i class="fa-solid fa-flask text-sm"></i>') + '</div>' +
                 '<div><div class="text-sm font-serif font-semibold" style="color:var(--card-foreground)">' + esc(group.name) + '</div>' +
                 '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:' + (leader ? 'rgba(211,47,47,0.12)' : 'rgba(255,255,255,0.04)') + ';color:' + (leader ? '#d32f2f' : 'var(--muted-foreground)') + '">' + (leader ? 'Líder del grupo' : 'Miembro') + '</span></div></div>';
         } else {
@@ -173,12 +173,13 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         var earnedIds = user.badgeIds || [];
         var grid = badges.map(function (b) {
             var earned = earnedIds.indexOf(b.id) !== -1;
-            return '<div class="flex flex-col items-center gap-1.5 p-3 rounded text-center" style="background:' +
+            var iconHtml = earned ? (b.icon && b.icon.indexOf('fa-') !== -1 ? '<i class="' + window.UI.esc(b.icon) + ' text-lg"></i>' : b.icon) : '<i class="fa-solid fa-lock text-sm opacity-40"></i>';
+            return '<div class="flex flex-col items-center justify-center gap-1.5 p-3 rounded text-center min-h-[85px]" style="background:' +
                 (earned ? 'rgba(211,47,47,0.08)' : 'rgba(255,255,255,0.02)') +
                 ';border:1px solid ' + (earned ? 'rgba(211,47,47,0.3)' : 'rgba(255,255,255,0.06)') +
                 ';opacity:' + (earned ? 1 : 0.45) + '">' +
-                '<span class="text-2xl">' + (earned ? b.icon : '🔒') + '</span>' +
-                '<span class="text-xs font-medium text-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + esc(b.name) + '</span></div>';
+                '<span class="h-7 flex items-center justify-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + iconHtml + '</span>' +
+                '<span class="text-xs font-medium text-center line-clamp-1" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + esc(b.name) + '</span></div>';
         }).join('');
         el.innerHTML = card(
             '<div class="flex items-center justify-between mb-4">' +
@@ -191,15 +192,16 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
     function renderLogros() {
         var el = document.getElementById('perfil-logros');
         var list = (D.achievements || []).map(function (a) {
+            var iconCls = CATEGORY_ICON[a.category] || 'fa-solid fa-trophy';
             return '<div class="flex items-start gap-3" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.75rem">' +
-                '<div class="w-9 h-9 rounded flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(211,47,47,0.08)">' + (CATEGORY_ICON[a.category] || '🏆') + '</div>' +
+                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f"><i class="' + iconCls + ' text-sm"></i></div>' +
                 '<div class="min-w-0">' +
                 '<div class="font-serif text-sm font-semibold" style="color:var(--card-foreground)">' + esc(a.title) + '</div>' +
                 '<div class="text-xs font-mono mt-0.5" style="color:var(--muted-foreground)">' + a.year + ' · ' + esc(a.institution) + '</div>' +
                 '<p class="text-xs mt-1 leading-relaxed" style="color:var(--secondary-foreground)">' + esc(a.description) + '</p>' +
                 '</div></div>';
         }).join('');
-        if (!list) list = UIw.emptyState('Todavía no hay logros registrados.', '🏆');
+        if (!list) list = UIw.emptyState('Todavía no hay logros registrados.', 'fa-solid fa-trophy');
         el.innerHTML = card(
             '<h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Logros y Reconocimientos</h3>' +
             '<div class="flex flex-col gap-3">' + list + '</div>', 'p-5');
@@ -218,7 +220,7 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         });
         if (title) title.textContent = 'Mis aportes (' + contribs.length + ')';
         if (!contribs.length) {
-            el.innerHTML = UIw.emptyState('Todavía no hay contribuciones registradas.', '📂');
+            el.innerHTML = UIw.emptyState('Todavía no hay contribuciones registradas.', 'fa-solid fa-folder-open');
             return;
         }
         el.innerHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">' +
@@ -231,7 +233,7 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         areas.forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
-            el.innerHTML = UIw.emptyState('Inicia sesión para ver tu perfil.', '👤');
+            el.innerHTML = UIw.emptyState('Inicia sesión para ver tu perfil.', 'fa-solid fa-user');
         });
     }
 

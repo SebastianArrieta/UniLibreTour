@@ -48,10 +48,10 @@
                 </div>
                 {% endif %}
                 <button type="button" class="fav-toggle ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded text-sm btn-outline-primary" data-id="{{ item.id }}" style="color:var(--muted-foreground)">
-                    <span data-fav-icon>♡</span>
+                    <span data-fav-icon><i class="fa-regular fa-heart"></i></span>
                     <span>Guardar</span>
                 </button>
-                <button type="button" id="share-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm transition-colors" style="background:rgba(255,255,255,0.06);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)">🔗 Compartir</button>
+                <button type="button" id="share-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm transition-colors" style="background:rgba(255,255,255,0.06);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-share-nodes text-xs"></i> Compartir</button>
             </div>
 
             <p class="text-base leading-relaxed mb-6" style="color:var(--secondary-foreground)">{{ item.description }}</p>
@@ -120,14 +120,14 @@
                 <h4 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Evidencias y Archivos</h4>
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)">
-                        <div class="text-xl">📄</div>
+                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:rgba(211,47,47,0.1);color:#d32f2f"><i class="fa-solid fa-file-pdf"></i></div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">documento_investigacion.pdf</div>
                             <div class="text-xs" style="color:var(--muted-foreground)">PDF · 2.4 MB</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)">
-                        <div class="text-xl">🖼️</div>
+                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:rgba(59,130,246,0.1);color:#3b82f6"><i class="fa-solid fa-image"></i></div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">diagrama_arquitectura.png</div>
                             <div class="text-xs" style="color:var(--muted-foreground)">PNG · 850 KB</div>
@@ -174,11 +174,11 @@
     if (share) {
         share.addEventListener('click', function () {
             if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href);
-            share.innerHTML = '✓ ¡Copiado!';
+            share.innerHTML = '<i class="fa-solid fa-check text-xs"></i> ¡Copiado!';
             share.style.background = '#22c55e';
             share.style.color = '#ffffff';
             setTimeout(function () {
-                share.innerHTML = '🔗 Compartir';
+                share.innerHTML = '<i class="fa-solid fa-share-nodes text-xs"></i> Compartir';
                 share.style.background = 'rgba(255,255,255,0.06)';
                 share.style.color = 'var(--secondary-foreground)';
             }, 2000);

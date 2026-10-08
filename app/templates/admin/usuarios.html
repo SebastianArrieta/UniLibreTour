@@ -2,11 +2,11 @@
 {% block title %}Usuarios — UniLibreTour{% endblock %}
 {% block content %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
@@ -84,7 +84,7 @@
           </div>
           <div id="users-empty" class="hidden">
             <div class="flex flex-col items-center justify-center py-20 text-center gap-3">
-              <span class="text-4xl opacity-30">👥</span>
+              <span class="text-4xl opacity-30"><i class="fa-solid fa-users"></i></span>
               <p style="color:var(--muted-foreground)">No hay usuarios que coincidan con la búsqueda.</p>
             </div>
           </div>

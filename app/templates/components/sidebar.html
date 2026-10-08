@@ -17,7 +17,7 @@
             {% set active = (l.page == sb_active) %}
             <a href="{{ l.href }}" class="sb-item {{ 'sb-active' if active }}"
                style="color:{{ '#ffffff' if active else 'var(--secondary-foreground)' }}; animation-delay: {{ loop.index0 * 60 }}ms">
-                <span class="sb-chip {{ 'sb-chip-on' if active }}">{{ l.icon }}</span>
+                <span class="sb-chip {{ 'sb-chip-on' if active }}">{% if 'fa-' in l.icon %}<i class="{{ l.icon }} text-xs"></i>{% else %}{{ l.icon }}{% endif %}</span>
                 <span class="flex-1 leading-tight">{{ l.label }}</span>
                 {% if l.badge and l.badge > 0 %}
                 <span class="text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full"
@@ -34,7 +34,7 @@
     {% set active = (l.page == sb_active) %}
     <a href="{{ l.href }}" class="sb-mobile-item {{ 'sb-active' if active }}" style="color:{{ '#d32f2f' if active else 'var(--muted-foreground)' }}">
         <span class="sb-mobile-bar"></span>
-        <span class="text-base leading-none">{{ l.icon }}</span>
+        <span class="text-base leading-none">{% if 'fa-' in l.icon %}<i class="{{ l.icon }} text-sm"></i>{% else %}{{ l.icon }}{% endif %}</span>
         <span class="text-[10px] font-medium leading-none truncate max-w-full px-1">{{ l.label }}</span>
         {% if l.badge and l.badge > 0 %}
         <span class="absolute top-1 right-[22%] text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 flex items-center justify-center rounded-full" style="background:#d32f2f;color:#ffffff">{{ l.badge }}</span>

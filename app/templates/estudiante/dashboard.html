@@ -4,11 +4,11 @@
 {% from 'components/sidebar.html' import sidebar %}
 {% from 'components/macros.html' import content_card, status_badge, empty_state, category_badge, tag_list %}
 {% set sb_links = [
-  {'page':'est-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('web.estudiante')},
-  {'page':'est-aportes','label':'Mis Aportes','icon':'🗂️','href': url_for('web.estudiante_aportes')},
-  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('web.ranking')},
-  {'page':'est-favoritos','label':'Favoritos','icon':'♡','href': url_for('web.estudiante_favoritos')},
-  {'page':'est-contribuir','label':'Contribuir','icon':'↑','href': url_for('web.estudiante_contribuir')},
+  {'page':'est-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.estudiante')},
+  {'page':'est-aportes','label':'Mis Aportes','icon':'fa-solid fa-folder-open','href': url_for('web.estudiante_aportes')},
+  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
+  {'page':'est-favoritos','label':'Favoritos','icon':'fa-regular fa-heart','href': url_for('web.estudiante_favoritos')},
+  {'page':'est-contribuir','label':'Contribuir','icon':'fa-solid fa-arrow-up-from-bracket','href': url_for('web.estudiante_contribuir')},
 ] %}
 {% set sb_active = current_page %}
 {% set todo = contentItems + contentQueue %}
@@ -39,12 +39,12 @@
       </div>
 
       <div id="banner-convocatoria" class="mb-8 rounded-lg p-4 flex items-start gap-4" style="background:linear-gradient(to right, rgba(211,47,47,0.15), rgba(30,58,138,0.15)); border:1px solid rgba(211,47,47,0.3)">
-        <div class="text-2xl">📢</div>
+        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.12);color:#d32f2f"><i class="fa-solid fa-bullhorn text-sm"></i></div>
         <div class="flex-1">
           <h4 class="font-serif font-bold text-sm mb-1" style="color:var(--foreground)">Convocatoria Proyectos Destacados 2025</h4>
           <p class="text-xs" style="color:var(--secondary-foreground)">Fecha límite: 31 julio. Postula tu proyecto de grado para el Hall de la Fama.</p>
         </div>
-        <button type="button" data-dismiss="banner-convocatoria" class="text-xs px-2 py-1 opacity-50 hover:opacity-100">✕</button>
+        <button type="button" data-dismiss="banner-convocatoria" class="text-xs px-2 py-1 opacity-50 hover:opacity-100" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -149,7 +149,7 @@
               </div>
               {% endfor %}
             {% else %}
-              {{ empty_state('No tienes contribuciones pendientes de revisión.', '✓') }}
+              {{ empty_state('No tienes contribuciones pendientes de revisión.', 'fa-solid fa-check') }}
             {% endif %}
             <div class="grid grid-cols-2 gap-2 mt-1">
               <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">Ver mis aportes →</a>
@@ -180,22 +180,22 @@
               <p class="text-xs line-clamp-2" style="color:var(--muted-foreground)">{{ item.description }}</p>
             </div>
             <button type="button" class="fav-toggle flex-shrink-0 self-center w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
-              <span data-fav-icon>♡</span>
+              <span data-fav-icon><i class="fa-regular fa-heart"></i></span>
             </button>
           </div>
           {% endfor %}
         </div>
         {% else %}
         <div class="museum-card rounded p-4">
-          {{ empty_state('Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.', '🗂️') }}
+          {{ empty_state('Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.', 'fa-solid fa-folder-open') }}
         </div>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <a href="{{ url_for('web.estudiante_contribuir') }}" class="fab-contribuir btn-primary px-5 py-3 rounded-full text-sm font-semibold" aria-label="Contribuir">
-    ↑ Contribuir
+  <a href="{{ url_for('web.estudiante_contribuir') }}" class="fab-contribuir btn-primary px-5 py-3 rounded-full text-sm font-semibold flex items-center gap-2" aria-label="Contribuir">
+    <i class="fa-solid fa-arrow-up-from-bracket"></i> Contribuir
   </a>
 </div>
 <style>

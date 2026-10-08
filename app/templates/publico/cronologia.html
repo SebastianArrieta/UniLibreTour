@@ -19,7 +19,7 @@
     <div class="flex flex-wrap gap-1.5 mt-3">
         {% for f in ev.media %}
         <span class="text-[10px] px-2 py-0.5 rounded font-mono truncate max-w-full"
-              style="background:{{ color }}12;color:var(--secondary-foreground);border:1px solid {{ color }}30">📎 {{ f }}</span>
+              style="background:{{ color }}12;color:var(--secondary-foreground);border:1px solid {{ color }}30"><i class="fa-solid fa-paperclip" style="font-size:9px"></i> {{ f }}</span>
         {% endfor %}
     </div>
     {% endif %}

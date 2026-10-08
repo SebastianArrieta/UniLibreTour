@@ -10,11 +10,11 @@
 {% block content %}
   {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-list-check', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
@@ -35,23 +35,23 @@
 
         <div class="museum-card rounded p-5 mb-8">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">➕ Añadir Información</h3>
+            <h3 class="font-serif font-semibold flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-circle-plus text-xs" style="color:#d32f2f"></i> Añadir Información</h3>
             <span class="text-xs" style="color:var(--muted-foreground)">Se publica de inmediato en el museo</span>
           </div>
           <div class="flex flex-wrap gap-2">
             {% set accesos = [
-              {'id': 'tab-timeline', 'icon': '📅', 'label': 'Línea de Tiempo'},
-              {'id': 'tab-premio', 'icon': '🏆', 'label': 'Premios y Reconocimientos'},
-              {'id': 'tab-proyecto', 'icon': '🎓', 'label': 'Proyectos Destacados'},
-              {'id': 'tab-hall', 'icon': '⭐', 'label': 'Hall de la Fama'},
-              {'id': 'tab-evento', 'icon': '🗓️', 'label': 'Eventos del Calendario'},
-              {'id': 'tab-noticias', 'icon': '📰', 'label': 'Noticias'},
+              {'id': 'tab-timeline', 'icon': 'fa-solid fa-timeline', 'label': 'Línea de Tiempo'},
+              {'id': 'tab-premio', 'icon': 'fa-solid fa-trophy', 'label': 'Premios y Reconocimientos'},
+              {'id': 'tab-proyecto', 'icon': 'fa-solid fa-graduation-cap', 'label': 'Proyectos Destacados'},
+              {'id': 'tab-hall', 'icon': 'fa-solid fa-award', 'label': 'Hall de la Fama'},
+              {'id': 'tab-evento', 'icon': 'fa-solid fa-calendar-days', 'label': 'Eventos del Calendario'},
+              {'id': 'tab-noticias', 'icon': 'fa-solid fa-newspaper', 'label': 'Noticias'},
             ] %}
             {% for a in accesos %}
             <a href="{{ url_for('web.admin_anadir', _anchor='tab-' ~ a.id | replace('tab-','')) }}"
                class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
                style="background:rgba(211,47,47,0.06);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)">
-              <span>{{ a.icon }}</span>{{ a.label }}
+              <span class="flex items-center justify-center text-xs" style="color:#d32f2f">{% if 'fa-' in a.icon %}<i class="{{ a.icon }}"></i>{% else %}{{ a.icon }}{% endif %}</span>{{ a.label }}
             </a>
             {% endfor %}
           </div>

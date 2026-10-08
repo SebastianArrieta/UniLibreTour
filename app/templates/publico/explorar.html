@@ -5,7 +5,7 @@
 {% set cat = request.args.get('cat', '') %}
 {% set nid = request.args.get('news', '') %}
 {% set labels = {'noticias': 'Noticias', 'historia': 'Historia', 'investigacion': 'Investigación', 'proyectos': 'Proyectos', 'eventos': 'Eventos', 'logros': 'Logros', 'docentes': 'Docentes', 'galeria': 'Galería Histórica', 'egresados': 'Egresados Destacados', 'premios': 'Premios'} %}
-{% set cats = [('', '📋', 'Todo', contentItems | length), ('noticias', '📰', 'Noticias', news | length), ('historia', '🏛️', 'Historia', 142), ('investigacion', '🔬', 'Investigación', 318), ('proyectos', '🎓', 'Proyectos', 527), ('eventos', '📅', 'Eventos', 203), ('logros', '🏆', 'Logros', 89), ('docentes', '👨‍🏫', 'Docentes', 74), ('galeria', '🖼️', 'Galería Histórica', 120), ('egresados', '🎓', 'Egresados Destacados', 6), ('premios', '🥇', 'Premios', 5)] %}
+{% set cats = [('', 'fa-solid fa-layer-group', 'Todo', contentItems | length), ('noticias', 'fa-solid fa-newspaper', 'Noticias', news | length), ('historia', 'fa-solid fa-landmark', 'Historia', 142), ('investigacion', 'fa-solid fa-microscope', 'Investigación', 318), ('proyectos', 'fa-solid fa-graduation-cap', 'Proyectos', 527), ('eventos', 'fa-solid fa-calendar-days', 'Eventos', 203), ('logros', 'fa-solid fa-trophy', 'Logros', 89), ('docentes', 'fa-solid fa-chalkboard-user', 'Docentes', 74), ('galeria', 'fa-solid fa-images', 'Galería Histórica', 120), ('egresados', 'fa-solid fa-user-graduate', 'Egresados Destacados', 6), ('premios', 'fa-solid fa-award', 'Premios', 5)] %}
 {% if cat %}
   {% set filtered = contentItems | selectattr('category', 'equalto', cat) | list %}
 {% else %}
@@ -25,7 +25,7 @@
             {% for cid, icon, clabel, cnt in cats %}
             {% set is_active = (cat == cid) or (not cat and cid == '') %}
             <a href="{{ url_for('web.explorar') }}{{ ('?cat=' ~ cid) if cid }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap lg:whitespace-normal text-left w-auto lg:w-full {{ 'sb-active' if is_active else 'hover:translate-x-1' }}" style="color:{{ '#ffffff' if is_active else 'var(--secondary-foreground)' }}">
-                <span class="sb-chip {{ 'sb-chip-on' if is_active }}">{{ icon }}</span>
+                <span class="sb-chip {{ 'sb-chip-on' if is_active }}"><i class="{{ icon }} text-xs"></i></span>
                 <span class="flex-1 truncate">{{ clabel }}</span>
                 <span class="text-xs font-mono flex-shrink-0" style="color:{{ 'rgba(255,255,255,0.85)' if is_active else 'var(--muted-foreground)' }}">{{ cnt }}</span>
             </a>
@@ -81,7 +81,7 @@
             </div>
             {% else %}
             <div class="museum-card rounded py-16 px-6 flex flex-col items-center justify-center text-center gap-3">
-                <span class="empty-float text-5xl">📂</span>
+                <i class="fa-solid fa-folder-open empty-float text-4xl opacity-30" style="color:var(--muted-foreground)"></i>
                 <p class="text-sm" style="color:var(--muted-foreground)">No hay contenido en esta categoría aún.</p>
                 <a href="{{ url_for('web.explorar') }}" class="inline-flex text-xs btn-outline-primary px-4 py-2 rounded mt-1">Ver todas las colecciones</a>
             </div>

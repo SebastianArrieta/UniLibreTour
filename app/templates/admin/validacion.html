@@ -6,11 +6,11 @@
   {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
   {% set sb_active = 'admin-cola' %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   {% set placeholder = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop&auto=format' %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
@@ -44,7 +44,7 @@
               <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Archivos Adjuntos</div>
               {% for f in ['documento_principal.pdf', 'evidencia_fotografica.zip', 'certificado_autorizacion.pdf'] %}
               <div class="flex items-center gap-3 py-2" style="border-bottom:1px solid rgba(255,255,255,0.04)">
-                <span class="text-lg">📄</span>
+                <span class="text-lg"><i class="fa-solid fa-file-pdf" style="color:#d32f2f"></i></span>
                 <span class="text-sm flex-1" style="color:var(--secondary-foreground)">{{ f }}</span>
                 <button type="button" class="text-xs" style="color:#d32f2f" onclick="toast('Descarga simulada de ' + '{{ f }}')">Descargar</button>
               </div>
@@ -70,7 +70,7 @@
               <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Verificación</div>
               {% for c in ['Contenido original verificado', 'Archivos completos y legibles', 'Relevancia institucional confirmada', 'Metadatos correctos'] %}
               <div class="flex items-center gap-2 py-2 text-sm" style="border-bottom:1px solid rgba(255,255,255,0.04)">
-                <span style="color:#22c55e">✓</span>
+                <span style="color:#22c55e"><i class="fa-solid fa-check" style="font-size:11px"></i></span>
                 <span style="color:var(--secondary-foreground)">{{ c }}</span>
               </div>
               {% endfor %}
@@ -78,10 +78,10 @@
 
             <div class="flex flex-col gap-3">
               <button type="button" id="btn-aprobar" class="w-full py-3 rounded font-semibold text-sm flex items-center justify-center gap-2 btn-float"
-                      style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)">✓ Aprobar y Publicar</button>
+                      style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)"><i class="fa-solid fa-check"></i> Aprobar y Publicar</button>
 
               <button type="button" id="btn-devolver" class="w-full py-3 rounded font-semibold text-sm flex items-center justify-center gap-2"
-                      style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25)">↩ Devolver con Nota</button>
+                      style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25)"><i class="fa-solid fa-rotate-left"></i> Devolver con Nota</button>
 
               <div id="devolver-form" class="hidden flex-col gap-2">
                 <div class="flex flex-wrap gap-1.5 mb-1">
@@ -96,7 +96,7 @@
               </div>
 
               <button type="button" id="btn-institucional" class="w-full py-2.5 rounded text-sm font-semibold"
-                      style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.25)">🏛 Marcar institucional</button>
+                      style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.25)"><i class="fa-solid fa-landmark"></i> Marcar institucional</button>
 
               {% if not confirm_href %}
               <div class="text-xs px-3 py-2 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.15)">

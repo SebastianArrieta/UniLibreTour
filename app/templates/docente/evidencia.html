@@ -3,9 +3,9 @@
 {% block content %}
 {% from 'components/sidebar.html' import sidebar %}
 {% set sb_links = [
-  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'⊞','href': url_for('web.docente')},
-  {'page':'ranking','label':'Progreso','icon':'🏆','href': url_for('web.ranking')},
-  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'✎','href': url_for('web.docente_evidencia')},
+  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.docente')},
+  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
+  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'fa-solid fa-file-signature','href': url_for('web.docente_evidencia')},
 ] %}
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
@@ -81,7 +81,7 @@
             </div>
             <div id="dw-dropzone" class="rounded-lg border-2 border-dashed p-8 text-center cursor-pointer transition-all"
                  style="border-color:rgba(211,47,47,0.2);background:transparent">
-              <div class="text-3xl mb-2 opacity-50">📎</div>
+              <div class="text-2xl mb-2 opacity-50" style="color:#d32f2f"><i class="fa-solid fa-paperclip"></i></div>
               <p class="text-sm font-medium" style="color:var(--secondary-foreground)">Arrastra archivos aquí o haz clic para seleccionar</p>
               <p class="text-xs mt-1" style="color:var(--muted-foreground)">PDF, DOCX, PPTX, imágenes (máx. 100 MB por archivo)</p>
             </div>
@@ -114,7 +114,7 @@
               </div>
               <div class="flex gap-2">
                 <button type="button" id="dw-back-2" class="btn-outline-primary px-5 py-2.5 rounded text-sm flex-1">← Revisar</button>
-                <button type="submit" id="dw-submit" class="btn-primary px-5 py-3 rounded font-semibold text-sm flex-1">Enviar Evidencia ✓</button>
+                <button type="submit" id="dw-submit" class="btn-primary px-5 py-3 rounded font-semibold text-sm flex-1 flex items-center justify-center gap-2">Enviar Evidencia <i class="fa-solid fa-check"></i></button>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@
       <div id="wizard-ok" style="display:none">
         <div class="flex items-center justify-center min-h-[24rem]">
           <div class="text-center max-w-sm">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)">✓</div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3);color:#22c55e"><i class="fa-solid fa-check"></i></div>
             <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Evidencia registrada!</h2>
             <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu evidencia fue enviada a la cola de validación del administrador. Recibirás una notificación con el resultado.</p>
             <div class="text-xs px-3 py-2 rounded mb-4" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.2)">Estado: <strong>En Cola de Validación</strong></div>
@@ -180,9 +180,9 @@
     filesBox.classList.remove('hidden');
     filesBox.innerHTML = files.map(function (f, i) {
       return '<div class="flex items-center gap-3 px-3 py-2 rounded" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2)">' +
-        '<span class="text-lg">📄</span><span class="text-sm flex-1" style="color:var(--secondary-foreground)">' + window.UI.esc(f) + '</span>' +
+        '<i class="fa-solid fa-file-lines text-base" style="color:#22c55e"></i><span class="text-sm flex-1" style="color:var(--secondary-foreground)">' + window.UI.esc(f) + '</span>' +
         '<span class="text-xs font-mono" style="color:#22c55e">Cargado</span>' +
-        '<button type="button" data-rm-file="' + i + '" class="text-xs ml-2" style="color:var(--muted-foreground)">✕</button></div>';
+        '<button type="button" data-rm-file="' + i + '" class="text-xs ml-2 hover:text-red-400" style="color:var(--muted-foreground)"><i class="fa-solid fa-xmark"></i></button></div>';
     }).join('');
     Array.prototype.forEach.call(filesBox.querySelectorAll('[data-rm-file]'), function (b) {
       b.addEventListener('click', function () {

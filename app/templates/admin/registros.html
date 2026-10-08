@@ -2,16 +2,16 @@
 {% block title %}Registros Generales — UniLibreTour{% endblock %}
 {% block content %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   {% set ns = namespace(rows=[]) %}
-  {% for q in contentQueue %}{% set _ = ns.rows.append({'kind': 'queue', 'icon': '📋', 'action': 'Enviado a cola de validación', 'detail': q.title, 'actor': q.submittedBy, 'fecha': q.date, 'status': q.status}) %}{% endfor %}
-  {% for u in users %}{% set _ = ns.rows.append({'kind': 'usuario', 'icon': '👥', 'action': 'Nuevo usuario registrado', 'detail': u.email, 'actor': u.name, 'fecha': u.joinDate, 'status': u.status}) %}{% endfor %}
-  {% for c in contentItems %}{% set _ = ns.rows.append({'kind': 'archivo', 'icon': '📂', 'action': 'Contenido archivado en el museo', 'detail': c.title, 'actor': c.author, 'fecha': c.date, 'status': c.status}) %}{% endfor %}
+  {% for q in contentQueue %}{% set _ = ns.rows.append({'kind': 'queue', 'icon': 'fa-solid fa-layer-group', 'action': 'Enviado a cola de validación', 'detail': q.title, 'actor': q.submittedBy, 'fecha': q.date, 'status': q.status}) %}{% endfor %}
+  {% for u in users %}{% set _ = ns.rows.append({'kind': 'usuario', 'icon': 'fa-solid fa-user', 'action': 'Nuevo usuario registrado', 'detail': u.email, 'actor': u.name, 'fecha': u.joinDate, 'status': u.status}) %}{% endfor %}
+  {% for c in contentItems %}{% set _ = ns.rows.append({'kind': 'archivo', 'icon': 'fa-solid fa-folder-open', 'action': 'Contenido archivado en el museo', 'detail': c.title, 'actor': c.author, 'fecha': c.date, 'status': c.status}) %}{% endfor %}
   {% set registros = ns.rows | sort(attribute='fecha', reverse=true) %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
@@ -56,13 +56,13 @@
 
         <div class="mt-8">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">🗃 Historial de actividad</h3>
+            <h3 class="font-serif font-semibold flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-clock-rotate-left" style="color:#d32f2f"></i> Historial de actividad</h3>
             <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ registros | length }} registros</span>
           </div>
           <div class="museum-card rounded overflow-hidden">
             {% for r in registros %}
             <div class="flex items-start gap-3 px-5 py-3" style="border-bottom:1px solid rgba(255,255,255,0.04)">
-              <span class="text-base flex-shrink-0 mt-0.5">{{ r.icon }}</span>
+              <span class="text-base flex-shrink-0 mt-0.5">{% if 'fa-' in r.icon %}<i class="{{ r.icon }}" style="color:#d32f2f"></i>{% else %}{{ r.icon }}{% endif %}</span>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-sm font-medium" style="color:var(--secondary-foreground)">{{ r.action }}</span>

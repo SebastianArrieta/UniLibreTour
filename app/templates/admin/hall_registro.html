@@ -4,11 +4,11 @@
   {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
   {% set sb_active = 'admin-dashboard' %}
   {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': '⊞', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': '➕', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': '📋', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': '👥', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': '🗃', 'href': url_for('web.admin_registros')},
+    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
+    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
+    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
+    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
+    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
   ] %}
   {% set pasos = ['Selección', 'Justificación', 'Revisión', 'Confirmación'] %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
@@ -97,7 +97,7 @@
 
             <div id="hall-ok" class="hidden museum-card rounded p-5 text-center">
               <div class="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"
-                   style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)">✓</div>
+                   style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3)"><i class="fa-solid fa-circle-check" style="color:#22c55e"></i></div>
               <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Añadido al Hall de la Fama!</h2>
               <p class="text-sm mb-6" style="color:var(--muted-foreground)">El proyecto ahora es visible en la sección principal del Hall de la Fama.</p>
               <a href="{{ url_for('web.admin') }}" class="btn-primary px-5 py-2.5 rounded text-sm">Volver al Dashboard</a>
@@ -109,7 +109,7 @@
 
         <div class="mt-10">
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">⭐ Miembros actuales del Hall</h3>
+            <h3 class="font-serif font-semibold flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-star" style="color:#d32f2f"></i> Miembros actuales del Hall</h3>
             <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ hallMembers | length }} miembros</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
