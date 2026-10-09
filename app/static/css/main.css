@@ -513,7 +513,7 @@ img {
 .border-primary\/40 { border-color: rgba(211, 47, 47, 0.4); }
 
 /* Transiciones */
-.transition { transition: all 0.2s ease; }
+.transition { transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
 .transition-colors { transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease; }
 .transition-all { transition: all 0.25s ease; }
 .transition-opacity { transition: opacity 0.25s ease; }
@@ -726,7 +726,6 @@ label {
     position: sticky;
     top: 0;
     z-index: 50;
-    backdrop-filter: blur(4px);
 }
 [data-theme='light'] .site-header {
     background: rgba(255, 255, 255, 0.97);
@@ -781,7 +780,7 @@ label {
     border-radius: 9999px;
     background: rgba(211, 47, 47, 0.12);
     border: 1px solid rgba(211, 47, 47, 0.3);
-    transition: all 0.3s;
+    transition: background 0.3s, border-color 0.3s;
 }
 [data-theme='light'] .theme-toggle {
     background: rgba(0, 0, 0, 0.08);
@@ -799,12 +798,13 @@ label {
 .theme-toggle-knob {
     position: absolute;
     top: 0.125rem;
+    left: 2px;
     width: 1rem;
     height: 1rem;
     border-radius: 9999px;
     background: #d32f2f;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
 }
 [data-theme='light'] .theme-toggle-knob { background: #111111; }
 
@@ -815,7 +815,7 @@ label {
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 9999px;
-    transition: all 0.3s;
+    transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.3s;
 }
 
 /* ------------------------------------------------------------
@@ -894,7 +894,7 @@ label {
     margin-bottom: 0.25rem;
     text-align: left;
     color: var(--secondary-foreground);
-    transition: all 0.2s;
+    transition: color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 .sb-item:hover:not(.sb-active) { transform: translateX(0.25rem); }
 .sb-item.sb-active {
@@ -942,8 +942,6 @@ label {
     z-index: 40;
     background: rgba(10, 10, 10, 0.96);
     border-top: 1px solid rgba(211, 47, 47, 0.18);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 [data-theme='light'] .sb-mobile {
     background: rgba(255, 255, 255, 0.97);
@@ -1005,12 +1003,23 @@ label {
 /* ------------------------------------------------------------
    13. Cronología "La Ruta"
    ------------------------------------------------------------ */
-@keyframes rutaPulse {
-    0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); }
-    70% { box-shadow: 0 0 0 16px rgba(211, 47, 47, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+[data-row-dot],
+[data-rail-index] { position: relative; }
+.ruta-dot-active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    opacity: 0;
+    box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.4);
+    animation: rutaPulse 2s ease-out infinite;
+    pointer-events: none;
 }
-.ruta-dot-active { animation: rutaPulse 2s ease-out infinite; }
+@keyframes rutaPulse {
+    0% { transform: scale(0.01); opacity: 1; }
+    70% { transform: scale(4); opacity: 0; }
+    100% { transform: scale(4); opacity: 0; }
+}
 
 @keyframes rutaBounce {
     0%, 100% { transform: translateY(0); opacity: 0.85; }
@@ -1029,13 +1038,23 @@ label {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
     .ruta-dot-active,
+    .ruta-dot-active::after,
     .ruta-scroll-hint { animation: none; }
     .ruta-item { transition: none; opacity: 1; transform: none; }
     .sb-item { animation: none; opacity: 1; }
     .fade-up-delayed,
     .empty-float { animation: none; }
     .animate-fadeInUp { animation: none; opacity: 1; }
+    .animate-pulse { animation: none; }
 }
 
 /* ------------------------------------------------------------
@@ -1091,7 +1110,7 @@ label {
     justify-content: center;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.2s;
+    transition: background 0.2s, border-color 0.2s;
     cursor: pointer;
 }
 .checkbox-box.checked {

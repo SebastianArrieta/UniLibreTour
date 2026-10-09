@@ -178,7 +178,7 @@
         if (!btn) return;
         var knob = btn.querySelector('.theme-toggle-knob');
         var icon = btn.querySelector('[data-theme-icon]');
-        if (knob) knob.style.left = theme === 'dark' ? '18px' : '2px';
+        if (knob) knob.style.transform = theme === 'dark' ? 'translateX(16px)' : 'translateX(0)';
         if (icon) icon.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun" style="font-size:11px;color:#facc15"></i>' : '<i class="fa-solid fa-moon" style="font-size:11px;color:#818cf8"></i>';
         btn.setAttribute('data-theme', theme);
     }

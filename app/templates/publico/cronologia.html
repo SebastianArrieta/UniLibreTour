@@ -85,7 +85,7 @@
              class="relative flex items-center gap-4 py-8 pl-3 pr-4 lg:hidden">
             <div data-row-node class="relative z-10 shrink-0 flex items-center justify-center" style="width:48px;height:48px">
                 <div class="absolute inset-0 rounded-full" style="border:1px solid {{ color }}55;background:{{ color }}12"></div>
-                <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:width .25s, height .25s"></div>
+                <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:transform .25s"></div>
             </div>
             {{ event_card(ev, color, label, href) }}
         </div>
@@ -98,7 +98,7 @@
             <div data-row-node class="absolute z-10" style="left:50%;top:50%;transform:translate(-50%,-50%)">
                 <div class="relative flex items-center justify-center" style="width:48px;height:48px">
                     <div class="absolute inset-0 rounded-full" style="border:1px solid {{ color }}55;background:{{ color }}12"></div>
-                    <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:width .25s, height .25s"></div>
+                    <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:transform .25s"></div>
                 </div>
             </div>
             <div class="w-1/2 flex {{ 'justify-start pl-[9%]' if left else 'justify-start pl-[13%]' }}">
@@ -161,13 +161,15 @@
         camino.classList.add('route-in');
     }
 
+    var lastIdx = -1;
+    var lastVisible = null;
+
     function setActive(i) {
         rows.forEach(function (r, k) {
             var d = r.querySelector('[data-row-dot]');
             var on = k === i;
             if (d) {
-                d.style.width = on ? '16px' : '12px';
-                d.style.height = on ? '16px' : '12px';
+                d.style.transform = on ? 'scale(1.333)' : 'scale(1)';
                 d.classList.toggle('ruta-dot-active', on);
             }
         });
@@ -175,8 +177,7 @@
             var on = k === i;
             var color = rd.getAttribute('data-color') || '#d32f2f';
             rd.classList.toggle('ruta-dot-active', on);
-            rd.style.width = on ? '10px' : '6px';
-            rd.style.height = on ? '10px' : '6px';
+            rd.style.scale = on ? '1.667' : '';
             rd.style.background = on ? color : 'rgba(211,47,47,0.28)';
             rd.style.boxShadow = on ? '0 0 8px ' + color : 'none';
         });
@@ -191,21 +192,29 @@
             var rc = r.getBoundingClientRect();
             if (rc.top + rc.height / 2 <= vh * 0.6) idx = i;
         });
-        setActive(idx);
         var rail = document.getElementById('ruta-rail');
+        var visible = false;
         if (rail) {
-            var rc = camino.getBoundingClientRect();
-            var visible = rc.top < vh * 0.55;
+            var rcRail = camino.getBoundingClientRect();
+            visible = rcRail.top < vh * 0.55;
+        }
+        if (idx !== lastIdx) {
+            lastIdx = idx;
+            setActive(idx);
+        }
+        if (rail && visible !== lastVisible) {
+            lastVisible = visible;
             rail.style.opacity = visible ? '1' : '0';
             rail.style.pointerEvents = visible ? 'auto' : 'none';
         }
     }
 
     var raf = 0;
-    window.addEventListener('scroll', function () {
+    function scheduleUpdate() {
         if (!raf) raf = requestAnimationFrame(function () { raf = 0; updateActive(); });
-    }, { passive: true });
-    window.addEventListener('resize', updateActive);
+    }
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate);
 
     railDots.forEach(function (rd) {
         rd.addEventListener('click', function () {
