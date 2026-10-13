@@ -1,6 +1,9 @@
 from marshmallow import Schema, fields, validate
 
 
+ROLES_VALIDOS = ["visitante", "estudiante", "docente", "egresado", "admin"]
+
+
 class UsuarioSchema(Schema):
     id = fields.Int(dump_only=True)
     nombre = fields.Str()
@@ -15,11 +18,11 @@ class UsuarioCreateSchema(Schema):
     password = fields.Str(required=True, validate=validate.Length(min=6, max=128), load_only=True)
     rol = fields.Str(
         load_default="visitante",
-        validate=validate.OneOf(["visitante", "guia", "admin"]),
+        validate=validate.OneOf(ROLES_VALIDOS),
     )
 
 
 class UsuarioUpdateSchema(Schema):
     nombre = fields.Str(validate=validate.Length(min=1, max=100))
     email = fields.Email()
-    rol = fields.Str(validate=validate.OneOf(["visitante", "guia", "admin"]))
+    rol = fields.Str(validate=validate.OneOf(ROLES_VALIDOS))

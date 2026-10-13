@@ -29,8 +29,14 @@ class Usuario(db.Model):
     estado: Mapped[str] = mapped_column(String(20), default="activo", nullable=False)
     puntos: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     nivel: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-    semillero_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("semilleros.id"), nullable=True)
+    semillero_id: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("semilleros.id", use_alter=True, name="fk_usuarios_semillero"),
+        nullable=True,
+    )
     two_factor_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    anio_grado: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    cargo_actual: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         server_default=func.now(),
@@ -64,5 +70,7 @@ class Usuario(db.Model):
             "nivel": self.nivel,
             "semillero_id": self.semillero_id,
             "two_factor_enabled": self.two_factor_enabled,
+            "anio_grado": self.anio_grado,
+            "cargo_actual": self.cargo_actual,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

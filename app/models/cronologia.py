@@ -10,6 +10,7 @@ from app.extensions import db
 
 if TYPE_CHECKING:
     from app.models.usuario import Usuario
+    from app.models.contenido import Contenido
 
 
 class CronologiaHito(db.Model):
@@ -20,6 +21,7 @@ class CronologiaHito(db.Model):
     titulo: Mapped[str] = mapped_column(String(200), nullable=False)
     descripcion: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tipo: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    contenido_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("contenidos.id"), nullable=True)
     estado: Mapped[str] = mapped_column(String(20), default="borrador", nullable=False)
     observaciones: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     validado_por: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("usuarios.id"), nullable=True)
@@ -33,6 +35,7 @@ class CronologiaHito(db.Model):
     # Relationships
     creador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[creador_id], back_populates=None)
     validador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[validado_por], back_populates=None)
+    contenido: Mapped[Optional["Contenido"]] = relationship("Contenido", foreign_keys=[contenido_id])
 
     def to_dict(self) -> dict:
         return {
@@ -41,6 +44,7 @@ class CronologiaHito(db.Model):
             "titulo": self.titulo,
             "descripcion": self.descripcion,
             "tipo": self.tipo,
+            "contenido_id": self.contenido_id,
             "estado": self.estado,
             "observaciones": self.observaciones,
             "validado_por": self.validado_por,

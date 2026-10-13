@@ -20,6 +20,8 @@ class Premio(db.Model):
     anio: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     lugar: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     descripcion: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    categoria: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    imagen: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     estado: Mapped[str] = mapped_column(String(20), default="borrador", nullable=False)
     observaciones: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     validado_por: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("usuarios.id"), nullable=True)
@@ -42,6 +44,8 @@ class Premio(db.Model):
             "anio": self.anio,
             "lugar": self.lugar,
             "descripcion": self.descripcion,
+            "categoria": self.categoria,
+            "imagen": self.imagen,
             "estado": self.estado,
             "observaciones": self.observaciones,
             "validado_por": self.validado_por,
