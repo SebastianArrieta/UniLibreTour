@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nivel INT DEFAULT 1 NOT NULL,
     semillero_id INT,
     two_factor_enabled BOOLEAN DEFAULT FALSE NOT NULL,
+    anio_grado INT,
+    cargo_actual VARCHAR(200),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (semillero_id) REFERENCES semilleros(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -82,6 +84,7 @@ CREATE TABLE IF NOT EXISTS evidencias (
 
 CREATE TABLE IF NOT EXISTS colecciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(100) UNIQUE,
     titulo VARCHAR(150) NOT NULL,
     descripcion TEXT,
     icono VARCHAR(100),
@@ -133,6 +136,7 @@ CREATE TABLE IF NOT EXISTS favoritos (
 
 CREATE TABLE IF NOT EXISTS insignias (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(100) UNIQUE,
     nombre VARCHAR(150) NOT NULL,
     descripcion TEXT,
     icono VARCHAR(100)
@@ -183,6 +187,8 @@ CREATE TABLE IF NOT EXISTS premios (
     anio INT,
     lugar VARCHAR(200),
     descripcion TEXT,
+    categoria VARCHAR(100),
+    imagen VARCHAR(255),
     estado VARCHAR(20) DEFAULT 'borrador' NOT NULL,
     observaciones TEXT,
     validado_por INT,
@@ -208,6 +214,7 @@ CREATE TABLE IF NOT EXISTS cronologia_hitos (
     titulo VARCHAR(200) NOT NULL,
     descripcion TEXT,
     tipo VARCHAR(50),
+    contenido_id INT,
     estado VARCHAR(20) DEFAULT 'borrador' NOT NULL,
     observaciones TEXT,
     validado_por INT,
@@ -216,7 +223,8 @@ CREATE TABLE IF NOT EXISTS cronologia_hitos (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (validado_por) REFERENCES usuarios(id),
-    FOREIGN KEY (creador_id) REFERENCES usuarios(id)
+    FOREIGN KEY (creador_id) REFERENCES usuarios(id),
+    FOREIGN KEY (contenido_id) REFERENCES contenidos(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS eventos (
