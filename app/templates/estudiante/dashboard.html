@@ -1,15 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Mi Espacio — Estudiante{% endblock %}
 {% block content %}
-{% from 'components/sidebar.html' import sidebar %}
+{% from 'components/sidebar.html' import sidebar_for %}
 {% from 'components/macros.html' import content_card, status_badge, empty_state, category_badge, tag_list %}
-{% set sb_links = [
-  {'page':'est-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.estudiante')},
-  {'page':'est-aportes','label':'Mis Aportes','icon':'fa-solid fa-folder-open','href': url_for('web.estudiante_aportes')},
-  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
-  {'page':'est-favoritos','label':'Favoritos','icon':'fa-regular fa-heart','href': url_for('web.estudiante_favoritos')},
-  {'page':'est-contribuir','label':'Contribuir','icon':'fa-solid fa-arrow-up-from-bracket','href': url_for('web.estudiante_contribuir')},
-] %}
+
 {% set sb_active = current_page %}
 {% set todo = contentItems + contentQueue %}
 {% set mis_aportes = (todo | selectattr('author', 'equalto', 'Ana Lucía Bermúdez') | list + todo | selectattr('submittedBy', 'equalto', 'Ana Lucía Bermúdez') | list) | unique(attribute='id') | list %}
@@ -27,7 +21,7 @@
 ] %}
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-    {{ sidebar(sb_links, sb_active) }}
+    {{ sidebar_for('estudiante', sb_active) }}
     <div class="min-w-0">
       <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>

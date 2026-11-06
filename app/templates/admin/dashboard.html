@@ -9,17 +9,11 @@
 {% endblock %}
 {% block content %}
   {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
-  {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-list-check', 'href': url_for('web.admin_cola'), 'badge': pendientes | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
-  ] %}
+  
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-      {% from 'components/sidebar.html' import sidebar %}
-      {{ sidebar(sb_links, current_page) }}
+      {% from 'components/sidebar.html' import sidebar_for %}
+      {{ sidebar_for('admin', current_page, pendientes | length) }}
       <div class="min-w-0">
         <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>

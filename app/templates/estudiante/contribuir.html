@@ -1,21 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Registrar Contribución — UniLibreTour{% endblock %}
 {% block content %}
-{% from 'components/sidebar.html' import sidebar %}
-{% set sb_links = [
-  {'page':'est-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.estudiante')},
-  {'page':'est-aportes','label':'Mis Aportes','icon':'fa-solid fa-folder-open','href': url_for('web.estudiante_aportes')},
-  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
-  {'page':'est-favoritos','label':'Favoritos','icon':'fa-regular fa-heart','href': url_for('web.estudiante_favoritos')},
-  {'page':'est-contribuir','label':'Contribuir','icon':'fa-solid fa-arrow-up-from-bracket','href': url_for('web.estudiante_contribuir')},
-] %}
+{% from 'components/sidebar.html' import sidebar_for %}
+
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
 @media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
 </style>
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-    {{ sidebar(sb_links, current_page) }}
+    {{ sidebar_for('estudiante', current_page) }}
     <div class="min-w-0">
       <div class="mb-8">
         <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Nuevo aporte</div>
@@ -143,15 +137,7 @@
   var wizardOk = document.getElementById('wizard-ok');
   var previewCard = document.getElementById('preview-card');
 
-  function toast(msg, type) {
-    var box = document.createElement('div');
-    box.textContent = msg;
-    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
-    document.body.appendChild(box);
-    requestAnimationFrame(function () { box.style.opacity = '1'; });
-    setTimeout(function () { box.style.opacity = '0'; }, 2400);
-    setTimeout(function () { box.remove(); }, 2900);
-  }
+
 
   function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
 

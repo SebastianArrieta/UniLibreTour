@@ -1,13 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Añadir Información — UniLibreTour{% endblock %}
 {% block content %}
-  {% set sb_links = [
-    {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
-    {'page': 'admin-anadir', 'label': 'Añadir Información', 'icon': 'fa-solid fa-circle-plus', 'href': url_for('web.admin_anadir')},
-    {'page': 'admin-cola', 'label': 'Cola de Contenido', 'icon': 'fa-solid fa-layer-group', 'href': url_for('web.admin_cola'), 'badge': contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length},
-    {'page': 'admin-usuarios', 'label': 'Usuarios', 'icon': 'fa-solid fa-users', 'href': url_for('web.admin_usuarios')},
-    {'page': 'admin-registros', 'label': 'Registros Generales', 'icon': 'fa-solid fa-clock-rotate-left', 'href': url_for('web.admin_registros')},
-  ] %}
+  
   {% macro field(label) %}
   <label class="block">
     <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">{{ label }}</span>
@@ -17,14 +11,14 @@
   {% set inputCls = 'museum-input w-full px-3 py-2.5 rounded text-sm' %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-      {% from 'components/sidebar.html' import sidebar %}
-      {{ sidebar(sb_links, current_page) }}
+      {% from 'components/sidebar.html' import sidebar_for %}
+      {{ sidebar_for('admin', current_page, contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length) }}
       <div class="min-w-0">
         {% from 'components/macros.html' import section_header %}
         {{ section_header('Administración', 'Añadir Información', 'Publica hitos, premios, proyectos, miembros del Hall y eventos directamente en el museo.') }}
 
         <div class="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6 items-start">
-          <nav class="relative flex lg:flex-col gap-1 overflow-x-auto pb-1" id="anadir-nav">
+          <nav class="relative flex lg:flex-col gap-1 overflow-x-auto pb-1" id="anadir-nav" role="tablist" aria-label="Tipo de contenido">
             {% set tabs = [
               {'id': 'timeline', 'label': 'Línea de Tiempo', 'icon': 'fa-solid fa-timeline'},
               {'id': 'premio', 'label': 'Premios y Reconocimientos', 'icon': 'fa-solid fa-trophy'},
@@ -34,7 +28,7 @@
               {'id': 'noticias', 'label': 'Noticias', 'icon': 'fa-solid fa-newspaper'},
             ] %}
             {% for t in tabs %}
-            <button type="button" data-tab="{{ t.id }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap {{ 'sb-active' if loop.first }}">
+            <button type="button" data-tab="{{ t.id }}" role="tab" id="tab-{{ t.id }}" aria-controls="panel-{{ t.id }}" aria-selected="{{ 'true' if loop.first else 'false' }}" tabindex="{{ '0' if loop.first else '-1' }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap {{ 'sb-active' if loop.first }}">
               <span class="sb-chip"><i class="{{ t.icon }} text-xs"></i></span>
               <span class="truncate">{{ t.label }}</span>
             </button>
@@ -44,10 +38,10 @@
           <div class="min-w-0">
             <form id="anadir-form" novalidate>
               <div class="museum-card rounded p-6">
-                <div id="anadir-error" class="hidden mb-4 text-xs px-3 py-2 rounded"
+                <div id="anadir-error" role="alert" aria-live="assertive" class="hidden mb-4 text-xs px-3 py-2 rounded"
                      style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.25)"></div>
 
-                <div class="tab-panel" data-panel="timeline">
+                <div class="tab-panel" data-panel="timeline" id="panel-timeline" role="tabpanel" aria-labelledby="tab-timeline">
                   <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-timeline" style="color:#d32f2f"></i> Nuevo hito de la línea de tiempo</h3>
                   <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -77,7 +71,7 @@
                   </div>
                 </div>
 
-                <div class="tab-panel hidden" data-panel="premio">
+                <div class="tab-panel hidden" data-panel="premio" id="panel-premio" role="tabpanel" aria-labelledby="tab-premio">
                   <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-trophy" style="color:#d32f2f"></i> Nuevo premio o reconocimiento</h3>
                   <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -96,7 +90,7 @@
                   </div>
                 </div>
 
-                <div class="tab-panel hidden" data-panel="proyecto">
+                <div class="tab-panel hidden" data-panel="proyecto" id="panel-proyecto" role="tabpanel" aria-labelledby="tab-proyecto">
                   <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-diagram-project" style="color:#d32f2f"></i> Nuevo proyecto destacado</h3>
                   <div class="flex flex-col gap-4">
                     {% call field('Título *') %}<input name="title" data-required placeholder="Plataforma web para… " class="{{ inputCls }}">{% endcall %}
@@ -122,7 +116,7 @@
                   </div>
                 </div>
 
-                <div class="tab-panel hidden" data-panel="hall">
+                <div class="tab-panel hidden" data-panel="hall" id="panel-hall" role="tabpanel" aria-labelledby="tab-hall">
                   <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-star" style="color:#d32f2f"></i> Nuevo miembro del Hall de la Fama</h3>
                   <div class="flex flex-col gap-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,7 +140,7 @@
                   </div>
                 </div>
 
-                <div class="tab-panel hidden" data-panel="evento">
+                <div class="tab-panel hidden" data-panel="evento" id="panel-evento" role="tabpanel" aria-labelledby="tab-evento">
                   <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-calendar-days" style="color:#d32f2f"></i> Nuevo evento en el calendario</h3>
                   <div class="flex flex-col gap-4">
                     {% call field('Título *') %}<input name="title" data-required placeholder="Conferencia: …" class="{{ inputCls }}">{% endcall %}
@@ -168,7 +162,7 @@
                   </div>
                 </div>
 
-                <div class="tab-panel hidden" data-panel="noticias">
+                <div class="tab-panel hidden" data-panel="noticias" id="panel-noticias" role="tabpanel" aria-labelledby="tab-noticias">
                   <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-newspaper" style="color:#d32f2f"></i> Nueva noticia</h3>
                   <div class="flex flex-col gap-4">
                     {% call field('Título *') %}<input name="title" data-required placeholder="Título de la noticia…" class="{{ inputCls }}">{% endcall %}
@@ -240,15 +234,7 @@ window.__DATOS = {{ datos | tojson }};
 
   function esc(s) { return window.Museo ? Museo.esc(s) : String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
-  function toast(msg, type) {
-    var box = document.createElement('div');
-    box.textContent = msg;
-    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
-    document.body.appendChild(box);
-    requestAnimationFrame(function () { box.style.opacity = '1'; });
-    setTimeout(function () { box.style.opacity = '0'; }, 2200);
-    setTimeout(function () { box.remove(); }, 2700);
-  }
+
 
   function showError(msg) {
     var el = document.getElementById('anadir-error');
@@ -264,6 +250,8 @@ window.__DATOS = {{ datos | tojson }};
     document.querySelectorAll('#anadir-nav [data-tab]').forEach(function (b) {
       var on = b.getAttribute('data-tab') === id;
       b.classList.toggle('sb-active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.setAttribute('tabindex', on ? '0' : '-1');
     });
     document.querySelectorAll('.tab-panel').forEach(function (p) {
       p.classList.toggle('hidden', p.getAttribute('data-panel') !== id);
@@ -273,6 +261,22 @@ window.__DATOS = {{ datos | tojson }};
     document.getElementById('preview-hall').classList.toggle('hidden', !isHall);
     renderPreview();
   }
+
+  document.getElementById('anadir-nav').addEventListener('keydown', function (e) {
+    var tabs = Array.prototype.slice.call(this.querySelectorAll('[data-tab]'));
+    var index = tabs.indexOf(document.activeElement);
+    if (index === -1) return;
+    var next = index;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = index + 1;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = index - 1;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    else return;
+    e.preventDefault();
+    next = (next + tabs.length) % tabs.length;
+    setTab(tabs[next].getAttribute('data-tab'));
+    tabs[next].focus();
+  });
 
   function activePanel() { return document.querySelector('.tab-panel[data-panel="' + activeTab + '"]'); }
 

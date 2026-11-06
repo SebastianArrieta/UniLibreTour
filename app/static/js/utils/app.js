@@ -436,7 +436,10 @@
 
     function showLogoutModal() {
         var m = document.getElementById('modal-confirm-logout');
-        if (m) {
+        if (!m) return;
+        if (window.UI && UI.openModal) {
+            UI.openModal(m);
+        } else {
             m.classList.remove('hidden');
             m.style.display = 'flex';
         }
@@ -444,7 +447,10 @@
 
     function hideLogoutModal() {
         var m = document.getElementById('modal-confirm-logout');
-        if (m) {
+        if (!m || m.classList.contains('hidden')) return;
+        if (window.UI && UI.closeModal) {
+            UI.closeModal(m);
+        } else {
             m.classList.add('hidden');
             m.style.display = 'none';
         }

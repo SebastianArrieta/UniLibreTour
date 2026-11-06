@@ -18,14 +18,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openModal() {
         if (!modal) return;
-        modal.classList.remove("hidden");
         if (errorBox) errorBox.classList.add("hidden");
-        document.getElementById("nombre")?.focus();
+        if (window.UI && UI.openModal) {
+            UI.openModal(modal);
+        } else {
+            modal.classList.remove("hidden");
+        }
     }
 
     function closeModal() {
         if (!modal) return;
-        modal.classList.add("hidden");
+        if (window.UI && UI.closeModal) {
+            UI.closeModal(modal);
+        } else {
+            modal.classList.add("hidden");
+        }
         form?.reset();
         if (errorBox) errorBox.classList.add("hidden");
     }
@@ -33,13 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (openBtn) openBtn.addEventListener("click", openModal);
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
-
-    // Cerrar al hacer clic en el backdrop oscuro
-    if (modal) {
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) closeModal();
-        });
-    }
 
     if (!form) return;
 
@@ -56,8 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (errorBox) errorBox.classList.add("hidden");
         const originalBtnText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
+        if (window.UI && UI.setBusy) {
+            UI.setBusy(submitBtn, true, "Guardando…");
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
+        }
 
         // 2. Manejador de errores try/catch para capturar excepciones
         try {
@@ -107,8 +111,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 UI.toast(netMsg, "err");
             }
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
+            if (window.UI && UI.setBusy) {
+                UI.setBusy(submitBtn, false);
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
         }
     });
 });

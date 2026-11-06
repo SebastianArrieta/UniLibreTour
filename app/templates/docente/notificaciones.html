@@ -1,12 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Notificaciones — UniLibreTour{% endblock %}
 {% block content %}
-{% from 'components/sidebar.html' import sidebar %}
-{% set sb_links = [
-  {'page':'doc-dashboard','label':'Mi Dashboard','icon':'fa-solid fa-gauge-high','href': url_for('web.docente')},
-  {'page':'ranking','label':'Progreso','icon':'fa-solid fa-trophy','href': url_for('web.ranking')},
-  {'page':'doc-wizard','label':'Registrar Evidencia','icon':'fa-solid fa-file-signature','href': url_for('web.docente_evidencia')},
-] %}
+{% from 'components/sidebar.html' import sidebar_for %}
+
 {% set notifs = [
   {'id':1, 'type':'aprobado', 'title':'Contribución aprobada y publicada', 'body':'"Sistema de Predicción de Deserción Estudiantil" fue aprobada por el administrador y está disponible en el archivo.', 'time':'28 Jun 2024, 10:45', 'color':'#22c55e', 'icon':'fa-solid fa-check', 'read':false},
   {'id':2, 'type':'pendiente', 'title':'Evidencia en revisión', 'body':'"Blockchain para Trazabilidad de Cadena de Suministro en PyMEs" está siendo revisada por el equipo administrativo.', 'time':'25 Jun 2024, 15:30', 'color':'#f97316', 'icon':'fa-solid fa-clock', 'read':false},
@@ -22,11 +18,11 @@
 </style>
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-    {{ sidebar(sb_links, current_page) }}
+    {{ sidebar_for('docente', current_page) }}
     <div class="min-w-0">
       <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
-          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Actualizaciones</div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--primary)">Actualizaciones</div>
           <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Notificaciones</h2>
           <p class="mt-2 text-base" style="color:var(--muted-foreground)">Historial de actividad sobre tus contribuciones.</p>
         </div>
@@ -34,7 +30,7 @@
       </div>
 
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:rgba(211,47,47,0.12);color:#d32f2f"><span id="unread-count">{{ unread_count }}</span> sin leer</span>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:var(--primary-soft);color:var(--primary)"><span id="unread-count">{{ unread_count }}</span> sin leer</span>
       </div>
 
       <div class="flex flex-col gap-4 mb-8" id="notif-list">
@@ -48,7 +44,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-start justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full flex-shrink-0 unread-dot" style="background:#d32f2f"></span>
+                <span class="w-2 h-2 rounded-full flex-shrink-0 unread-dot" style="background:var(--primary)"></span>
                 <h4 class="font-semibold text-sm" style="color:var(--card-foreground)">{{ n.title }}</h4>
               </div>
               <span class="text-xs font-mono flex-shrink-0" style="color:var(--muted-foreground)">{{ n.time }}</span>
@@ -58,7 +54,7 @@
               {% if n.type == 'devuelto' %}
               <button type="button" class="text-xs btn-outline-primary px-3 py-1 rounded">Ver nota del revisor</button>
               {% endif %}
-              <button type="button" class="text-xs px-3 py-1 rounded notif-toggle" style="color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)">Marcar como leída</button>
+              <button type="button" class="text-xs px-3 py-1 rounded notif-toggle" style="color:var(--secondary-foreground);border:1px solid var(--border-subtle)">Marcar como leída</button>
             </div>
           </div>
         </div>
@@ -93,15 +89,7 @@
     { name: 'resumen', label: 'Resumen semanal de actividad del museo', checked: false }
   ];
 
-  function toast(msg, type) {
-    var box = document.createElement('div');
-    box.textContent = msg;
-    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (type === 'err' ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
-    document.body.appendChild(box);
-    requestAnimationFrame(function () { box.style.opacity = '1'; });
-    setTimeout(function () { box.style.opacity = '0'; }, 2400);
-    setTimeout(function () { box.remove(); }, 2900);
-  }
+
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -115,7 +103,7 @@
     var read = card.getAttribute('data-read') === 'true';
     card.style.opacity = read ? '0.55' : '1';
     var dot = card.querySelector('.unread-dot');
-    if (dot) dot.style.background = read ? 'rgba(255,255,255,0.12)' : '#d32f2f';
+    if (dot) dot.style.background = read ? 'var(--surface-3)' : 'var(--primary)';
     var btn = card.querySelector('.notif-toggle');
     if (btn) btn.textContent = read ? 'Marcar como no leída' : 'Marcar como leída';
   }
@@ -176,13 +164,13 @@
         '<div class="w-11 h-11 rounded-full flex items-center justify-center text-sm flex-shrink-0" style="background:' + meta.color + '12;color:' + meta.color + ';border:1.5px solid ' + meta.color + '30">' +
         '<i class="' + meta.icon + '"></i></div>' +
         '<div class="flex-1 min-w-0"><div class="flex items-start justify-between gap-2 flex-wrap">' +
-        '<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full flex-shrink-0 unread-dot" style="background:#d32f2f"></span>' +
+        '<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full flex-shrink-0 unread-dot" style="background:var(--primary)"></span>' +
         '<h4 class="font-semibold text-sm" style="color:var(--card-foreground)">' + esc(meta.title) + '</h4></div>' +
         '<span class="text-xs font-mono flex-shrink-0" style="color:var(--muted-foreground)">' + esc(formatTime(n.created_at)) + '</span></div>' +
         '<p class="text-sm mt-1" style="color:var(--muted-foreground)">' + esc(n.mensaje) + '</p>' +
         '<div class="flex items-center gap-2 mt-2 flex-wrap">' +
         (n.tipo === 'devuelto' ? '<button type="button" class="text-xs btn-outline-primary px-3 py-1 rounded">Ver nota del revisor</button>' : '') +
-        '<button type="button" class="text-xs px-3 py-1 rounded notif-toggle" style="color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)">Marcar como leída</button>' +
+        '<button type="button" class="text-xs px-3 py-1 rounded notif-toggle" style="color:var(--secondary-foreground);border:1px solid var(--border-subtle)">Marcar como leída</button>' +
         '</div></div></div>';
     }).join('');
     bindCards();
@@ -190,22 +178,45 @@
 
   bindCards();
 
+  function renderSkeleton() {
+    var list = document.getElementById('notif-list');
+    list.setAttribute('aria-busy', 'true');
+    var row = '<div class="museum-card rounded p-5 flex gap-4">' +
+      '<div class="w-11 h-11 rounded-full ui-skeleton flex-shrink-0"></div>' +
+      '<div class="flex-1 flex flex-col gap-2">' +
+      '<div class="h-3 w-40 rounded ui-skeleton"></div>' +
+      '<div class="h-3 w-full rounded ui-skeleton"></div>' +
+      '<div class="h-3 w-2/3 rounded ui-skeleton"></div>' +
+      '</div></div>';
+    list.innerHTML = row + row + row;
+  }
+
   if (isAuth()) {
+    renderSkeleton();
     Museo.apiJson('/api/notificaciones', 'GET', null, Museo.getToken())
-      .then(function (items) { renderNotifications(items || []); })
-      .catch(function (err) { toast(err.message || 'No fue posible cargar las notificaciones', 'err'); });
+      .then(function (items) {
+        document.getElementById('notif-list').removeAttribute('aria-busy');
+        renderNotifications(items || []);
+      })
+      .catch(function (err) {
+        document.getElementById('notif-list').removeAttribute('aria-busy');
+        toast(err.message || 'No fue posible cargar las notificaciones', 'err');
+      });
   }
 
   document.getElementById('btn-marcar-todas').addEventListener('click', function () {
+    var button = this;
     document.querySelectorAll('#notif-list [data-nid]').forEach(function (c) {
       c.setAttribute('data-read', 'true');
       paintCard(c);
     });
     updateUnread();
     if (isAuth()) {
+      UI.setBusy(button, true, 'Marcando…');
       Museo.apiJson('/api/notificaciones/leidas', 'PUT', {}, Museo.getToken())
         .then(function () { toast('Todas las notificaciones marcadas como leídas'); })
-        .catch(function (err) { toast(err.message || 'No fue posible marcar las notificaciones', 'err'); });
+        .catch(function (err) { toast(err.message || 'No fue posible marcar las notificaciones', 'err'); })
+        .finally(function () { UI.setBusy(button, false); });
     } else {
       toast('Todas las notificaciones marcadas como leídas');
     }
@@ -225,13 +236,13 @@
     box.addEventListener('click', function () {
       var on = box.getAttribute('aria-checked') === 'true';
       box.setAttribute('aria-checked', on ? 'false' : 'true');
-      box.style.background = on ? 'rgba(255,255,255,0.04)' : 'var(--primary)';
-      box.style.border = on ? '1px solid rgba(255,255,255,0.15)' : '1px solid var(--primary)';
+      box.style.background = on ? 'var(--surface-1)' : 'var(--primary)';
+      box.style.border = on ? '1px solid var(--border-subtle)' : '1px solid var(--primary)';
       var check = box.querySelector('i');
       if (on) {
         if (check) check.remove();
       } else {
-        box.insertAdjacentHTML('beforeend', '<i class="fa-solid fa-check" style="font-size:10px;color:#000"></i>');
+        box.insertAdjacentHTML('beforeend', '<i class="fa-solid fa-check" aria-hidden="true" style="font-size:10px;color:#000"></i>');
       }
     });
   });

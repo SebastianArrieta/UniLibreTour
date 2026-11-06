@@ -2,50 +2,231 @@
 {% from 'components/macros.html' import section_header %}
 {% block title %}Calendario de Actividades — UniLibreTour{% endblock %}
 {% block content %}
-{% set event_types = {'conferencia': '#d32f2f', 'taller': '#3b82f6', 'graduacion': '#22c55e', 'cultural': '#a855f7'} %}
+{% set event_types = ['conferencia', 'taller', 'graduacion', 'cultural'] %}
+{% set type_labels = {'conferencia': 'Conferencia', 'taller': 'Taller', 'graduacion': 'Graduación', 'cultural': 'Cultural'} %}
 
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-12">
     {{ section_header('Comunidad', 'Calendario de Actividades', 'Conferencias, talleres y vida universitaria del programa, mes a mes.') }}
 
     <div class="flex flex-col lg:flex-row gap-6 items-start">
-        <div class="flex-1 min-w-0 museum-card rounded-lg p-4 md:p-5 w-full">
-            <div class="flex items-center justify-between mb-4">
-                <button type="button" id="cal-prev" aria-label="Mes anterior" class="w-8 h-8 rounded flex items-center justify-center transition-colors" style="border:1px solid rgba(211,47,47,0.25);color:var(--secondary-foreground)">‹</button>
-                <div id="cal-month-label" class="font-serif text-lg font-bold capitalize" style="color:var(--foreground)"></div>
-                <button type="button" id="cal-next" aria-label="Mes siguiente" class="w-8 h-8 rounded flex items-center justify-center transition-colors" style="border:1px solid rgba(211,47,47,0.25);color:var(--secondary-foreground)">›</button>
+        <section class="museum-card rounded-xl p-4 md:p-6 w-full flex-1 min-w-0" aria-labelledby="cal-heading">
+            <h2 id="cal-heading" class="sr-only">Calendario mensual</h2>
+
+            <div class="cal-toolbar">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="flex items-center gap-1" role="group" aria-label="Cambiar mes">
+                        <button type="button" id="cal-prev" class="cal-icon-btn" aria-label="Mes anterior">
+                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" id="cal-next" class="cal-icon-btn" aria-label="Mes siguiente">
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="min-w-0">
+                        <div id="cal-month-label" class="font-serif text-lg md:text-xl font-bold capitalize truncate" style="color:var(--foreground)" aria-live="polite"></div>
+                        <div id="cal-month-summary" class="text-xs mt-0.5" style="color:var(--muted-foreground)"></div>
+                    </div>
+                </div>
+                <button type="button" id="cal-today" class="btn-outline-primary px-3 py-1.5 rounded text-xs font-medium">
+                    <i class="fa-regular fa-calendar-check mr-1" aria-hidden="true"></i> Hoy
+                </button>
             </div>
 
-            <div class="grid grid-cols-7 gap-1 mb-1">
-                {% for d in ['L', 'M', 'X', 'J', 'V', 'S', 'D'] %}
-                <div class="text-center text-[10px] font-mono uppercase tracking-wider py-1" style="color:var(--muted-foreground)">{{ d }}</div>
+            <div class="cal-weekdays" aria-hidden="true">
+                {% for d in ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] %}
+                <div class="cal-weekday">{{ d }}</div>
                 {% endfor %}
             </div>
 
-            <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
-        </div>
+            <div id="cal-grid" class="cal-grid" role="group" aria-label="Días del mes. Usa las flechas para navegar."></div>
 
-        <div class="flex flex-col gap-5 w-full lg:w-80 flex-shrink-0">
-            <div class="museum-card rounded-lg p-4">
-                <div class="text-[10px] font-mono uppercase tracking-widest mb-2.5" style="color:#d32f2f">Tipos de actividad</div>
-                <div class="flex flex-wrap gap-x-4 gap-y-1.5">
-                    {% for t, color in event_types.items() %}
-                    <div class="flex items-center gap-1.5 text-xs" style="color:var(--secondary-foreground)">
-                        <span class="rounded-full flex-shrink-0" style="width:8px;height:8px;background:{{ color }}"></span>
-                        {{ t | capitalize }}
+            <div class="cal-legend" aria-label="Leyenda de tipos de actividad">
+                <span class="cal-legend-title">Tipos</span>
+                {% for t in event_types %}
+                <span class="cal-legend-item">
+                    <span class="cal-dot" style="--ev-color:var(--ev-{{ t }})"></span>
+                    {{ type_labels[t] }}
+                </span>
+                {% endfor %}
+            </div>
+        </section>
+
+        <aside class="flex flex-col gap-5 w-full lg:w-80 flex-shrink-0">
+            <div class="museum-card rounded-xl p-4 md:p-5">
+                <div class="flex items-start justify-between gap-2 mb-3">
+                    <div>
+                        <div class="text-[10px] font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Día seleccionado</div>
+                        <div id="cal-day-label" class="text-sm font-serif font-bold capitalize leading-snug" style="color:var(--foreground)" aria-live="polite"></div>
                     </div>
-                    {% endfor %}
+                    <span id="cal-day-count" class="text-[10px] font-mono px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"></span>
                 </div>
+                <div id="cal-days" role="status" aria-live="polite"></div>
             </div>
 
-            <div class="museum-card rounded-lg p-4">
-                <div id="cal-day-label" class="text-sm font-serif font-bold mb-3 capitalize" style="color:var(--foreground)"></div>
-                <div id="cal-days">Sin actividades programadas. Cargando calendario…</div>
-            </div>
-
-            <a href="{{ url_for('web.explorar') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded self-start">Ver archivo de eventos →</a>
-        </div>
+            <a href="{{ url_for('web.explorar') }}" class="inline-flex items-center gap-2 text-xs btn-outline-primary px-3 py-2 rounded self-start">
+                Ver archivo de eventos <span aria-hidden="true">→</span>
+            </a>
+        </aside>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --ev-conferencia: #e53935;
+        --ev-taller: #3b82f6;
+        --ev-graduacion: #22c55e;
+        --ev-cultural: #a855f7;
+    }
+    [data-theme='light'] {
+        --ev-conferencia: #c62828;
+        --ev-taller: #2563eb;
+        --ev-graduacion: #16a34a;
+        --ev-cultural: #9333ea;
+    }
+    .cal-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    .cal-icon-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-subtle);
+        background: var(--surface-1);
+        color: var(--secondary-foreground);
+        font-size: 0.7rem;
+        transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .cal-icon-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-soft);
+    }
+    .cal-weekdays,
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.25rem;
+    }
+    .cal-weekdays { margin-bottom: 0.35rem; }
+    .cal-weekday {
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.25rem 0;
+        color: var(--muted-foreground);
+    }
+    .cal-cell {
+        position: relative;
+        min-height: 74px;
+        padding: 0.4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        text-align: left;
+        border-radius: 0.5rem;
+        border: 1px solid transparent;
+        background: var(--surface-1);
+        transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    }
+    .cal-cell:hover {
+        background: var(--surface-2);
+        border-color: var(--primary-border);
+    }
+    .cal-cell.is-dim { opacity: 0.38; }
+    .cal-cell.is-selected {
+        background: var(--primary-soft);
+        border-color: var(--primary);
+        box-shadow: var(--focus-ring);
+    }
+    .cal-cell.is-today { border-color: var(--primary-border); }
+    .cal-cell.is-today .cal-daynum { color: var(--primary); font-weight: 700; }
+    .cal-daynum {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        line-height: 1;
+        color: var(--foreground);
+    }
+    .cal-dots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.18rem;
+        margin-top: auto;
+    }
+    .cal-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 9999px;
+        background: var(--ev-color, var(--primary));
+        flex-shrink: 0;
+    }
+    .cal-more {
+        font-family: var(--font-mono);
+        font-size: 0.55rem;
+        color: var(--muted-foreground);
+        line-height: 1;
+    }
+    .cal-legend {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        margin-top: 1rem;
+        padding-top: 0.9rem;
+        border-top: 1px solid var(--border-subtle);
+    }
+    .cal-legend-title {
+        font-family: var(--font-mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted-foreground);
+    }
+    .cal-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.7rem;
+        color: var(--secondary-foreground);
+    }
+    .cal-event {
+        border-left: 3px solid var(--ev-color, var(--primary));
+        padding-left: 0.75rem;
+    }
+    .cal-event + .cal-event { margin-top: 1rem; }
+    .cal-ev-badge {
+        display: inline-flex;
+        align-items: center;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.1rem 0.4rem;
+        border-radius: 9999px;
+        color: var(--ev-color, var(--primary));
+        background: color-mix(in srgb, var(--ev-color, var(--primary)) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--ev-color, var(--primary)) 35%, transparent);
+    }
+    @media (max-width: 640px) {
+        .cal-cell { min-height: 54px; padding: 0.3rem; }
+        .cal-daynum { font-size: 0.68rem; }
+        .cal-dot { width: 5px; height: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .cal-cell, .cal-icon-btn { transition: none; }
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -56,11 +237,12 @@
     var evs = DATOS.events || [];
     var grid = document.getElementById('cal-grid');
     var monthEl = document.getElementById('cal-month-label');
+    var summaryEl = document.getElementById('cal-month-summary');
     var dayLabelEl = document.getElementById('cal-day-label');
+    var dayCountEl = document.getElementById('cal-day-count');
     var daysEl = document.getElementById('cal-days');
     if (!grid) return;
 
-    var typeColors = { conferencia: '#d32f2f', taller: '#3b82f6', graduacion: '#22c55e', cultural: '#a855f7' };
     function esc(s) {
         if (s === null || s === undefined) return '';
         return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -68,36 +250,44 @@
     function iso(d) {
         return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
+    function colorFor(type) {
+        return 'var(--ev-' + String(type || '').replace(/[^a-z]/g, '') + ', var(--primary))';
+    }
     var byDate = {};
     evs.forEach(function (ev) { (byDate[ev.date] = byDate[ev.date] || []).push(ev); });
 
     var now = new Date();
     var selected = iso(now);
     var view = { y: now.getFullYear(), m: now.getMonth() };
+    var monthCache = [];
 
     function renderDay() {
         var list = byDate[selected] || [];
         var d = new Date(selected + 'T12:00:00');
         dayLabelEl.textContent = d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+        dayCountEl.textContent = list.length + (list.length === 1 ? ' evento' : ' eventos');
+        dayCountEl.hidden = !list.length;
+
         if (!list.length) {
-            daysEl.innerHTML = '<p class="text-xs leading-relaxed" style="color:var(--muted-foreground)">Sin actividades programadas para este día. Selecciona un día con puntos de color en el calendario.</p>';
+            daysEl.innerHTML = '<div class="ui-empty" style="padding:1.5rem 0.5rem">' +
+                '<i class="fa-regular fa-calendar" aria-hidden="true"></i>' +
+                '<p class="text-xs">Sin actividades programadas para este día.</p></div>';
             return;
         }
-        var html = '<div class="flex flex-col gap-4">';
-        list.forEach(function (ev) {
-            var c = typeColors[ev.type] || '#d32f2f';
-            html += '<div class="pl-3" style="border-left:2px solid ' + c + '">' +
-                '<div class="flex items-center gap-2 mb-1">' +
-                '<span class="font-mono text-xs font-bold" style="color:' + c + '">' + esc(ev.time) + '</span>' +
-                '<span class="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider" style="padding:0.125rem 0.375rem;background:' + c + '14;color:' + c + ';border:1px solid ' + c + '30">' + esc(ev.type) + '</span>' +
+
+        daysEl.innerHTML = '<div class="flex flex-col">' + list.map(function (ev) {
+            var c = colorFor(ev.type);
+            return '<article class="cal-event" style="--ev-color:' + c + '">' +
+                '<div class="flex items-center gap-2 mb-1 flex-wrap">' +
+                '<span class="font-mono text-xs font-bold" style="color:var(--ev-color)">' + esc(ev.time) + '</span>' +
+                '<span class="cal-ev-badge">' + esc(ev.type) + '</span>' +
                 '</div>' +
-                '<div class="text-sm font-serif font-semibold leading-snug" style="color:var(--card-foreground)">' + esc(ev.title) + '</div>' +
-                '<div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)"><i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>' + esc(ev.location) + '</div>' +
+                '<h3 class="text-sm font-serif font-semibold leading-snug" style="color:var(--foreground)">' + esc(ev.title) + '</h3>' +
+                '<div class="text-xs mt-1 flex items-center gap-1" style="color:var(--muted-foreground)">' +
+                '<i class="fa-solid fa-location-dot text-[10px] opacity-70" aria-hidden="true"></i>' + esc(ev.location) + '</div>' +
                 '<p class="text-xs mt-1.5 leading-relaxed" style="color:var(--muted-foreground)">' + esc(ev.description) + '</p>' +
-                '</div>';
-        });
-        html += '</div>';
-        daysEl.innerHTML = html;
+                '</article>';
+        }).join('') + '</div>';
     }
 
     function render() {
@@ -109,29 +299,81 @@
         var trail = 1;
         while (cells.length % 7 !== 0) cells.push({ y: view.y, m: view.m + 1, d: trail++, dim: true });
 
+        var monthEvents = 0;
+        monthCache = [];
         var html = '';
+
         cells.forEach(function (c) {
             var key = iso(new Date(c.y, c.m, c.d));
             var list = byDate[key] || [];
             var sel = key === selected;
             var today = key === iso(now);
-            html += '<button type="button" class="relative rounded-md p-1.5 text-left transition-all" style="min-height:52px;' + (sel ? 'background:rgba(211,47,47,0.14);border:1px solid rgba(211,47,47,0.55);' : 'border:1px solid transparent;') + '"' + (c.dim ? ' tabindex="-1"' : '') + ' data-day="' + key + '">' +
-                '<span class="text-xs font-mono ' + (today ? 'font-bold' : '') + '" style="color:' + (today ? '#d32f2f' : 'var(--card-foreground)') + '">' + c.d + '</span>';
+            if (!c.dim) monthEvents += list.length;
+            monthCache.push({ key: key, dim: c.dim });
+
+            var classes = 'cal-cell' + (c.dim ? ' is-dim' : '') + (sel ? ' is-selected' : '') + (today ? ' is-today' : '');
+            var label = new Date(c.y, c.m, c.d).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }) +
+                (list.length ? ', ' + list.length + (list.length === 1 ? ' evento' : ' eventos') : ', sin eventos');
+
+            html += '<button type="button" class="' + classes + '" data-day="' + key + '" data-index="' + (monthCache.length - 1) + '"' +
+                ' aria-label="' + esc(label) + '" aria-selected="' + (sel ? 'true' : 'false') + '"' +
+                (today ? ' aria-current="date"' : '') + (c.dim ? ' tabindex="-1"' : '') + '>' +
+                '<span class="cal-daynum">' + c.d + '</span>';
+
             if (list.length) {
-                html += '<span class="absolute flex gap-0.5" style="bottom:6px;left:50%;transform:translateX(-50%)">' +
-                    list.slice(0, 3).map(function (ev) {
-                        return '<span class="rounded-full" style="width:6px;height:6px;background:' + (typeColors[ev.type] || '#d32f2f') + '"></span>';
-                    }).join('') + '</span>';
+                html += '<span class="cal-dots" aria-hidden="true">' +
+                    list.slice(0, 4).map(function (ev) {
+                        return '<span class="cal-dot" style="--ev-color:' + colorFor(ev.type) + '"></span>';
+                    }).join('') +
+                    (list.length > 4 ? '<span class="cal-more">+' + (list.length - 4) + '</span>' : '') +
+                    '</span>';
             }
             html += '</button>';
         });
+
         grid.innerHTML = html;
         monthEl.textContent = new Date(view.y, view.m, 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+        summaryEl.textContent = monthEvents + (monthEvents === 1 ? ' actividad este mes' : ' actividades este mes');
 
         Array.prototype.forEach.call(grid.querySelectorAll('[data-day]'), function (b) {
-            b.addEventListener('click', function () { selected = b.getAttribute('data-day'); render(); });
+            b.addEventListener('click', function () {
+                selected = b.getAttribute('data-day');
+                render();
+            });
         });
+
+        bindKeyboard();
         renderDay();
+    }
+
+    function bindKeyboard() {
+        if (grid.__calKeysBound) return;
+        grid.__calKeysBound = true;
+        grid.addEventListener('keydown', function (e) {
+            var buttons = Array.prototype.slice.call(grid.querySelectorAll('[data-day]'));
+            var current = document.activeElement;
+            if (!current || !current.hasAttribute('data-day')) return;
+            var index = buttons.indexOf(current);
+            if (index === -1) return;
+            var next = index;
+            if (e.key === 'ArrowRight') next = index + 1;
+            else if (e.key === 'ArrowLeft') next = index - 1;
+            else if (e.key === 'ArrowDown') next = index + 7;
+            else if (e.key === 'ArrowUp') next = index - 7;
+            else if (e.key === 'Home') next = index - (index % 7);
+            else if (e.key === 'End') next = index + (6 - (index % 7));
+            else return;
+            e.preventDefault();
+            next = Math.max(0, Math.min(buttons.length - 1, next));
+            buttons[next].focus();
+        });
+    }
+
+    function goToday() {
+        now = new Date();
+        selected = iso(now);
+        view = { y: now.getFullYear(), m: now.getMonth() };
+        render();
     }
 
     document.getElementById('cal-prev').addEventListener('click', function () {
@@ -144,6 +386,7 @@
         view = { y: d.getFullYear(), m: d.getMonth() };
         render();
     });
+    document.getElementById('cal-today').addEventListener('click', goToday);
 
     render();
 })();
