@@ -6,7 +6,7 @@ from app.models.usuario import Usuario
 from app.models.notificacion import Notificacion
 
 # ── Contenido ───────────────────────────────────────────────
-from app.models.contenido import Coleccion, ContenidoEtiqueta, Contenido, Etiqueta
+from app.models.contenido import Coleccion, ContenidoEtiqueta, Contenido, Etiqueta, Favorito
 
 # ── Evidencias ──────────────────────────────────────────────
 from app.models.evidencia import Evidencia
@@ -40,6 +40,7 @@ __all__ = [
     "ContenidoEtiqueta",
     "Contenido",
     "Etiqueta",
+    "Favorito",
     # Evidencias
     "Evidencia",
     # Proyectos
