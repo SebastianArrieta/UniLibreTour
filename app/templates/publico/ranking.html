@@ -32,7 +32,7 @@
                 {% set lvl = p.points // pointsPerLevel %}
                 {% set prog = (p.points % pointsPerLevel) / pointsPerLevel * 100 %}
                 <div data-email="{{ p.email }}" class="podium-card museum-card rounded p-6 text-center"
-                     style="{{ 'border-color:var(--gold-border);box-shadow:0 0 28px var(--shadow-color)' if loop.index0 == 1 else '' }}">
+                     style="{{ 'border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-border),0 18px 45px -18px var(--gold-border)' if loop.index0 == 1 else '' }}">
                     <div class="h-10 flex items-center justify-center mb-2">{{ podium_icons[loop.index0] | safe }}</div>
                     <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-xl font-bold"
                          style="background:var(--brown-soft);color:var(--brown)">{{ p.name[0] }}</div>

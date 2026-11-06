@@ -12,11 +12,6 @@
 {% if mid %}
   {% for m in hallMembers %}{% if m.id == mid %}{% set member_ns.member = m %}{% endif %}{% endfor %}
 {% endif %}
-{% if cat_f %}
-  {% set filtered = hallMembers | selectattr('category', 'equalto', cat_f) | list %}
-{% else %}
-  {% set filtered = hallMembers %}
-{% endif %}
 
 {% if member_ns.member %}
 {% set member = member_ns.member %}
@@ -51,16 +46,16 @@
         </div>
     </div>
 
-    <div class="flex flex-wrap gap-2 mb-8">
-        <a href="{{ url_for('web.hall_fama') }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if not cat_f %}background:var(--primary-solid);color:var(--primary-foreground);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">Todos</a>
+    <div class="flex flex-wrap gap-2 mb-8" id="hall-filtros">
+        <a href="{{ url_for('web.hall_fama') }}" data-filter=""{% if not cat_f %} aria-current="page"{% endif %} class="hall-pill px-3 py-1.5 rounded text-sm inline-flex items-center justify-center{{ ' is-active' if not cat_f }}">Todos</a>
         {% for c in cats_ns.vals %}
-        <a href="{{ url_for('web.hall_fama') }}?cat={{ c | urlencode }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if cat_f == c %}background:var(--primary-solid);color:var(--primary-foreground);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">{{ c }}</a>
+        <a href="{{ url_for('web.hall_fama') }}?cat={{ c | urlencode }}" data-filter="{{ c }}"{% if cat_f == c %} aria-current="page"{% endif %} class="hall-pill px-3 py-1.5 rounded text-sm inline-flex items-center justify-center{{ ' is-active' if cat_f == c }}">{{ c }}</a>
         {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for m in filtered %}
-        <a href="{{ url_for('web.hall_fama') }}?member={{ m.id }}" class="museum-card rounded overflow-hidden text-left group block">
+    <div id="hall-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for m in hallMembers %}
+        <a href="{{ url_for('web.hall_fama') }}?member={{ m.id }}" data-cat="{{ m.category }}"{% if cat_f and cat_f != m.category %} data-hidden="true"{% endif %} class="museum-card rounded overflow-hidden text-left group block">
             <div class="relative overflow-hidden" style="aspect-ratio:4 / 3;background:var(--muted)">
                 <img src="{{ m.image }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>
@@ -79,4 +74,79 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    [data-hidden="true"] { display: none !important; }
+
+    /* Mismas tonalidades que las pastillas de Explorar (.sb-item) */
+    .hall-pill {
+        background: transparent;
+        color: var(--secondary-foreground);
+        border: 1px solid transparent;
+        transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .hall-pill:hover {
+        color: var(--primary);
+        border-color: var(--primary-border);
+        transform: translateY(-1px);
+    }
+    .hall-pill.is-active,
+    .hall-pill.is-active:hover {
+        background: var(--primary-solid);
+        color: var(--primary-foreground);
+        border-color: transparent;
+        transform: none;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var filtros = document.getElementById('hall-filtros');
+    var grid = document.getElementById('hall-grid');
+    if (!filtros || !grid) return;
+
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('[data-cat]'));
+    var pills = Array.prototype.slice.call(filtros.querySelectorAll('[data-filter]'));
+    var current = new URLSearchParams(window.location.search).get('cat') || '';
+
+    function paint(cat) {
+        current = cat;
+        cards.forEach(function (card) {
+            var match = !cat || card.getAttribute('data-cat') === cat;
+            if (match) card.removeAttribute('data-hidden');
+            else card.setAttribute('data-hidden', 'true');
+        });
+        pills.forEach(function (p) {
+            var on = (p.getAttribute('data-filter') || '') === cat;
+            p.classList.toggle('is-active', on);
+            if (on) p.setAttribute('aria-current', 'page');
+            else p.removeAttribute('aria-current');
+        });
+    }
+
+    filtros.addEventListener('click', function (e) {
+        var link = e.target && e.target.closest ? e.target.closest('[data-filter]') : null;
+        if (!link || e.defaultPrevented) return;
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        var cat = link.getAttribute('data-filter') || '';
+        if (cat === current) return;
+        paint(cat);
+        var url = window.location.pathname + (cat ? '?cat=' + encodeURIComponent(cat) : '');
+        try { history.pushState({ cat: cat }, '', url); } catch (err) { /* noop */ }
+    });
+
+    window.addEventListener('popstate', function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('member')) return;
+        paint(params.get('cat') || '');
+    });
+
+    paint(current);
+})();
+</script>
 {% endblock %}
