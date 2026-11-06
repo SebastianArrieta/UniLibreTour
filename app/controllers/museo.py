@@ -38,7 +38,7 @@ _SECCIONES = {
 
 @museo_bp.get("/data")
 def data():
-    """Dataset completo (mismo contrato crudo que /api/demo-data)."""
+    """Dataset completo (mismo contrato crudo que demo-data.json)."""
     return jsonify(museo.dataset())
 
 

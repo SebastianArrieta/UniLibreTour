@@ -42,33 +42,6 @@ notificaciones [icon: bell] {
   created_at timestamp
 }
 
-comentarios [icon: message-square] {
-  id integer pk
-  usuario_id integer
-  entidad_tipo varchar
-  entidad_id integer
-  texto text
-  created_at timestamp
-}
-
-reacciones {
-  usuario_id integer pk
-  entidad_tipo varchar pk
-  entidad_id integer pk
-  tipo varchar
-  created_at timestamp
-}
-
-evidencias [icon: file] {
-  id integer pk
-  entidad_tipo varchar
-  entidad_id integer
-  tipo_archivo varchar
-  url varchar
-  descripcion varchar
-  created_at timestamp
-}
-
 colecciones [icon: folder] {
   id integer pk
   titulo varchar
@@ -105,12 +78,6 @@ contenido_etiquetas {
   etiqueta_id integer pk
 }
 
-favoritos [icon: star] {
-  usuario_id integer pk
-  contenido_id integer pk
-  fecha timestamp
-}
-
 insignias [icon: award] {
   id integer pk
   nombre varchar
@@ -122,30 +89,6 @@ usuarios_insignias {
   usuario_id integer pk
   insignia_id integer pk
   fecha_obtenida timestamp
-}
-
-proyectos [icon: briefcase] {
-  id integer pk
-  titulo varchar
-  anio integer
-  linea_investigacion varchar
-  docente_id integer
-  descripcion text
-  tecnologias text
-  resultados_impacto text
-  estado varchar
-  observaciones text
-  validado_por integer
-  fecha_validacion timestamp
-  creador_id integer
-  created_at timestamp
-  updated_at timestamp
-}
-
-proyecto_integrantes {
-  proyecto_id integer pk
-  usuario_id integer pk
-  rol_en_proyecto varchar
 }
 
 premios [icon: trophy] {
@@ -161,11 +104,6 @@ premios [icon: trophy] {
   creador_id integer
   created_at timestamp
   updated_at timestamp
-}
-
-premio_participantes {
-  premio_id integer pk
-  usuario_id integer pk
 }
 
 cronologia_hitos [icon: calendar] {
@@ -236,26 +174,15 @@ noticias [icon: newspaper] {
 usuarios.semillero_id > semilleros.id
 semilleros.lider_id > usuarios.id
 notificaciones.usuario_id > usuarios.id
-comentarios.usuario_id > usuarios.id
-reacciones.usuario_id > usuarios.id
 contenidos.creador_id > usuarios.id
 contenidos.validado_por > usuarios.id
 contenidos.coleccion_id > colecciones.id
 contenido_etiquetas.contenido_id > contenidos.id
 contenido_etiquetas.etiqueta_id > etiquetas.id
-favoritos.usuario_id > usuarios.id
-favoritos.contenido_id > contenidos.id
 usuarios_insignias.usuario_id > usuarios.id
 usuarios_insignias.insignia_id > insignias.id
-proyectos.docente_id > usuarios.id
-proyectos.creador_id > usuarios.id
-proyectos.validado_por > usuarios.id
-proyecto_integrantes.proyecto_id > proyectos.id
-proyecto_integrantes.usuario_id > usuarios.id
 premios.creador_id > usuarios.id
 premios.validado_por > usuarios.id
-premio_participantes.premio_id > premios.id
-premio_participantes.usuario_id > usuarios.id
 cronologia_hitos.creador_id > usuarios.id
 cronologia_hitos.validado_por > usuarios.id
 eventos.creador_id > usuarios.id

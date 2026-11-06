@@ -11,8 +11,11 @@ from app.extensions import db
 
 
 def _dropar_tablas() -> None:
-    """DROP manual (con FK checks apagados): evita el ciclo usuarios↔semilleros."""
+    """DROP manual en MySQL (evita el ciclo usuarios↔semilleros); genérico en el resto."""
     engine = db.engine
+    if engine.dialect.name != "mysql":
+        db.drop_all()
+        return
     with engine.connect() as conn:
         tablas = [r[0] for r in conn.execute(text("SHOW TABLES"))]
         conn.execute(text("SET FOREIGN_KEY_CHECKS=0"))
@@ -25,9 +28,9 @@ def _dropar_tablas() -> None:
 def main() -> None:
     app = create_app()
     with app.app_context():
-        print("→ Eliminando esquema existente…")
+        print("-> Eliminando esquema existente...")
         _dropar_tablas()
-        print("→ Creando esquema actualizado…")
+        print("-> Creando esquema actualizado...")
         db.create_all()
 
         from app.services.usuario import seed_usuarios
@@ -35,7 +38,7 @@ def main() -> None:
 
         seed_usuarios()
         sembrado = seed_desde_demo()
-        print(f"→ Siembra demo: {'OK' if sembrado else 'omitida (ya había datos)'}")
+        print(f"-> Siembra demo: {'OK' if sembrado else 'omitida (ya había datos)'}")
 
         from sqlalchemy import func, select
 

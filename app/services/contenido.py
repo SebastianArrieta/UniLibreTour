@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
 from app.extensions import db
 from app.models.contenido import Coleccion, Contenido, Etiqueta
@@ -25,11 +25,12 @@ def puede_aportar(usuario: Usuario) -> bool:
     return usuario.rol in ROLES_CONTRIBUYENTES
 
 
-def crear_contenido(data: dict, usuario: Usuario) -> Contenido:
-    """Crea una pieza en estado 'pendiente': entra directo a la cola de
-    validación del flujo general del museo (registro → validación → publicación)."""
+def crear_contenido(data: dict, usuario: Usuario, estado: str = "pendiente") -> Contenido:
+    """Crea una pieza. Por defecto entra a la cola de validación; el admin
+    puede crearla ya publicada pasando estado='publicado'."""
     categoria = (data.get("category") or "").strip()
     coleccion = Coleccion.query.filter_by(slug=categoria).first() if categoria else None
+    publicado = estado in ("publicado", "institucional")
 
     contenido = Contenido(
         titulo=data["title"].strip(),
@@ -38,9 +39,11 @@ def crear_contenido(data: dict, usuario: Usuario) -> Contenido:
         fecha=data.get("date") or date.today().isoformat(),
         imagen=data.get("image"),
         autor=(data.get("author") or usuario.nombre).strip(),
-        estado="pendiente",
+        estado=estado,
         creador_id=usuario.id,
         coleccion_id=coleccion.id if coleccion else None,
+        validado_por=usuario.id if publicado else None,
+        fecha_validacion=datetime.utcnow() if publicado else None,
     )
     db.session.add(contenido)
     db.session.flush()

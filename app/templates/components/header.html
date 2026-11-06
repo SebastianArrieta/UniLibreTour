@@ -1,20 +1,30 @@
 <header class="site-header">
-    <div class="header-inner">
-        <a href="{{ url_for('web.home') }}" class="flex items-center gap-3 flex-shrink-0 group">
-            {% include 'components/logo.html' %}
-            <div class="hidden sm:block">
-                <div class="brand-name">UniLibreTour</div>
-                <div class="brand-sub">Herencia Digital</div>
-            </div>
-        </a>
+    <div class="header-inner flex items-center justify-between">
+        <!-- Lado Izquierdo: Marca + Acceso Prioritario al Panel del Rol + Enlaces del Museo -->
+        <div class="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+            <a href="{{ url_for('web.home') }}" class="flex items-center gap-2.5 flex-shrink-0 group">
+                {% include 'components/logo.html' %}
+                <div class="hidden sm:block">
+                    <div class="brand-name">UniLibreTour</div>
+                    <div class="brand-sub">Herencia Digital</div>
+                </div>
+            </a>
 
-        <nav class="hidden md:flex items-center gap-1">
-            <a href="{{ url_for('web.explorar') }}" class="nav-link {{ 'active' if current_page == 'explorar' }}">Explorar</a>
-            <a href="{{ url_for('web.hall_fama') }}" class="nav-link {{ 'active' if current_page == 'hall-fama' }}">Hall de la Fama</a>
-            <div id="museo-role-nav" class="flex items-center gap-1"></div>
-            <a href="{{ url_for('web.ranking') }}" class="nav-link {{ 'active' if current_page == 'ranking' }}">Ranking</a>
-        </nav>
+            <!-- Acceso Directo al Panel / Espacio Privado del Rol (A la izquierda) -->
+            <div id="museo-role-nav" class="flex items-center flex-shrink-0"></div>
 
+            <!-- Separador vertical (solo se muestra cuando hay sesión activa) -->
+            <div id="museo-role-sep" class="hidden md:block w-px h-5 bg-white/10 mx-1" style="display:none"></div>
+
+            <!-- Navegación Pública del Museo -->
+            <nav class="hidden md:flex items-center gap-1">
+                <a href="{{ url_for('web.explorar') }}" class="nav-link {{ 'active' if current_page == 'explorar' }}">Explorar</a>
+                <a href="{{ url_for('web.hall_fama') }}" class="nav-link {{ 'active' if current_page == 'hall-fama' }}">Hall de la Fama</a>
+                <a href="{{ url_for('web.ranking') }}" class="nav-link {{ 'active' if current_page == 'ranking' }}">Ranking</a>
+            </nav>
+        </div>
+
+        <!-- Lado Derecho: Buscar + Perfil + Salir + Tema -->
         <div class="flex items-center gap-2 flex-shrink-0">
             <a href="{{ url_for('web.buscar') }}" aria-label="Buscar" title="Buscar" class="search-btn flex-shrink-0">
                 <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

@@ -35,7 +35,6 @@ class Premio(db.Model):
     # Relationships
     creador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[creador_id], back_populates=None)
     validador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[validado_por], back_populates=None)
-    participantes: Mapped[list["PremioParticipante"]] = relationship("PremioParticipante", back_populates="premio")
 
     def to_dict(self) -> dict:
         return {
@@ -54,17 +53,3 @@ class Premio(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-
-
-class PremioParticipante(db.Model):
-    __tablename__ = "premio_participantes"
-
-    premio_id: Mapped[int] = mapped_column(Integer, ForeignKey("premios.id"), primary_key=True)
-    usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios.id"), primary_key=True)
-
-    # Relationships
-    premio: Mapped["Premio"] = relationship("Premio", back_populates="participantes")
-    usuario: Mapped["Usuario"] = relationship("Usuario", back_populates="premios_como_participante")
-
-    def to_dict(self) -> dict:
-        return {"premio_id": self.premio_id, "usuario_id": self.usuario_id}

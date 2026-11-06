@@ -1,132 +1,299 @@
 {% extends "base.html" %}
 {% block title %}La Ruta — Cronología | UniLibreTour{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ==========================================================================
+   Cronología Estilizada — Tarjetas Intercaladas y Onda Central Limpia
+   ========================================================================== */
+
+/* Revelación progresiva en scroll (Slide in desde izquierda/derecha) */
+.ruta-card-wrap {
+    opacity: 0;
+    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+}
+.ruta-card-left {
+    transform: translateX(-40px) scale(0.96);
+}
+.ruta-card-right {
+    transform: translateX(40px) scale(0.96);
+}
+.ruta-card-mobile {
+    transform: translateY(30px) scale(0.96);
+}
+.ruta-revealed {
+    opacity: 1 !important;
+    transform: translate(0, 0) scale(1) !important;
+}
+
+/* Nodos interactivos sobre la onda */
+.ruta-node-box {
+    position: relative;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ruta-node-box.active {
+    transform: scale(1.22);
+}
+
+.node-pulse-halo {
+    position: absolute;
+    inset: -7px;
+    border-radius: 9999px;
+    border: 2px solid #d32f2f;
+    opacity: 0;
+    pointer-events: none;
+}
+.ruta-node-box.active .node-pulse-halo {
+    animation: nodeHaloRipple 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes nodeHaloRipple {
+    0%   { transform: scale(0.85); opacity: 0.85; }
+    50%  { transform: scale(1.9); opacity: 0.25; }
+    100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* Conector luminoso horizontal entre tarjeta y nodo central */
+.ruta-connector-line {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    width: 36px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: 0.45;
+    transition: opacity 0.3s ease;
+}
+.ruta-row-active .ruta-connector-line {
+    opacity: 1;
+}
+
+/* Tarjeta interactiva compacta y pulida */
+.ruta-item-card {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.ruta-item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 36px -10px rgba(211, 47, 47, 0.35);
+    border-color: rgba(211, 47, 47, 0.6) !important;
+}
+
+/* Pastillas de década en el hero */
+.decade-pill {
+    transition: all 0.25s ease;
+}
+.decade-pill:hover, .decade-pill.active {
+    background: #d32f2f !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+    transform: translateY(-2px);
+    border-color: #d32f2f !important;
+}
+
+/* Responsive rows — fix para override de .hidden global */
+.ruta-row-mobile {
+    display: flex;
+}
+.ruta-row-desktop {
+    display: none;
+}
+@media (min-width: 1024px) {
+    .ruta-row-mobile {
+        display: none;
+    }
+    .ruta-row-desktop {
+        display: flex;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {% set type_colors = {'fundacion': '#d32f2f', 'logro': '#22c55e', 'evento': '#3b82f6', 'investigacion': '#a855f7'} %}
 {% set type_labels = {'fundacion': 'Fundación', 'logro': 'Logro', 'evento': 'Evento', 'investigacion': 'Investigación'} %}
 
-{% macro event_card(ev, color, label, href) %}
-<a href="{{ href }}" class="group block max-w-md w-full">
-<article class="museum-card ruta-item rounded p-5 md:p-6 w-full cursor-pointer group">
-    <div class="flex items-center gap-2 mb-3">
-        <span class="text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider"
-              style="background:{{ color }}14;color:{{ color }};border:1px solid {{ color }}30">{{ label }}</span>
-        <span class="font-mono text-xs font-bold lg:hidden" style="color:{{ color }}">{{ ev.year }}</span>
+{% macro event_card(ev, color, label, href, anim_class) %}
+<a href="{{ href }}" class="group block w-full ruta-card-wrap {{ anim_class }}" style="max-width: 440px;">
+<article class="museum-card ruta-item-card rounded-xl p-5 md:p-6 w-full cursor-pointer group shadow-lg relative"
+         style="border: 1px solid rgba(255, 255, 255, 0.09); background: var(--card, #161614);">
+    
+    <!-- Encabezado de la Tarjeta: Año y Categoría Compactos -->
+    <div class="flex items-center justify-between gap-3 mb-3 pb-2.5" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-2.5">
+            <span class="font-serif text-2xl md:text-3xl font-black text-primary-gradient tracking-tight leading-none">
+                {{ ev.year if ev.year else '—' }}
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-semibold"
+                  style="background: {{ color }}18; color: {{ color }}; border: 1px solid {{ color }}40">
+                {{ label }}
+            </span>
+        </div>
+        {% if ev.year %}
+        <span class="text-[10px] font-mono" style="color: var(--muted-foreground)">Década de los {{ (ev.year // 10) * 10 }}</span>
+        {% endif %}
     </div>
-    <h3 class="font-serif text-lg md:text-xl font-bold leading-snug mb-2 transition-colors group-hover:text-[#d32f2f]"
-        style="color:var(--foreground)">{{ ev.title }}</h3>
-    <p class="text-sm leading-relaxed" style="color:var(--muted-foreground)">{{ ev.description }}</p>
-    {% if ev.media and ev.media | length %}
-    <div class="flex flex-wrap gap-1.5 mt-3">
-        {% for f in ev.media %}
-        <span class="text-[10px] px-2 py-0.5 rounded font-mono truncate max-w-full"
-              style="background:{{ color }}12;color:var(--secondary-foreground);border:1px solid {{ color }}30"><i class="fa-solid fa-paperclip" style="font-size:9px"></i> {{ f }}</span>
-        {% endfor %}
+
+    <!-- Título y Descripción -->
+    <h3 class="font-serif text-base md:text-lg font-bold leading-snug mb-2 transition-colors group-hover:text-[#d32f2f]"
+        style="color: var(--foreground)">{{ ev.title }}</h3>
+    <p class="text-xs md:text-sm leading-relaxed" style="color: var(--muted-foreground)">{{ ev.description }}</p>
+
+    <div class="mt-3.5 pt-2 flex items-center justify-between" style="border-top: 1px solid rgba(255,255,255,0.05);">
+        <span class="inline-flex items-center gap-1.5 text-xs font-medium transition-transform duration-300 group-hover:translate-x-1.5"
+              style="color: #d32f2f">
+            {{ 'Ver pieza relacionada →' if ev.itemId else 'Explorar colecciones →' }}
+        </span>
     </div>
-    {% endif %}
-    <span class="inline-block mt-4 text-xs font-medium transition-transform duration-300 group-hover:translate-x-1"
-          style="color:#d32f2f">{{ 'Ver pieza relacionada →' if ev.itemId else 'Explorar colecciones →' }}</span>
 </article>
 </a>
 {% endmacro %}
 
-{% macro year_block(ev) %}
-<div class="ruta-item select-none">
-    <div class="font-serif text-[88px] xl:text-[110px] font-black leading-none text-primary-gradient">{{ ev.year }}</div>
-    <div class="font-mono text-[11px] uppercase tracking-widest mt-2" style="color:var(--muted-foreground)">Década de los {{ ((ev.year // 10) % 10) }}0</div>
-</div>
-{% endmacro %}
-
 <div class="relative overflow-x-hidden">
-    {% set first_year = timeline[0].year if timeline else 1975 %}
-    {% set last_year = timeline[-1].year if timeline else 2024 %}
+    {% set first_year = timeline[0].year if timeline and timeline[0].year else 1975 %}
+    {% set last_year = timeline[-1].year if timeline and timeline[-1].year else 2024 %}
 
-    <section class="relative min-h-[72vh] flex items-center justify-center overflow-hidden px-4">
+    {% set decades = [1970, 1980, 1990, 2000, 2010, 2020] %}
+
+    <section class="relative min-h-[60vh] flex items-center justify-center overflow-hidden px-4">
         <div class="absolute inset-0 opacity-[0.04]"
              style="background-image:linear-gradient(rgba(211,47,47,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(211,47,47,0.5) 1px, transparent 1px);background-size:80px 80px"></div>
         <div class="absolute inset-0"
-             style="background:radial-gradient(circle at 50% 30%, rgba(211,47,47,0.14), transparent 55%)"></div>
-        <div class="relative z-10 text-center max-w-3xl animate-fadeInUp py-24">
+             style="background:radial-gradient(circle at 50% 30%, rgba(211,47,47,0.16), transparent 60%)"></div>
+        <div class="relative z-10 text-center max-w-3xl animate-fadeInUp py-16">
             <a href="{{ url_for('web.home') }}"
-               class="inline-flex items-center gap-2 text-xs font-mono mb-10 hover:opacity-70 transition-opacity"
+               class="inline-flex items-center gap-2 text-xs font-mono mb-6 hover:opacity-70 transition-opacity"
                style="color:var(--muted-foreground)">← Volver al inicio</a>
-            <div class="text-xs font-mono uppercase tracking-widest mb-4" style="color:#d32f2f">Cronología · {{ first_year }} — {{ last_year }}</div>
-            <h1 class="font-serif text-5xl md:text-7xl font-black leading-none mb-6" style="color:var(--foreground)">
+            <div class="text-xs font-mono uppercase tracking-widest mb-2.5" style="color:#d32f2f">
+                <i class="fa-solid fa-timeline mr-1"></i> Cronología Viva · {{ first_year }} — {{ last_year }}
+            </div>
+            <h1 class="font-serif text-5xl md:text-6xl font-black leading-none mb-5" style="color:var(--foreground)">
                 La <span class="text-primary-gradient italic">Ruta</span>
             </h1>
-            <p class="text-base md:text-lg leading-relaxed max-w-xl mx-auto mb-8" style="color:var(--secondary-foreground)">
-                Medio siglo de historia trazado en un solo camino. Desliza y acompaña cada hito que construyó el Programa de Ingeniería de Sistemas.
+            <p class="text-sm md:text-base leading-relaxed max-w-xl mx-auto mb-7" style="color:var(--secondary-foreground)">
+                Recorre cada hito histórico de forma intercalada a lo largo de la onda continua del tiempo.
             </p>
-            <div class="flex flex-wrap items-center justify-center gap-2 mb-14">
-                <span class="px-3 py-1 rounded-full text-xs font-mono"
-                      style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)"><b style="color:#d32f2f">50</b> años</span>
-                <span class="px-3 py-1 rounded-full text-xs font-mono"
-                      style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)"><b style="color:#d32f2f">5</b> décadas</span>
-                <span class="px-3 py-1 rounded-full text-xs font-mono"
-                      style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.22);color:var(--secondary-foreground)"><b style="color:#d32f2f">{{ timeline | length }}</b> hitos</span>
+
+            <!-- Selector Rápido de Décadas -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-8">
+                {% for dec in decades %}
+                <button type="button" data-jump-decade="{{ dec }}"
+                        class="decade-pill px-3.5 py-1.5 rounded-full text-xs font-mono font-bold transition-all"
+                        style="background:rgba(211,47,47,0.08);color:var(--secondary-foreground);border:1px solid rgba(211,47,47,0.25)">
+                    {{ dec }}s
+                </button>
+                {% endfor %}
             </div>
+
             <div class="ruta-scroll-hint flex flex-col items-center gap-1" style="color:#d32f2f">
-                <span class="text-xl">↓</span>
-                <span class="text-[11px] font-mono uppercase tracking-widest">Comienza a recorrer</span>
+                <span class="text-lg animate-bounce">↓</span>
+                <span class="text-[11px] font-mono uppercase tracking-widest">Desliza para avanzar</span>
             </div>
         </div>
     </section>
 
-    <div id="ruta-camino" class="ruta relative mx-auto max-w-6xl pb-16">
-        <div class="absolute top-0 bottom-0 lg:hidden" style="left:23px;width:2px;background:linear-gradient(to bottom, transparent, rgba(211,47,47,0.35) 12%, rgba(211,47,47,0.35) 88%, transparent)"></div>
-        <div class="absolute top-0 bottom-0 hidden lg:block" style="left:50%;width:2px;transform:translateX(-1px);background:linear-gradient(to bottom, transparent, rgba(211,47,47,0.3) 10%, rgba(211,47,47,0.3) 90%, transparent)"></div>
+    <!-- Contenedor Principal de la Ruta -->
+    <div id="ruta-camino" class="relative mx-auto max-w-5xl pb-24 pt-4">
+
+        <!-- SVG de la Onda Central Dinámica (Wave Path) -->
+        <svg id="ruta-svg-canvas" class="absolute top-0 bottom-0 left-0 w-full h-full pointer-events-none" style="z-index:1;overflow:visible">
+            <defs>
+                <linearGradient id="ruta-wave-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.95"/>
+                    <stop offset="50%" stop-color="#dc2626" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#b91c1c" stop-opacity="0.95"/>
+                </linearGradient>
+                <filter id="ruta-glow-fx" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+                    <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+            <!-- Línea de fondo punteada en onda sinusoidal -->
+            <path id="ruta-wave-track" d="" stroke="rgba(211,47,47,0.18)" stroke-width="2.5" stroke-dasharray="8 8" fill="none" />
+            <!-- Línea de onda activa iluminada -->
+            <path id="ruta-wave-glow" d="" stroke="#ff3333" stroke-width="6" stroke-opacity="0.3" fill="none" filter="url(#ruta-glow-fx)" stroke-linecap="round" />
+            <path id="ruta-wave-fill" d="" stroke="url(#ruta-wave-grad)" stroke-width="3" fill="none" stroke-linecap="round" />
+            <!-- Orbe de luz viajero -->
+            <circle id="ruta-wave-head" r="6" fill="#ffffff" stroke="#d32f2f" stroke-width="2.5" filter="url(#ruta-glow-fx)" style="opacity:0;transition:opacity .3s ease" />
+        </svg>
 
         {% for ev in timeline %}
         {% set left = loop.index0 % 2 == 0 %}
         {% set color = type_colors.get(ev.type, '#d32f2f') %}
-        {% set label = type_labels.get(ev.type, ev.type) %}
+        {% set label = type_labels.get(ev.type, 'Hito') %}
         {% set href = url_for('web.detalle', cid=ev.itemId) if ev.itemId else url_for('web.explorar') %}
 
+        <!-- Vista Móvil (< lg) -->
         <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
-             class="relative flex items-center gap-4 py-8 pl-3 pr-4 lg:hidden">
-            <div data-row-node class="relative z-10 shrink-0 flex items-center justify-center" style="width:48px;height:48px">
-                <div class="absolute inset-0 rounded-full" style="border:1px solid {{ color }}55;background:{{ color }}12"></div>
-                <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:transform .25s"></div>
+             class="relative ruta-row-mobile items-center gap-4 py-6 pl-3 pr-4">
+            <div data-row-node class="ruta-node-box relative z-10 shrink-0 flex items-center justify-center" style="width:42px;height:42px">
+                <div class="node-pulse-halo" style="border-color:{{ color }}"></div>
+                <div class="absolute inset-0 rounded-full" style="border:1.5px solid {{ color }}66;background:var(--card, #161614)"></div>
+                <div data-row-dot class="rounded-full z-10" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }}"></div>
             </div>
-            {{ event_card(ev, color, label, href) }}
+            {{ event_card(ev, color, label, href, 'ruta-card-mobile') }}
         </div>
 
+        <!-- Vista Desktop: Intercalado Izquierda / Derecha Sin Colisión -->
         <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
-             class="relative hidden lg:flex items-center min-h-[50vh]">
-            <div class="w-1/2 flex {{ 'justify-end pr-[13%]' if left else 'justify-end pr-[9%]' }}">
-                {{ event_card(ev, color, label, href) if left else year_block(ev) }}
+             class="relative ruta-row-desktop items-center py-6"
+             style="min-height:34vh">
+
+            <!-- Lado Izquierdo (50%) -->
+            <div class="w-1/2 flex justify-end pr-14 relative">
+                {% if left %}
+                    {{ event_card(ev, color, label, href, 'ruta-card-left') }}
+                    <!-- Conector horizontal hacia el centro -->
+                    <div class="ruta-connector-line" style="right: 14px; background: linear-gradient(to right, {{ color }}44, {{ color }});"></div>
+                {% endif %}
             </div>
+
+            <!-- Nodo Central en la Onda -->
             <div data-row-node class="absolute z-10" style="left:50%;top:50%;transform:translate(-50%,-50%)">
-                <div class="relative flex items-center justify-center" style="width:48px;height:48px">
-                    <div class="absolute inset-0 rounded-full" style="border:1px solid {{ color }}55;background:{{ color }}12"></div>
-                    <div data-row-dot class="rounded-full" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }};transition:transform .25s"></div>
+                <div class="ruta-node-box relative flex items-center justify-center" style="width:42px;height:42px">
+                    <div class="node-pulse-halo" style="border-color:{{ color }}"></div>
+                    <div class="absolute inset-0 rounded-full shadow-md" style="border:2px solid {{ color }}88;background:var(--card, #161614)"></div>
+                    <div data-row-dot class="rounded-full z-10" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 14px {{ color }};transition:transform .3s"></div>
                 </div>
             </div>
-            <div class="w-1/2 flex {{ 'justify-start pl-[9%]' if left else 'justify-start pl-[13%]' }}">
-                {{ year_block(ev) if left else event_card(ev, color, label, href) }}
+
+            <!-- Lado Derecho (50%) -->
+            <div class="w-1/2 flex justify-start pl-14 relative">
+                {% if not left %}
+                    <!-- Conector horizontal hacia el centro -->
+                    <div class="ruta-connector-line" style="left: 14px; background: linear-gradient(to left, {{ color }}44, {{ color }});"></div>
+                    {{ event_card(ev, color, label, href, 'ruta-card-right') }}
+                {% endif %}
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <section class="relative text-center py-28 px-4 overflow-hidden">
+    <section class="relative text-center py-20 px-4 overflow-hidden">
         <div class="absolute inset-0"
-             style="background:radial-gradient(circle at 50% 60%, rgba(211,47,47,0.12), transparent 60%)"></div>
+             style="background:radial-gradient(circle at 50% 60%, rgba(211,47,47,0.14), transparent 65%)"></div>
         <div class="relative z-10 animate-fadeInUp">
-            <div class="text-xs font-mono uppercase tracking-widest mb-4" style="color:var(--muted-foreground)">Cierre de la ruta</div>
-            <div class="font-serif text-6xl md:text-8xl font-black text-primary-gradient leading-none mb-5">50 Años</div>
-            <p class="text-sm md:text-base max-w-lg mx-auto mb-9 leading-relaxed" style="color:var(--secondary-foreground)">
+            <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Cierre de la ruta</div>
+            <div class="font-serif text-5xl md:text-7xl font-black text-primary-gradient leading-none mb-4">50 Años</div>
+            <p class="text-xs md:text-sm max-w-lg mx-auto mb-8 leading-relaxed" style="color:var(--secondary-foreground)">
                 De 24 graduandos a una comunidad de miles de ingenieros. La ruta continúa con cada nueva generación.
             </p>
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <a href="{{ url_for('web.explorar') }}" class="btn-primary btn-float px-6 py-3 rounded text-sm">Explorar Colecciones</a>
-                <a href="{{ url_for('web.hall_fama') }}" class="btn-outline-primary px-6 py-3 rounded text-sm">Hall de la Fama</a>
+                <a href="{{ url_for('web.explorar') }}" class="btn-primary btn-float px-5 py-2.5 rounded text-xs">Explorar Colecciones</a>
+                <a href="{{ url_for('web.hall_fama') }}" class="btn-outline-primary px-5 py-2.5 rounded text-xs">Hall de la Fama</a>
             </div>
         </div>
     </section>
 
+    <!-- Rail Lateral Fijo de Progreso -->
     <div id="ruta-rail"
-         class="hidden lg:flex fixed right-6 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2.5 transition-opacity duration-500"
-         style="opacity:0;pointer-events:none">
+         class="ruta-row-desktop fixed right-6 z-40 transition-opacity duration-500"
+         style="opacity:0;pointer-events:none;top:50%;transform:translateY(-50%);flex-direction:column;align-items:center;gap:10px">
         <span id="ruta-rail-year" class="font-mono text-xs font-bold tracking-widest mb-1"
               style="writing-mode:vertical-rl;color:#d32f2f"></span>
         {% for ev in timeline %}
@@ -145,96 +312,285 @@
 (function () {
     var camino = document.getElementById('ruta-camino');
     if (!camino) return;
-    var rows = Array.prototype.slice.call(camino.querySelectorAll('[data-ruta-index]'));
-    var railDots = Array.prototype.slice.call(document.querySelectorAll('[data-rail-index]'));
-    var years = rows.map(function (r) { return parseInt(r.getAttribute('data-year'), 10); });
-    if (!rows.length) return;
 
-    if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function (entries) {
-            entries.forEach(function (en) {
-                if (en.isIntersecting) { en.target.classList.add('route-in'); io.unobserve(en.target); }
-            });
-        }, { threshold: 0.12 });
-        io.observe(camino);
-    } else {
-        camino.classList.add('route-in');
+    /* Cada hito existe dos veces en el DOM (vista móvil y desktop) y ambas
+       copias comparten data-ruta-index. Se agrupan para que el índice del
+       arreglo coincida siempre con el hito y no con el duplicado. */
+    var allRows = Array.prototype.slice.call(camino.querySelectorAll('[data-ruta-index]'));
+    if (!allRows.length) return;
+
+    var events = [];
+    allRows.forEach(function (r) {
+        var idx = parseInt(r.getAttribute('data-ruta-index'), 10);
+        if (isNaN(idx)) return;
+        if (!events[idx]) events[idx] = {};
+        events[idx][r.classList.contains('ruta-row-desktop') ? 'desktop' : 'mobile'] = r;
+    });
+    var count = events.length;
+
+    var railDots = Array.prototype.slice.call(document.querySelectorAll('[data-rail-index]'));
+    var decadeButtons = Array.prototype.slice.call(document.querySelectorAll('[data-jump-decade]'));
+
+    function isDesktop() { return window.innerWidth >= 1024; }
+
+    function rowFor(i) {
+        var e = events[i];
+        if (!e) return null;
+        return isDesktop() ? (e.desktop || e.mobile) : (e.mobile || e.desktop);
     }
 
+    var years = events.map(function (e) {
+        var r = e.mobile || e.desktop;
+        return r ? parseInt(r.getAttribute('data-year'), 10) : NaN;
+    });
+
+    /* -------------------------------------------------------------
+       1. Trazado de la Onda Central en SVG (Wave Path)
+       ------------------------------------------------------------- */
+    var svg = document.getElementById('ruta-svg-canvas');
+    var track = document.getElementById('ruta-wave-track');
+    var glow = document.getElementById('ruta-wave-glow');
+    var fill = document.getElementById('ruta-wave-fill');
+    var head = document.getElementById('ruta-wave-head');
+    var totalLen = 0;
+
+    function drawWave() {
+        if (!svg || !track || !fill) return;
+
+        var caminoRect = camino.getBoundingClientRect();
+        var W = camino.offsetWidth;
+        var H = camino.offsetHeight;
+
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+        svg.style.width = W + 'px';
+        svg.style.height = H + 'px';
+
+        var desktop = isDesktop();
+        var visibleRows = [];
+        for (var i = 0; i < count; i++) {
+            var row = rowFor(i);
+            if (row) visibleRows.push(row);
+        }
+
+        if (!visibleRows.length) return;
+
+        var pts = [];
+        var centerX = W / 2;
+
+        // En móvil la onda debe pasar por el centro real del nodo, no por un valor fijo.
+        if (!desktop) {
+            var firstNode = visibleRows[0].querySelector('[data-row-node]');
+            if (firstNode) {
+                var nodeRect = firstNode.getBoundingClientRect();
+                centerX = (nodeRect.left - caminoRect.left) + (nodeRect.width / 2);
+            } else {
+                centerX = 24;
+            }
+        }
+
+        pts.push({ x: centerX, y: 0 });
+
+        visibleRows.forEach(function (r, i) {
+            var rowRect = r.getBoundingClientRect();
+            var y = (rowRect.top - caminoRect.top) + (rowRect.height / 2);
+
+            if (desktop) {
+                // Amplitud suave (oscila en el canal central sin tocar las tarjetas)
+                var amplitude = 32;
+                var waveSign = (i % 2 === 0 ? -1 : 1);
+
+                if (i > 0) {
+                    var prevY = pts[pts.length - 1].y;
+                    var midY = (prevY + y) / 2;
+                    var crestX = centerX + (waveSign * amplitude);
+                    pts.push({ x: crestX, y: midY });
+                }
+            } else {
+                var mWave = (i % 2 === 0 ? -3 : 3);
+                if (i > 0) {
+                    var mPrevY = pts[pts.length - 1].y;
+                    pts.push({ x: centerX + mWave, y: (mPrevY + y) / 2 });
+                }
+            }
+
+            pts.push({ x: centerX, y: y });
+        });
+
+        pts.push({ x: centerX, y: H });
+
+        // Curva Bézier continua suave
+        var d = 'M ' + pts[0].x.toFixed(1) + ' ' + pts[0].y.toFixed(1);
+        for (var k = 1; k < pts.length; k++) {
+            var p0 = pts[k - 1];
+            var p1 = pts[k];
+            var dy = (p1.y - p0.y) / 2;
+            var cp1x = p0.x;
+            var cp1y = p0.y + dy;
+            var cp2x = p1.x;
+            var cp2y = p1.y - dy;
+            d += ' C ' + cp1x.toFixed(1) + ' ' + cp1y.toFixed(1) + ', ' +
+                 cp2x.toFixed(1) + ' ' + cp2y.toFixed(1) + ', ' +
+                 p1.x.toFixed(1) + ' ' + p1.y.toFixed(1);
+        }
+
+        track.setAttribute('d', d);
+        fill.setAttribute('d', d);
+        if (glow) glow.setAttribute('d', d);
+
+        totalLen = fill.getTotalLength();
+        fill.style.strokeDasharray = totalLen;
+        if (glow) glow.style.strokeDasharray = totalLen;
+
+        updateProgress();
+    }
+
+    /* -------------------------------------------------------------
+       2. Scroll Reveal Progresivo
+       ------------------------------------------------------------- */
+    if ('IntersectionObserver' in window) {
+        var rowObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.querySelectorAll('.ruta-card-wrap').forEach(function (c) {
+                    c.classList.add('ruta-revealed');
+                });
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        allRows.forEach(function (r) { rowObserver.observe(r); });
+    } else {
+        document.querySelectorAll('.ruta-card-wrap').forEach(function (c) { c.classList.add('ruta-revealed'); });
+    }
+
+    /* -------------------------------------------------------------
+       3. Progreso de la Onda al Scroll
+       ------------------------------------------------------------- */
     var lastIdx = -1;
     var lastVisible = null;
 
     function setActive(i) {
-        rows.forEach(function (r, k) {
-            var d = r.querySelector('[data-row-dot]');
+        events.forEach(function (e, k) {
             var on = k === i;
-            if (d) {
-                d.style.transform = on ? 'scale(1.333)' : 'scale(1)';
-                d.classList.toggle('ruta-dot-active', on);
-            }
+            ['mobile', 'desktop'].forEach(function (variant) {
+                var r = e[variant];
+                if (!r) return;
+                var dot = r.querySelector('[data-row-dot]');
+                var nodeBox = r.querySelector('.ruta-node-box');
+                if (dot) {
+                    dot.style.transform = on ? 'scale(1.35)' : 'scale(1)';
+                }
+                if (nodeBox) {
+                    nodeBox.classList.toggle('active', on);
+                }
+                r.classList.toggle('ruta-row-active', on);
+            });
         });
+
         railDots.forEach(function (rd, k) {
             var on = k === i;
             var color = rd.getAttribute('data-color') || '#d32f2f';
-            rd.classList.toggle('ruta-dot-active', on);
-            rd.style.scale = on ? '1.667' : '';
+            rd.style.transform = on ? 'scale(1.7)' : 'scale(1)';
             rd.style.background = on ? color : 'rgba(211,47,47,0.28)';
-            rd.style.boxShadow = on ? '0 0 8px ' + color : 'none';
+            rd.style.boxShadow = on ? '0 0 10px ' + color : 'none';
         });
+
         var y = document.getElementById('ruta-rail-year');
-        if (y && years[i]) y.textContent = years[i];
+        if (y && !isNaN(years[i])) y.textContent = years[i];
+
+        if (!isNaN(years[i])) {
+            var curDecade = Math.floor(years[i] / 10) * 10;
+            decadeButtons.forEach(function (btn) {
+                var dVal = parseInt(btn.getAttribute('data-jump-decade'), 10);
+                btn.classList.toggle('active', dVal === curDecade);
+            });
+        }
     }
 
-    function updateActive() {
+    function updateProgress() {
+        if (!totalLen) return;
         var vh = window.innerHeight;
-        var idx = 0;
-        rows.forEach(function (r, i) {
+        var caminoRect = camino.getBoundingClientRect();
+        var caminoTop = caminoRect.top;
+        var caminoHeight = caminoRect.height;
+
+        var scrollRelative = (vh * 0.5) - caminoTop;
+        var progress = Math.max(0, Math.min(1, scrollRelative / caminoHeight));
+
+        var drawLength = totalLen * progress;
+        fill.style.strokeDashoffset = totalLen - drawLength;
+        if (glow) glow.style.strokeDashoffset = totalLen - drawLength;
+
+        if (head && totalLen > 0) {
+            if (progress > 0.01 && progress < 0.99) {
+                var pt = fill.getPointAtLength(drawLength);
+                head.setAttribute('cx', pt.x.toFixed(1));
+                head.setAttribute('cy', pt.y.toFixed(1));
+                head.style.opacity = '1';
+            } else {
+                head.style.opacity = '0';
+            }
+        }
+
+        var activeIdx = 0;
+        for (var i = 0; i < count; i++) {
+            var r = rowFor(i);
+            if (!r) continue;
             var rc = r.getBoundingClientRect();
-            if (rc.top + rc.height / 2 <= vh * 0.6) idx = i;
-        });
+            if (rc.top + rc.height / 2 <= vh * 0.55) {
+                activeIdx = i;
+            }
+        }
+
+        if (activeIdx !== lastIdx) {
+            lastIdx = activeIdx;
+            setActive(activeIdx);
+        }
+
         var rail = document.getElementById('ruta-rail');
-        var visible = false;
         if (rail) {
-            var rcRail = camino.getBoundingClientRect();
-            visible = rcRail.top < vh * 0.55;
-        }
-        if (idx !== lastIdx) {
-            lastIdx = idx;
-            setActive(idx);
-        }
-        if (rail && visible !== lastVisible) {
-            lastVisible = visible;
-            rail.style.opacity = visible ? '1' : '0';
-            rail.style.pointerEvents = visible ? 'auto' : 'none';
+            var railVisible = caminoRect.top < vh * 0.5 && caminoRect.bottom > vh * 0.3;
+            if (railVisible !== lastVisible) {
+                lastVisible = railVisible;
+                rail.style.opacity = railVisible ? '1' : '0';
+                rail.style.pointerEvents = railVisible ? 'auto' : 'none';
+            }
         }
     }
 
     var raf = 0;
-    function scheduleUpdate() {
-        if (!raf) raf = requestAnimationFrame(function () { raf = 0; updateActive(); });
+    function scheduleProgress() {
+        if (!raf) raf = requestAnimationFrame(function () { raf = 0; updateProgress(); });
     }
-    window.addEventListener('scroll', scheduleUpdate, { passive: true });
-    window.addEventListener('resize', scheduleUpdate);
 
-    railDots.forEach(function (rd) {
-        rd.addEventListener('click', function () {
-            var idx = parseInt(rd.getAttribute('data-rail-index'), 10);
-            var target = rows[idx];
+    window.addEventListener('scroll', scheduleProgress, { passive: true });
+    window.addEventListener('resize', function () {
+        drawWave();
+    });
+
+    decadeButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var dec = parseInt(btn.getAttribute('data-jump-decade'), 10);
+            var matchIdx = -1;
+            for (var j = 0; j < years.length; j++) {
+                if (years[j] >= dec) { matchIdx = j; break; }
+            }
+            var target = matchIdx !== -1 ? rowFor(matchIdx) : null;
             if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
     });
 
-    var now = new Date().getFullYear();
-    var startIdx = years.length - 1;
-    for (var i = 0; i < years.length; i++) {
-        if (years[i] >= now) { startIdx = i; break; }
-    }
-    window.scrollTo(0, 0);
-    setTimeout(function () {
-        var target = rows[startIdx];
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        updateActive();
-    }, 400);
+    railDots.forEach(function (rd) {
+        rd.addEventListener('click', function () {
+            var idx = parseInt(rd.getAttribute('data-rail-index'), 10);
+            var target = rowFor(idx);
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
+
+    setTimeout(drawWave, 100);
 })();
 </script>
 {% endblock %}

@@ -79,11 +79,18 @@
 {% block extra_js %}
 <script>
 (function () {
+  var TYPE_META = {
+    aprobado: { title: 'Contribución aprobada y publicada', color: '#22c55e', icon: 'fa-solid fa-check' },
+    pendiente: { title: 'Evidencia en revisión', color: '#f97316', icon: 'fa-solid fa-clock' },
+    devuelto: { title: 'Evidencia devuelta para corrección', color: '#ef4444', icon: 'fa-solid fa-arrow-rotate-left' },
+    sistema: { title: 'Notificación del sistema', color: '#3b82f6', icon: 'fa-solid fa-info' }
+  };
+  var PREF_KEY = 'museo-notif-prefs';
   var PREFERENCES = [
     { name: 'aprobaciones', label: 'Aprobaciones y publicaciones de mi contenido', checked: true },
     { name: 'devoluciones', label: 'Devoluciones y correcciones solicitadas', checked: true },
     { name: 'convocatorias', label: 'Convocatorias y eventos institucionales', checked: false },
-    { name: 'resumen', label: 'Resumen semanal de actividad del museo', checked: false },
+    { name: 'resumen', label: 'Resumen semanal de actividad del museo', checked: false }
   ];
 
   function toast(msg, type) {
@@ -94,6 +101,14 @@
     requestAnimationFrame(function () { box.style.opacity = '1'; });
     setTimeout(function () { box.style.opacity = '0'; }, 2400);
     setTimeout(function () { box.remove(); }, 2900);
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function isAuth() {
+    return window.Museo && Museo.isAuthenticated();
   }
 
   function paintCard(card) {
@@ -114,16 +129,72 @@
     if (el) el.textContent = total;
   }
 
-  document.querySelectorAll('#notif-list [data-nid]').forEach(function (card) {
-    card.style.animationName = 'fadeInUp';
-    paintCard(card);
-    var toggle = card.querySelector('.notif-toggle');
-    if (toggle) toggle.addEventListener('click', function () {
-      card.setAttribute('data-read', card.getAttribute('data-read') === 'true' ? 'false' : 'true');
+  function bindCards() {
+    document.querySelectorAll('#notif-list [data-nid]').forEach(function (card) {
+      card.style.animationName = 'fadeInUp';
       paintCard(card);
-      updateUnread();
+      var toggle = card.querySelector('.notif-toggle');
+      if (toggle) toggle.addEventListener('click', function () {
+        var nextRead = card.getAttribute('data-read') !== 'true';
+        card.setAttribute('data-read', nextRead ? 'true' : 'false');
+        paintCard(card);
+        updateUnread();
+        if (isAuth()) {
+          Museo.apiJson('/api/notificaciones/' + encodeURIComponent(card.getAttribute('data-nid')),
+            'PUT', { leido: nextRead }, Museo.getToken()).catch(function (err) {
+              toast(err.message || 'No fue posible actualizar la notificación', 'err');
+            });
+        }
+      });
     });
-  });
+
+    document.querySelectorAll('#notif-list .btn-outline-primary').forEach(function (b) {
+      b.addEventListener('click', function () { toast('Nota del revisor: revisa la pieza devuelta en "Mis Aportes".'); });
+    });
+    updateUnread();
+  }
+
+  function formatTime(value) {
+    if (!value) return '';
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    return d.toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function renderNotifications(items) {
+    var list = document.getElementById('notif-list');
+    if (!items.length) {
+      list.innerHTML = '<div class="museum-card rounded p-6 text-center text-sm" style="color:var(--muted-foreground)">No tienes notificaciones todavía.</div>';
+      updateUnread();
+      return;
+    }
+    list.innerHTML = items.map(function (n, i) {
+      var meta = TYPE_META[n.tipo] || TYPE_META.sistema;
+      return '<div class="museum-card rounded p-5 flex gap-4 transition-all duration-300"' +
+        ' data-nid="' + esc(n.id) + '" data-read="' + (n.leido ? 'true' : 'false') + '" data-type="' + esc(n.tipo) + '"' +
+        ' style="border-left:4px solid ' + meta.color + ';animation-delay:' + (i * 0.08) + 's">' +
+        '<div class="w-11 h-11 rounded-full flex items-center justify-center text-sm flex-shrink-0" style="background:' + meta.color + '12;color:' + meta.color + ';border:1.5px solid ' + meta.color + '30">' +
+        '<i class="' + meta.icon + '"></i></div>' +
+        '<div class="flex-1 min-w-0"><div class="flex items-start justify-between gap-2 flex-wrap">' +
+        '<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full flex-shrink-0 unread-dot" style="background:#d32f2f"></span>' +
+        '<h4 class="font-semibold text-sm" style="color:var(--card-foreground)">' + esc(meta.title) + '</h4></div>' +
+        '<span class="text-xs font-mono flex-shrink-0" style="color:var(--muted-foreground)">' + esc(formatTime(n.created_at)) + '</span></div>' +
+        '<p class="text-sm mt-1" style="color:var(--muted-foreground)">' + esc(n.mensaje) + '</p>' +
+        '<div class="flex items-center gap-2 mt-2 flex-wrap">' +
+        (n.tipo === 'devuelto' ? '<button type="button" class="text-xs btn-outline-primary px-3 py-1 rounded">Ver nota del revisor</button>' : '') +
+        '<button type="button" class="text-xs px-3 py-1 rounded notif-toggle" style="color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)">Marcar como leída</button>' +
+        '</div></div></div>';
+    }).join('');
+    bindCards();
+  }
+
+  bindCards();
+
+  if (isAuth()) {
+    Museo.apiJson('/api/notificaciones', 'GET', null, Museo.getToken())
+      .then(function (items) { renderNotifications(items || []); })
+      .catch(function (err) { toast(err.message || 'No fue posible cargar las notificaciones', 'err'); });
+  }
 
   document.getElementById('btn-marcar-todas').addEventListener('click', function () {
     document.querySelectorAll('#notif-list [data-nid]').forEach(function (c) {
@@ -131,16 +202,23 @@
       paintCard(c);
     });
     updateUnread();
-    toast('Todas las notificaciones marcadas como leídas');
+    if (isAuth()) {
+      Museo.apiJson('/api/notificaciones/leidas', 'PUT', {}, Museo.getToken())
+        .then(function () { toast('Todas las notificaciones marcadas como leídas'); })
+        .catch(function (err) { toast(err.message || 'No fue posible marcar las notificaciones', 'err'); });
+    } else {
+      toast('Todas las notificaciones marcadas como leídas');
+    }
   });
 
-  document.querySelectorAll('#notif-list .btn-outline-primary').forEach(function (b) {
-    b.addEventListener('click', function () { toast('Nota del revisor: revisa la pieza devuelta en "Mis Aportes".'); });
-  });
-
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(PREF_KEY) || '{}') || {}; } catch (e) { saved = {}; }
   var prefBox = document.getElementById('pref-box');
   prefBox.innerHTML = PREFERENCES.map(function (p) {
-    return UI.checkboxHtml({ checked: p.checked, name: p.name, label: p.label, value: p.name });
+    return UI.checkboxHtml({
+      checked: typeof saved[p.name] === 'boolean' ? saved[p.name] : p.checked,
+      name: p.name, label: p.label, value: p.name
+    });
   }).join('');
 
   prefBox.querySelectorAll('[data-checkbox]').forEach(function (box) {
@@ -149,8 +227,7 @@
       box.setAttribute('aria-checked', on ? 'false' : 'true');
       box.style.background = on ? 'rgba(255,255,255,0.04)' : 'var(--primary)';
       box.style.border = on ? '1px solid rgba(255,255,255,0.15)' : '1px solid var(--primary)';
-      var check = box.querySelector('span');
-      var label = box.parentNode.querySelector('span:last-child');
+      var check = box.querySelector('i');
       if (on) {
         if (check) check.remove();
       } else {
@@ -160,6 +237,11 @@
   });
 
   document.getElementById('btn-guardar-prefs').addEventListener('click', function () {
+    var prefs = {};
+    prefBox.querySelectorAll('[data-checkbox]').forEach(function (box) {
+      prefs[box.getAttribute('data-checkbox')] = box.getAttribute('aria-checked') === 'true';
+    });
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) { /* noop */ }
     toast('Preferencias de notificación guardadas');
   });
 })();

@@ -12,6 +12,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from sqlalchemy.exc import IntegrityError
+
 from app.extensions import db
 from app.models.contenido import Coleccion, Contenido, Etiqueta
 from app.models.cronologia import CronologiaHito, Evento
@@ -236,18 +238,23 @@ def seed_desde_demo() -> bool:
 
     datos = _cargar_json()
 
-    insignias = _sembrar_insignias(datos)
-    colecciones = _sembrar_colecciones(datos)
-    semilleros = _sembrar_semilleros(datos)
-    usuarios_id = _sembrar_usuarios(datos, insignias, semilleros)
-    _sembrar_cuentas_demo(datos)
-    _sembrar_noticias(datos)
-    contenidos_map = _sembrar_contenidos(datos, colecciones, usuarios_id)
-    _sembrar_cronologia(datos, contenidos_map)
-    _sembrar_eventos(datos)
-    _sembrar_hall(datos)
-    _sembrar_premios(datos)
-    _asignar_lideres(datos, semilleros, usuarios_id)
+    try:
+        insignias = _sembrar_insignias(datos)
+        colecciones = _sembrar_colecciones(datos)
+        semilleros = _sembrar_semilleros(datos)
+        usuarios_id = _sembrar_usuarios(datos, insignias, semilleros)
+        _sembrar_cuentas_demo(datos)
+        _sembrar_noticias(datos)
+        contenidos_map = _sembrar_contenidos(datos, colecciones, usuarios_id)
+        _sembrar_cronologia(datos, contenidos_map)
+        _sembrar_eventos(datos)
+        _sembrar_hall(datos)
+        _sembrar_premios(datos)
+        _asignar_lideres(datos, semilleros, usuarios_id)
 
-    db.session.commit()
+        db.session.commit()
+    except IntegrityError:
+        # Otro worker de gunicorn sembró primero (arranque concurrente).
+        db.session.rollback()
+        return False
     return True

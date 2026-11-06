@@ -11,11 +11,7 @@ from app.extensions import db
 if TYPE_CHECKING:
     from app.models.semillero import Semillero
     from app.models.notificacion import Notificacion
-    from app.models.interaccion import Comentario, Reaccion
-    from app.models.contenido import Favorito
     from app.models.insignia import UsuarioInsignia
-    from app.models.proyecto import ProyectoIntegrante
-    from app.models.premio import PremioParticipante
 
 
 class Usuario(db.Model):
@@ -48,16 +44,7 @@ class Usuario(db.Model):
         "Semillero", back_populates="miembros", foreign_keys=[semillero_id]
     )
     notificaciones: Mapped[list["Notificacion"]] = relationship("Notificacion", back_populates="usuario")
-    comentarios: Mapped[list["Comentario"]] = relationship("Comentario", back_populates="usuario")
-    reacciones: Mapped[list["Reaccion"]] = relationship("Reaccion", back_populates="usuario")
-    favoritos: Mapped[list["Favorito"]] = relationship("Favorito", back_populates="usuario")
     insignias: Mapped[list["UsuarioInsignia"]] = relationship("UsuarioInsignia", back_populates="usuario")
-    proyectos_como_integrante: Mapped[list["ProyectoIntegrante"]] = relationship(
-        "ProyectoIntegrante", back_populates="usuario"
-    )
-    premios_como_participante: Mapped[list["PremioParticipante"]] = relationship(
-        "PremioParticipante", back_populates="usuario"
-    )
 
     def to_dict(self) -> dict:
         return {

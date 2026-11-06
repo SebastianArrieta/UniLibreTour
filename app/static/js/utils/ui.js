@@ -175,6 +175,33 @@
             '<span class="text-sm" style="color:var(--secondary-foreground)">' + esc(cfg.label) + '</span></label>';
     }
 
+    function toast(msg, type) {
+        var colors = {
+            success: { bg: 'rgba(34, 197, 94, 0.95)', icon: 'fa-check' },
+            err:     { bg: 'rgba(239, 68, 68, 0.95)', icon: 'fa-triangle-exclamation' },
+            info:    { bg: 'rgba(211, 47, 47, 0.95)',  icon: 'fa-circle-info' }
+        };
+        var conf = colors[type] || (type === 'error' ? colors.err : colors.info);
+        var box = document.createElement('div');
+        box.className = 'fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-sans';
+        box.style.cssText = 'background:' + conf.bg + ';backdrop-filter:blur(8px);transition:all 0.3s cubic-bezier(0.16,1,0.3,1);transform:translateY(20px);opacity:0;max-width:90vw;z-index:9999;box-shadow:0 10px 25px -5px rgba(0,0,0,0.5);';
+        box.innerHTML = '<i class="fa-solid ' + conf.icon + ' text-base"></i><span>' + esc(msg) + '</span>';
+        document.body.appendChild(box);
+
+        requestAnimationFrame(function () {
+            box.style.opacity = '1';
+            box.style.transform = 'translateY(0)';
+        });
+
+        setTimeout(function () {
+            box.style.opacity = '0';
+            box.style.transform = 'translateY(10px)';
+            setTimeout(function () { box.remove(); }, 350);
+        }, 3200);
+    }
+
+    global.toast = toast;
+
     global.UI = {
         STATUS_CONFIG: STATUS_CONFIG,
         CATEGORY_LABELS: CATEGORY_LABELS,
@@ -190,6 +217,7 @@
         cardSkeleton: cardSkeleton,
         stepIndicator: stepIndicator,
         checkboxHtml: checkboxHtml,
+        toast: toast,
     };
 
 })(window);

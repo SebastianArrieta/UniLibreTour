@@ -1,28 +1,114 @@
-document.getElementById("userForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
+/* ============================================================================
+   UniLibreTour — Módulo de Gestión de Usuarios (usuarios.js)
+   Demostración de flujo asíncrono (async / await) y manejo de errores (try / catch).
+   
+   Flujo:
+   Botón Modal -> Formulario submit -> async/await fetch -> Blueprint /api/usuarios
+   -> Controller crear() -> UsuarioCreateSchema -> Modelo Usuario -> MySQL
+   ============================================================================ */
 
-    const formData = {
-        nombre: document.getElementById("nombre").value,
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value,
-        rol: document.getElementById("rol").value,
-    };
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("modal-nuevo-usuario");
+    const openBtn = document.getElementById("btn-open-modal");
+    const closeBtn = document.getElementById("btn-close-modal");
+    const cancelBtn = document.getElementById("btn-cancel-modal");
+    const form = document.getElementById("userForm");
+    const errorBox = document.getElementById("userform-error");
+    const submitBtn = document.getElementById("btn-submit-user");
 
-    try {
-        const res = await fetch("/api/usuarios", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        });
-
-        if (res.ok) {
-            window.location.reload();
-            return;
-        }
-
-        const err = await res.json();
-        alert("Error: " + (typeof err.error === "string" ? err.error : "No se pudo crear el usuario"));
-    } catch (error) {
-        alert("Error al conectar con el servidor: " + error.message);
+    function openModal() {
+        if (!modal) return;
+        modal.classList.remove("hidden");
+        if (errorBox) errorBox.classList.add("hidden");
+        document.getElementById("nombre")?.focus();
     }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.classList.add("hidden");
+        form?.reset();
+        if (errorBox) errorBox.classList.add("hidden");
+    }
+
+    if (openBtn) openBtn.addEventListener("click", openModal);
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+
+    // Cerrar al hacer clic en el backdrop oscuro
+    if (modal) {
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    if (!form) return;
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        // 1. Obtención de valores desde los inputs con document.getElementById().value
+        const formData = {
+            nombre: document.getElementById("nombre").value.trim(),
+            email: document.getElementById("email").value.trim().toLowerCase(),
+            password: document.getElementById("password").value,
+            rol: document.getElementById("rol").value,
+        };
+
+        if (errorBox) errorBox.classList.add("hidden");
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando...';
+
+        // 2. Manejador de errores try/catch para capturar excepciones
+        try {
+            // Petición HTTP POST asíncrona hacia el Blueprint 'usuarios'
+            const res = await fetch("/api/usuarios", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            // 3. Verificación de códigos de estado HTTP (200 / 201)
+            if (res.ok && data.ok !== false) {
+                closeModal();
+                if (window.UI && typeof UI.toast === "function") {
+                    UI.toast("¡Usuario creado y guardado en la base de datos!", "success");
+                }
+                // Recarga para reflejar el nuevo registro en la tabla
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+                return;
+            }
+
+            // Manejo de error de validación (Código 400 Bad Request)
+            let msg = data.error || "No se pudo registrar el usuario.";
+            if (typeof msg === "object") {
+                msg = Object.entries(msg).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" | ");
+            }
+
+            if (errorBox) {
+                errorBox.textContent = msg;
+                errorBox.classList.remove("hidden");
+            } else if (window.UI && typeof UI.toast === "function") {
+                UI.toast(msg, "err");
+            }
+        } catch (error) {
+            const netMsg = "Error al conectar con el servidor: " + error.message;
+            if (errorBox) {
+                errorBox.textContent = netMsg;
+                errorBox.classList.remove("hidden");
+            } else if (window.UI && typeof UI.toast === "function") {
+                UI.toast(netMsg, "err");
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
 });

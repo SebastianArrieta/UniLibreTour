@@ -1,7 +1,7 @@
 # Entorno local: Flask + MySQL
 services:
   db:
-    image: mysql:8.0
+    image: docker.io/library/mysql:8.0
     container_name: unilibretour-db
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
