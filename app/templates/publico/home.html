@@ -26,8 +26,6 @@
     <div class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div class="animate-fadeInUp">
-                <img src="{{ url_for('static', filename='images/logo-unilibre-escudo.svg') }}" alt="Escudo Universidad Libre" class="block w-auto mx-auto h-[58px] mb-6">
-
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-mono" style="background:rgba(211,47,47,0.1);border:1px solid rgba(211,47,47,0.25);color:#d32f2f">
                     ✦ 50 Años de Excelencia Académica · 1975–2025
                 </div>
@@ -285,7 +283,17 @@
     if (!groups.length) return;
     var active = groups[0].getAttribute('data-decade-content');
     var hovered = false;
-    function paint() {
+    function wiggle(btn) {
+        if (!btn) return;
+        btn.classList.remove('tl-wiggle');
+        void btn.offsetWidth; /* reflow para reiniciar la animación */
+        btn.classList.add('tl-wiggle');
+        btn.addEventListener('animationend', function handler() {
+            btn.classList.remove('tl-wiggle');
+            btn.removeEventListener('animationend', handler);
+        });
+    }
+    function paint(wiggleTarget) {
         groups.forEach(function (g) { g.classList.toggle('hidden', g.getAttribute('data-decade-content') !== active); });
         btns.forEach(function (b) {
             var on = b.getAttribute('data-decade') === active;
@@ -293,10 +301,11 @@
             b.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
             b.style.border = on ? '1px solid #d32f2f' : '1px solid rgba(211,47,47,0.25)';
             b.style.boxShadow = on ? '0 2px 10px rgba(211,47,47,0.35)' : 'none';
+            if (on && wiggleTarget) wiggle(b);
         });
     }
     btns.forEach(function (b) {
-        b.addEventListener('click', function () { active = b.getAttribute('data-decade'); paint(); });
+        b.addEventListener('click', function () { active = b.getAttribute('data-decade'); paint(true); });
     });
     tl.addEventListener('mouseenter', function () { hovered = true; });
     tl.addEventListener('mouseleave', function () { hovered = false; });
@@ -304,7 +313,7 @@
         if (hovered) return;
         var idx = groups.findIndex(function (g) { return g.getAttribute('data-decade-content') === active; });
         active = groups[(idx + 1) % groups.length].getAttribute('data-decade-content');
-        paint();
+        paint(true);
     }, 5000);
     paint();
 })();
