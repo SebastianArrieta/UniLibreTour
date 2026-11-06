@@ -9,7 +9,8 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from flask import Blueprint, abort, render_template
+from flask import Blueprint, abort, redirect, render_template, url_for
+from flask_jwt_extended import get_jwt
 
 from app.middleware.auth import web_role_required
 from app.services import museo
@@ -148,6 +149,15 @@ def registro():
 # -----------------------------------------------------------------------------
 # Panel Estudiante
 # -----------------------------------------------------------------------------
+@web_bp.get("/mi-espacio")
+@web_role_required()
+def mi_espacio():
+    """Enlace neutro al panel principal: cada rol va a su propio dashboard."""
+    claims = get_jwt()
+    destinos = {"egresado": "web.egresado", "docente": "web.docente", "admin": "web.admin"}
+    return redirect(url_for(destinos.get(claims.get("rol"), "web.estudiante")))
+
+
 @web_bp.get("/estudiante")
 @web_role_required("estudiante", "admin")
 def estudiante():
@@ -155,19 +165,19 @@ def estudiante():
 
 
 @web_bp.get("/estudiante/aportes")
-@web_role_required("estudiante", "admin")
+@web_role_required("estudiante", "egresado", "admin")
 def estudiante_aportes():
     return render_template("estudiante/aportes.html", **_ctx("est-aportes"))
 
 
 @web_bp.get("/estudiante/favoritos")
-@web_role_required("estudiante", "admin")
+@web_role_required("estudiante", "egresado", "admin")
 def estudiante_favoritos():
     return render_template("estudiante/favoritos.html", **_ctx("est-favoritos"))
 
 
 @web_bp.get("/estudiante/contribuir")
-@web_role_required("estudiante", "admin")
+@web_role_required("estudiante", "egresado", "admin")
 def estudiante_contribuir():
     return render_template("estudiante/contribuir.html", **_ctx("est-contribuir"))
 

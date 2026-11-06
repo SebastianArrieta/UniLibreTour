@@ -63,7 +63,7 @@
     {{ sidebar(links, active, 'Mi Espacio') }}
 {% else %}
     {% set links = [
-        {'page': 'est-dashboard', 'label': 'Mi Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.estudiante')},
+        {'page': 'est-dashboard', 'label': 'Mi Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.mi_espacio')},
         {'page': 'est-aportes', 'label': 'Mis Aportes', 'icon': 'fa-solid fa-folder-open', 'href': url_for('web.estudiante_aportes')},
         {'page': 'est-favoritos', 'label': 'Favoritos', 'icon': 'fa-regular fa-heart', 'href': url_for('web.estudiante_favoritos')},
         {'page': 'est-contribuir', 'label': 'Contribuir', 'icon': 'fa-solid fa-arrow-up-from-bracket', 'href': url_for('web.estudiante_contribuir')},
