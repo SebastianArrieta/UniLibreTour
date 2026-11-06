@@ -66,7 +66,7 @@
     position: absolute;
     inset: -7px;
     border-radius: 9999px;
-    border: 2px solid var(--h-color, var(--primary));
+    border: 2px solid var(--gold-border);
     opacity: 0;
     pointer-events: none;
 }
@@ -85,15 +85,15 @@
     height: 12px;
     border-radius: 9999px;
     z-index: 10;
-    background: var(--h-color, var(--primary));
-    box-shadow: 0 0 14px var(--h-color, var(--primary));
+    background: var(--gold);
+    box-shadow: 0 0 14px var(--gold-border);
     transition: transform 0.3s;
 }
 .ruta-node-ring {
     position: absolute;
     inset: 0;
     border-radius: 9999px;
-    border: 2px solid var(--h-border, var(--primary-border));
+    border: 2px solid var(--gold-border);
     background: var(--card);
 }
 
@@ -157,11 +157,11 @@
     transition: all 0.25s ease;
 }
 .decade-pill:hover, .decade-pill.active {
-    background: var(--primary-solid) !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 15px var(--shadow-color);
+    background: var(--gold) !important;
+    color: var(--background) !important;
+    box-shadow: 0 4px 15px var(--gold-border);
     transform: translateY(-2px);
-    border-color: var(--primary) !important;
+    border-color: var(--gold) !important;
 }
 
 /* Responsive rows — fix para override de .hidden global */
@@ -171,6 +171,32 @@
 .ruta-row-desktop {
     display: none;
 }
+
+/* Columnas simétricas de la ruta (desktop) */
+.ruta-col-desktop {
+    width: 50%;
+    display: flex;
+    position: relative;
+}
+.ruta-col-left { justify-content: flex-end; padding-right: 56px; }
+.ruta-col-right { justify-content: flex-start; padding-left: 56px; }
+
+/* Las filas quedan por encima del trazo SVG */
+.ruta-row-mobile,
+.ruta-row-desktop { z-index: 1; }
+
+/* Móvil: nodo centrado sobre la tarjeta para un eje simétrico */
+.ruta-row-mobile {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.5rem 0.5rem;
+}
+.ruta-row-mobile .ruta-card-wrap {
+    width: 100%;
+    max-width: 440px;
+}
+
 @media (min-width: 1024px) {
     .ruta-row-mobile {
         display: none;
@@ -229,7 +255,7 @@
 
     <section class="relative min-h-[60vh] flex items-center justify-center overflow-hidden px-4">
         <div class="absolute inset-0"
-             style="background-image:linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);background-size:80px 80px"></div>
+             style="background-image:linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 65% at 50% 35%, #000 25%, rgba(0,0,0,0.5) 60%, transparent 95%);-webkit-mask-image:radial-gradient(ellipse 70% 65% at 50% 35%, #000 25%, rgba(0,0,0,0.5) 60%, transparent 95%)"></div>
         <div class="absolute inset-0"
              style="background:radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%)"></div>
         <div class="relative z-10 text-center max-w-3xl animate-fadeInUp py-16">
@@ -271,7 +297,7 @@
     <div id="ruta-camino" class="relative mx-auto max-w-5xl pb-24 pt-4">
 
         <!-- SVG de la Onda Central Dinámica (Wave Path) -->
-        <svg id="ruta-svg-canvas" class="absolute top-0 bottom-0 left-0 w-full h-full pointer-events-none" style="z-index:1;overflow:visible">
+        <svg id="ruta-svg-canvas" class="absolute top-0 bottom-0 left-0 w-full h-full pointer-events-none" style="z-index:0;overflow:visible">
             <defs>
                 <linearGradient id="ruta-wave-grad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.95"/>
@@ -289,8 +315,8 @@
             <!-- Línea de fondo punteada en onda sinusoidal -->
             <path id="ruta-wave-track" d="" stroke="var(--border-strong)" stroke-width="2.5" stroke-dasharray="8 8" fill="none" />
             <!-- Línea de onda activa iluminada -->
-            <path id="ruta-wave-glow" d="" stroke="var(--primary)" stroke-width="6" stroke-opacity="0.3" fill="none" filter="url(#ruta-glow-fx)" stroke-linecap="round" />
-            <path id="ruta-wave-fill" d="" stroke="url(#ruta-wave-grad)" stroke-width="3" fill="none" stroke-linecap="round" />
+            <path id="ruta-wave-glow" d="" stroke="var(--primary)" stroke-width="14" stroke-opacity="0.28" fill="none" filter="url(#ruta-glow-fx)" stroke-linecap="round" stroke-linejoin="round" />
+            <path id="ruta-wave-fill" d="" stroke="url(#ruta-wave-grad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round" />
             <!-- Orbe de luz viajero -->
             <circle id="ruta-wave-head" r="6" fill="#ffffff" stroke="var(--primary)" stroke-width="2.5" filter="url(#ruta-glow-fx)" style="opacity:0;transition:opacity .3s ease" />
         </svg>
@@ -301,9 +327,9 @@
         {% set label = type_labels.get(ev.type, 'Hito') %}
         {% set href = url_for('web.detalle', cid=ev.itemId) if ev.itemId else url_for('web.explorar') %}
 
-        <!-- Vista Móvil (< lg) -->
+        <!-- Vista Móvil (< lg): nodo centrado + tarjeta centrada -->
         <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
-             class="relative ruta-row-mobile ruta-type-{{ ev.type }} items-center gap-4 py-6 pl-3 pr-4">
+             class="relative ruta-row-mobile ruta-type-{{ ev.type }}">
             <div data-row-node class="ruta-node-box relative z-10 shrink-0 flex items-center justify-center" style="width:42px;height:42px">
                 <div class="node-pulse-halo"></div>
                 <div class="ruta-node-ring"></div>
@@ -318,7 +344,7 @@
              style="min-height:34vh">
 
             <!-- Lado Izquierdo (50%) -->
-            <div class="w-1/2 flex justify-end pr-14 relative">
+            <div class="ruta-col-desktop ruta-col-left">
                 {% if left %}
                     {{ event_card(ev, label, href, 'ruta-card-left') }}
                     <!-- Conector horizontal hacia el centro -->
@@ -336,7 +362,7 @@
             </div>
 
             <!-- Lado Derecho (50%) -->
-            <div class="w-1/2 flex justify-start pl-14 relative">
+            <div class="ruta-col-desktop ruta-col-right">
                 {% if not left %}
                     <!-- Conector horizontal hacia el centro -->
                     <div class="ruta-connector-right"></div>
@@ -370,11 +396,10 @@
         <span id="ruta-rail-year" class="font-mono text-xs font-bold tracking-widest mb-1"
               style="writing-mode:vertical-rl;color:var(--primary)"></span>
         {% for ev in timeline %}
-        {% set color = type_colors.get(ev.type, 'var(--primary)') %}
-        <span data-rail-index="{{ loop.index0 }}" data-color="{{ color }}"
+        <span data-rail-index="{{ loop.index0 }}" data-color="var(--gold)"
               title="{{ ev.year }} · {{ ev.title }}"
               class="rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"
-              style="width:6px;height:6px;background:var(--primary-border)"></span>
+              style="width:6px;height:6px;background:var(--gold-border)"></span>
         {% endfor %}
     </div>
 </div>
@@ -418,7 +443,7 @@
     });
 
     /* -------------------------------------------------------------
-       1. Trazado de la Onda Central en SVG (Wave Path)
+       1. Trazado serpenteante (cordón orgánico institucional)
        ------------------------------------------------------------- */
     var svg = document.getElementById('ruta-svg-canvas');
     var track = document.getElementById('ruta-wave-track');
@@ -426,6 +451,8 @@
     var fill = document.getElementById('ruta-wave-fill');
     var head = document.getElementById('ruta-wave-head');
     var totalLen = 0;
+
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function drawWave() {
         if (!svg || !track || !fill) return;
@@ -462,31 +489,37 @@
         }
 
         pts.push({ x: centerX, y: 0 });
+        var prevY = 0;
 
         visibleRows.forEach(function (r, i) {
             var rowRect = r.getBoundingClientRect();
-            var y = (rowRect.top - caminoRect.top) + (rowRect.height / 2);
-
+            var y;
             if (desktop) {
-                // Amplitud suave (oscila en el canal central sin tocar las tarjetas)
-                var amplitude = 32;
-                var waveSign = (i % 2 === 0 ? -1 : 1);
-
-                if (i > 0) {
-                    var prevY = pts[pts.length - 1].y;
-                    var midY = (prevY + y) / 2;
-                    var crestX = centerX + (waveSign * amplitude);
-                    pts.push({ x: crestX, y: midY });
-                }
+                y = (rowRect.top - caminoRect.top) + (rowRect.height / 2);
             } else {
-                var mWave = (i % 2 === 0 ? -3 : 3);
-                if (i > 0) {
-                    var mPrevY = pts[pts.length - 1].y;
-                    pts.push({ x: centerX + mWave, y: (mPrevY + y) / 2 });
+                // En móvil el nodo va arriba de la tarjeta: la onda debe pasar por el nodo.
+                var nodo = r.querySelector('[data-row-node]');
+                var nodoRect = nodo ? nodo.getBoundingClientRect() : rowRect;
+                y = (nodoRect.top - caminoRect.top) + (nodoRect.height / 2);
+            }
+            var gap = y - prevY;
+
+            if (i > 0) {
+                if (desktop) {
+                    // Serpiente: se asoma hacia el lado de la tarjeta actual.
+                    var dir = (i % 2 === 0) ? -1 : 1;
+                    var amp = 30 + Math.min(10, i); // amplitud progresiva 30 → 40 px
+                    pts.push({ x: centerX - dir * amp, y: prevY + gap * 0.28 });
+                    pts.push({ x: centerX + dir * amp * 0.86, y: prevY + gap * 0.62 });
+                    pts.push({ x: centerX + dir * amp * 0.32, y: prevY + gap * 0.86 });
+                } else {
+                    var mAmp = 8;
+                    pts.push({ x: centerX + (i % 2 ? mAmp : -mAmp), y: prevY + gap * 0.5 });
                 }
             }
 
             pts.push({ x: centerX, y: y });
+            prevY = y;
         });
 
         pts.push({ x: centerX, y: H });
@@ -509,6 +542,9 @@
         track.setAttribute('d', d);
         fill.setAttribute('d', d);
         if (glow) glow.setAttribute('d', d);
+
+        fill.setAttribute('stroke-width', desktop ? '10' : '7');
+        if (glow) glow.setAttribute('stroke-width', desktop ? '14' : '10');
 
         totalLen = fill.getTotalLength();
         fill.style.strokeDasharray = totalLen;
@@ -564,9 +600,9 @@
 
         railDots.forEach(function (rd, k) {
             var on = k === i;
-            var color = rd.getAttribute('data-color') || 'var(--primary)';
+            var color = rd.getAttribute('data-color') || 'var(--gold)';
             rd.style.transform = on ? 'scale(1.7)' : 'scale(1)';
-            rd.style.background = on ? color : 'var(--border-strong)';
+            rd.style.background = on ? color : 'var(--gold-border)';
             rd.style.boxShadow = on ? '0 0 10px ' + color : 'none';
         });
 
@@ -591,6 +627,7 @@
 
         var scrollRelative = (vh * 0.5) - caminoTop;
         var progress = Math.max(0, Math.min(1, scrollRelative / caminoHeight));
+        if (reduceMotion) progress = 1;
 
         var drawLength = totalLen * progress;
         fill.style.strokeDashoffset = totalLen - drawLength;
@@ -634,13 +671,15 @@
     }
 
     var raf = 0;
+    var resizeTimer = 0;
     function scheduleProgress() {
         if (!raf) raf = requestAnimationFrame(function () { raf = 0; updateProgress(); });
     }
 
     window.addEventListener('scroll', scheduleProgress, { passive: true });
     window.addEventListener('resize', function () {
-        drawWave();
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(drawWave, 150);
     });
 
     decadeButtons.forEach(function (btn) {
