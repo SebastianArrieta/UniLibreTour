@@ -59,51 +59,26 @@
         visitante: '/',
     };
 
+    /* Mismo estilo (rojo) para todos los roles; solo cambian etiqueta, ruta e icono. */
+    var DASH_STYLE = {
+        color: '#d32f2f',
+        bg: 'rgba(211,47,47,0.12)',
+        border: 'rgba(211,47,47,0.3)',
+        activeBg: 'rgba(211,47,47,0.22)',
+        activeBorder: '#d32f2f',
+    };
+    function dashEntry(label, href, icon) {
+        return {
+            label: label, href: href, icon: icon,
+            color: DASH_STYLE.color, bg: DASH_STYLE.bg, border: DASH_STYLE.border,
+            activeBg: DASH_STYLE.activeBg, activeBorder: DASH_STYLE.activeBorder,
+        };
+    }
     var ROLE_DASH = {
-        admin: {
-            label: 'Panel Admin',
-            href: '/admin',
-            icon: 'fa-solid fa-gauge-high',
-            badge: 'ADMIN',
-            color: '#d32f2f',
-            bg: 'rgba(211,47,47,0.12)',
-            border: 'rgba(211,47,47,0.3)',
-            activeBg: 'rgba(211,47,47,0.22)',
-            activeBorder: '#d32f2f',
-        },
-        docente: {
-            label: 'Mi Espacio Docente',
-            href: '/docente',
-            icon: 'fa-solid fa-chalkboard-user',
-            badge: 'DOCENTE',
-            color: '#3b82f6',
-            bg: 'rgba(59,130,246,0.12)',
-            border: 'rgba(59,130,246,0.3)',
-            activeBg: 'rgba(59,130,246,0.22)',
-            activeBorder: '#3b82f6',
-        },
-        estudiante: {
-            label: 'Mi Espacio',
-            href: '/estudiante',
-            icon: 'fa-solid fa-graduation-cap',
-            badge: 'ESTUDIANTE',
-            color: '#a855f7',
-            bg: 'rgba(168,85,247,0.12)',
-            border: 'rgba(168,85,247,0.3)',
-            activeBg: 'rgba(168,85,247,0.22)',
-            activeBorder: '#a855f7',
-        },
-        egresado: {
-            label: 'Mi Espacio',
-            href: '/egresado',
-            icon: 'fa-solid fa-user-tie',
-            badge: 'EGRESADO',
-            color: '#22c55e',
-            bg: 'rgba(34,197,94,0.12)',
-            border: 'rgba(34,197,94,0.3)',
-            activeBg: 'rgba(34,197,94,0.22)',
-            activeBorder: '#22c55e',
-        },
+        admin: dashEntry('Panel Admin', '/admin', 'fa-solid fa-gauge-high'),
+        docente: dashEntry('Mi Espacio Docente', '/docente', 'fa-solid fa-chalkboard-user'),
+        estudiante: dashEntry('Mi Espacio', '/estudiante', 'fa-solid fa-graduation-cap'),
+        egresado: dashEntry('Mi Espacio', '/egresado', 'fa-solid fa-user-tie'),
     };
 
     var USER_EMAIL = {
@@ -422,12 +397,11 @@
 
         getUser().then(function (me) {
             var label = (me && me.name) || role;
-            var dash = ROLE_DASH[role] || { color: '#d32f2f' };
             area.innerHTML =
                 '<a href="/perfil" class="hidden sm:flex items-center gap-2 text-xs px-2.5 py-1 rounded-full font-mono transition-colors museo-profile-pill" ' +
                 'style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)" title="Ver mi perfil">' +
                 '<i class="fa-solid fa-user-circle text-xs"></i><span class="truncate max-w-[120px]">' + esc(label) + '</span>' +
-                '<span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded" style="background:' + dash.color + '22;color:' + dash.color + '">' + esc(dash.badge || role) + '</span></a>' +
+                '</a>' +
                 logoutBtnHtml;
         }).catch(function () {
             area.innerHTML = logoutBtnHtml;

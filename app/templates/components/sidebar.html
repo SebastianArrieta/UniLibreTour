@@ -13,7 +13,7 @@
             {% for l in sb_links %}
             {% set active = (l.page == sb_active) %}
             <a href="{{ l.href }}" class="sb-item {{ 'sb-active' if active }}"
-               style="color:{{ 'var(--primary-foreground)' if active else 'var(--secondary-foreground)' }}; animation-delay: {{ loop.index0 * 60 }}ms"
+               style="color:{{ 'var(--primary-foreground)' if active else 'var(--secondary-foreground)' }}"
                {% if active %}aria-current="page"{% endif %}>
                 <span class="sb-chip {{ 'sb-chip-on' if active }}">{% if 'fa-' in l.icon %}<i class="{{ l.icon }} text-xs" aria-hidden="true"></i>{% else %}{{ l.icon }}{% endif %}</span>
                 <span class="flex-1 leading-tight">{{ l.label }}</span>
@@ -57,7 +57,6 @@
 {% elif area == 'docente' %}
     {% set links = [
         {'page': 'doc-dashboard', 'label': 'Mi Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.docente')},
-        {'page': 'ranking', 'label': 'Progreso', 'icon': 'fa-solid fa-trophy', 'href': url_for('web.ranking')},
         {'page': 'doc-wizard', 'label': 'Registrar Evidencia', 'icon': 'fa-solid fa-file-signature', 'href': url_for('web.docente_evidencia')},
         {'page': 'doc-notificaciones', 'label': 'Notificaciones', 'icon': 'fa-solid fa-bell', 'href': url_for('web.docente_notificaciones')},
     ] %}
@@ -66,7 +65,6 @@
     {% set links = [
         {'page': 'est-dashboard', 'label': 'Mi Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.estudiante')},
         {'page': 'est-aportes', 'label': 'Mis Aportes', 'icon': 'fa-solid fa-folder-open', 'href': url_for('web.estudiante_aportes')},
-        {'page': 'ranking', 'label': 'Progreso', 'icon': 'fa-solid fa-trophy', 'href': url_for('web.ranking')},
         {'page': 'est-favoritos', 'label': 'Favoritos', 'icon': 'fa-regular fa-heart', 'href': url_for('web.estudiante_favoritos')},
         {'page': 'est-contribuir', 'label': 'Contribuir', 'icon': 'fa-solid fa-arrow-up-from-bracket', 'href': url_for('web.estudiante_contribuir')},
     ] %}

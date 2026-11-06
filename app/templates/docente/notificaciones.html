@@ -13,8 +13,6 @@
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
 @media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-.notif-card { animation: fadeInUp 0.4s ease-out both; }
 </style>
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
@@ -119,7 +117,6 @@
 
   function bindCards() {
     document.querySelectorAll('#notif-list [data-nid]').forEach(function (card) {
-      card.style.animationName = 'fadeInUp';
       paintCard(card);
       var toggle = card.querySelector('.notif-toggle');
       if (toggle) toggle.addEventListener('click', function () {

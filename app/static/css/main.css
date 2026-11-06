@@ -1204,7 +1204,6 @@ label {
 }
 
 .sb-item {
-    animation: sbIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
     position: relative;
     z-index: 10;
     width: 100%;
@@ -1301,15 +1300,9 @@ label {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
 }
-.animate-fadeInUp { animation: fadeInUp 0.5s ease forwards; }
-.fade-up-delayed {
-    animation: fadeInUp 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
-}
-
-@keyframes sbIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
+/* Sin animación de entrada: el contenido aparece de inmediato */
+.animate-fadeInUp,
+.fade-up-delayed { animation: none; }
 
 @keyframes emptyFloat {
     0%, 100% { transform: translateY(0); }

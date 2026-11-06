@@ -46,7 +46,7 @@
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ url_for('web.explorar') }}" class="btn-outline-primary btn-float px-5 py-2.5 rounded text-sm">Explorar Colecciones</a>
                     <a href="{{ url_for('web.hall_fama') }}" class="btn-outline-primary px-5 py-2.5 rounded text-sm">Hall de la Fama</a>
-                    <a href="{{ url_for('web.login') }}" class="px-5 py-2.5 rounded text-sm font-medium transition-colors" style="background:rgba(255,255,255,0.06);color:var(--card-foreground);border:1px solid rgba(255,255,255,0.1)">¿Eres parte del programa? →</a>
+                    <a id="hero-cta-programa" href="{{ url_for('web.login') }}" class="px-5 py-2.5 rounded text-sm font-medium transition-colors" style="background:rgba(255,255,255,0.06);color:var(--card-foreground);border:1px solid rgba(255,255,255,0.1)">¿Eres parte del programa? →</a>
                 </div>
             </div>
 
@@ -243,6 +243,17 @@
 
 {% block extra_js %}
 <script>
+/* Con sesión iniciada, "¿Eres parte del programa?" lleva al espacio del rol, no al login. */
+(function () {
+    var cta = document.getElementById('hero-cta-programa');
+    if (!cta || !window.Museo || !Museo.isAuthRole(Museo.role)) return;
+    cta.textContent = 'Ir a mi espacio →';
+    cta.addEventListener('click', function (e) {
+        e.preventDefault();
+        Museo.redirectForRole(Museo.role);
+    });
+})();
+
 (function () {
     var wrap = document.getElementById('news-carousel');
     if (!wrap) return;
