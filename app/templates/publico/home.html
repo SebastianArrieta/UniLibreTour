@@ -2,7 +2,7 @@
 {% from 'components/macros.html' import section_header %}
 {% block title %}UniLibreTour — Herencia Digital{% endblock %}
 {% block content %}
-{% set type_colors = {'fundacion': '#d32f2f', 'logro': '#22c55e', 'evento': '#3b82f6', 'investigacion': '#a855f7'} %}
+{% set type_colors = {'fundacion': 'var(--primary)', 'logro': 'var(--gold)', 'evento': 'var(--brown)', 'investigacion': 'var(--secondary-foreground)'} %}
 {% set meses = {'01':'ene', '02':'feb', '03':'mar', '04':'abr', '05':'may', '06':'jun', '07':'jul', '08':'ago', '09':'sep', '10':'oct', '11':'nov', '12':'dic'} %}
 {% set tl_ns = namespace(groups={}) %}
 {% for ev in timeline %}
@@ -21,12 +21,12 @@
         <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=1400&h=900&fit=crop&auto=format" alt="Campus universitario" class="w-full h-full object-cover opacity-20">
         <div class="hero-overlay absolute inset-0"></div>
     </div>
-    <div class="absolute inset-0 z-0" style="opacity:0.03;background-image:linear-gradient(rgba(211,47,47,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(211,47,47,0.5) 1px, transparent 1px);background-size:80px 80px"></div>
+    <div class="absolute inset-0 z-0" style="opacity:0.03;background-image:linear-gradient(var(--brown) 1px, transparent 1px), linear-gradient(90deg, var(--brown) 1px, transparent 1px);background-size:80px 80px"></div>
 
     <div class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div class="animate-fadeInUp">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-mono" style="background:rgba(211,47,47,0.1);border:1px solid rgba(211,47,47,0.25);color:#d32f2f">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-mono" style="background:var(--gold-soft);border:1px solid var(--gold-border);color:var(--gold)">
                     ✦ 50 Años de Excelencia Académica · 1975–2025
                 </div>
 
@@ -46,36 +46,36 @@
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ url_for('web.explorar') }}" class="btn-outline-primary btn-float px-5 py-2.5 rounded text-sm">Explorar Colecciones</a>
                     <a href="{{ url_for('web.hall_fama') }}" class="btn-outline-primary px-5 py-2.5 rounded text-sm">Hall de la Fama</a>
-                    <a id="hero-cta-programa" href="{{ url_for('web.login') }}" class="px-5 py-2.5 rounded text-sm font-medium transition-colors" style="background:rgba(255,255,255,0.06);color:var(--card-foreground);border:1px solid rgba(255,255,255,0.1)">¿Eres parte del programa? →</a>
+                    <a id="hero-cta-programa" href="{{ url_for('web.login') }}" class="px-5 py-2.5 rounded text-sm font-medium transition-colors" style="background:var(--surface-2);color:var(--card-foreground);border:1px solid var(--border)">¿Eres parte del programa? →</a>
                 </div>
             </div>
 
             <div id="hero-timeline" class="hidden lg:block">
                 <div class="mb-4">
-                    <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Cronología</div>
+                    <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Cronología</div>
                     <div class="text-sm font-serif font-semibold" style="color:var(--foreground)">Medio siglo de hitos</div>
                 </div>
 
                 <div class="flex flex-wrap gap-1.5 mb-4">
                     {% for dec in decades %}
-                    <button type="button" data-decade="{{ dec }}" class="px-3 py-1 rounded-full text-xs font-mono font-bold transition-all" style="{% if loop.first %}background:#d32f2f;color:#ffffff;box-shadow:0 2px 10px rgba(211,47,47,0.35);border:1px solid #d32f2f{% else %}background:transparent;color:var(--secondary-foreground);border:1px solid rgba(211,47,47,0.25){% endif %}">{{ "'" }}{{ (dec | string)[-2:] }}0s</button>
+                    <button type="button" data-decade="{{ dec }}" class="px-3 py-1 rounded-full text-xs font-mono font-bold transition-all" style="{% if loop.first %}background:var(--primary-solid);color:#ffffff;box-shadow:0 2px 10px var(--shadow-color);border:1px solid var(--primary){% else %}background:transparent;color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">{{ "'" }}{{ (dec | string)[-2:] }}0s</button>
                     {% endfor %}
                 </div>
 
                 <div class="relative pl-6" style="min-height:220px">
-                    <div class="absolute left-0 top-1 bottom-1 rounded-full" style="width:3px;background:linear-gradient(to bottom, #d32f2f, rgba(211,47,47,0.05))"></div>
+                    <div class="absolute left-0 top-1 bottom-1 rounded-full" style="width:3px;background:linear-gradient(to bottom, var(--brown), transparent)"></div>
                     {% for dec in decades %}
                     {% set group = tl_ns.groups[dec] %}
                     {% set main = group[0] %}
                     <div data-decade-content="{{ dec }}" class="{{ 'hidden' if not loop.first }}">
                         <a href="{{ url_for('web.explorar') }}" class="block w-full text-left group">
                             <span class="font-serif text-[64px] font-black leading-none text-primary-gradient block transition-transform duration-300 group-hover:translate-x-1">{{ main.year }}</span>
-                            <span class="inline-block text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider mt-2.5" style="background:{{ type_colors[main.type] }}14;color:{{ type_colors[main.type] }};border:1px solid {{ type_colors[main.type] }}30">{{ main.type | capitalize }}</span>
+                            <span class="inline-block text-[10px] px-1.5 py-0.5 rounded font-mono uppercase tracking-wider mt-2.5" style="background:color-mix(in srgb, {{ type_colors[main.type] }} 10%, transparent);color:{{ type_colors[main.type] }};border:1px solid color-mix(in srgb, {{ type_colors[main.type] }} 30%, transparent)">{{ main.type | capitalize }}</span>
                             <div class="font-serif text-lg font-bold mt-2 leading-snug transition-colors" style="color:var(--foreground)">{{ main.title }}</div>
                             <p class="text-sm leading-relaxed mt-1.5 max-w-md" style="color:var(--muted-foreground)">{{ main.description }}</p>
                         </a>
                         {% if group | length > 1 %}
-                        <div class="mt-5 pt-4" style="border-top:1px solid rgba(211,47,47,0.12)">
+                        <div class="mt-5 pt-4" style="border-top:1px solid var(--border)">
                             <div class="text-[10px] font-mono uppercase tracking-widest mb-2" style="color:var(--muted-foreground)">También en esta década</div>
                             <div class="flex flex-col gap-2">
                                 {% for ev in group[1:] %}
@@ -100,12 +100,12 @@
 <section class="max-w-7xl mx-auto px-4 md:px-8 pt-16">
     <div class="flex items-end justify-between mb-4 flex-wrap gap-3">
         <div>
-            <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Mantente informado</div>
+            <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Mantente informado</div>
             <h2 class="font-serif text-2xl md:text-3xl font-bold" style="color:var(--foreground)">Noticias</h2>
         </div>
         <div class="flex gap-2">
-            <button type="button" id="news-prev" aria-label="Noticia anterior" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:-translate-x-0.5" style="border:1px solid var(--border);color:#d32f2f;background:var(--card)">‹</button>
-            <button type="button" id="news-next" aria-label="Noticia siguiente" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:translate-x-0.5" style="border:1px solid var(--border);color:#d32f2f;background:var(--card)">›</button>
+            <button type="button" id="news-prev" aria-label="Noticia anterior" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:-translate-x-0.5" style="border:1px solid var(--border-strong);color:var(--foreground);background:var(--card)">‹</button>
+            <button type="button" id="news-next" aria-label="Noticia siguiente" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:translate-x-0.5" style="border:1px solid var(--border-strong);color:var(--foreground);background:var(--card)">›</button>
         </div>
     </div>
 
@@ -116,7 +116,7 @@
             <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.15) 100%)"></div>
             <div class="absolute bottom-0 left-0 right-0 p-6 md:p-10 max-w-3xl">
                 <div class="flex items-center gap-3 mb-3 flex-wrap">
-                    <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ n.category }}</span>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:#ffffff">{{ n.category }}</span>
                     <span class="text-xs font-mono" style="color:rgba(255,255,255,0.6)">{{ n.date | fmt_fecha }}</span>
                 </div>
                 <h3 class="font-serif text-xl md:text-3xl font-bold leading-snug mb-2" style="color:#ffffff">{{ n.title }}</h3>
@@ -128,7 +128,7 @@
 
     <div class="flex items-center justify-center gap-2 mt-4">
         {% for n in news %}
-        <button type="button" data-dot="{{ loop.index0 }}" aria-label="Ir a la noticia {{ loop.index }}" class="news-dot h-1.5 rounded-full transition-all duration-300" style="width:{{ 24 if loop.first else 8 }}px;background:{{ '#d32f2f' if loop.first else 'var(--border)' }}"></button>
+        <button type="button" data-dot="{{ loop.index0 }}" aria-label="Ir a la noticia {{ loop.index }}" class="news-dot h-1.5 rounded-full transition-all duration-300" style="width:{{ 24 if loop.first else 8 }}px;background:{{ 'var(--primary-solid)' if loop.first else 'var(--border)' }}"></button>
         {% endfor %}
     </div>
 </section>
@@ -138,13 +138,13 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for col in collections %}
         <a href="{{ url_for('web.explorar') }}" class="museum-card rounded overflow-hidden text-left group block">
-            <div class="relative h-40 overflow-hidden" style="background:#111827">
+            <div class="relative h-40 overflow-hidden" style="background:var(--muted)">
                 <img src="{{ col.image }}" alt="{{ col.title }}" class="w-full h-full object-cover opacity-70 transition-all duration-500 group-hover:opacity-90 group-hover:scale-105">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)"></div>
-                <span class="absolute bottom-3 left-3 w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(0,0,0,0.65);border:1px solid rgba(211,47,47,0.4);color:#ffffff">
+                <span class="absolute bottom-3 left-3 w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(0,0,0,0.65);border:1px solid var(--primary-border);color:#ffffff">
                     {% if 'fa-' in col.icon %}<i class="{{ col.icon }}"></i>{% else %}{{ col.icon }}{% endif %}
                 </span>
-                <span class="absolute top-3 right-3 text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.6);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">{{ col.count }} piezas</span>
+                <span class="absolute top-3 right-3 text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.6);color:rgba(255,255,255,0.9);border:1px solid rgba(255,255,255,0.15)">{{ col.count }} piezas</span>
             </div>
             <div class="p-4">
                 <h3 class="font-serif font-semibold text-base mb-1" style="color:var(--card-foreground)">{{ col.title }}</h3>
@@ -162,12 +162,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         {% for ach in achievements[:3] %}
         <div class="museum-card rounded overflow-hidden flex flex-col group">
-            <div class="h-32 relative" style="background:#111827">
+            <div class="h-32 relative" style="background:var(--muted)">
                 <img src="{{ ach.image }}" alt="{{ ach.title }}" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
-                <div class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs" style="background:rgba(0,0,0,0.6);border:1px solid rgba(211,47,47,0.3);color:#fbbf24"><i class="fa-solid fa-trophy"></i></div>
+                <div class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs" style="background:rgba(0,0,0,0.6);border:1px solid var(--border);color:var(--medal-gold)"><i class="fa-solid fa-trophy"></i></div>
             </div>
             <div class="p-4 flex-1 flex flex-col">
-                <div class="text-xs font-mono mb-1" style="color:#d32f2f">{{ ach.year }} · {{ ach.institution }}</div>
+                <div class="text-xs font-mono mb-1" style="color:var(--gold)">{{ ach.year }} · {{ ach.institution }}</div>
                 <h4 class="font-serif font-semibold text-sm mb-2" style="color:var(--card-foreground)">{{ ach.title }}</h4>
                 <p class="text-xs line-clamp-2 mt-auto" style="color:var(--muted-foreground)">{{ ach.description }}</p>
             </div>
@@ -183,19 +183,19 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
             <div class="flex items-center gap-2 mb-4">
-                <div class="text-xs font-mono uppercase tracking-widest" style="color:#d32f2f">Grupos y Semilleros</div>
+                <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--brown)">Grupos y Semilleros</div>
             </div>
             <div class="flex flex-col">
                 {% for g in researchGroups %}
-                <div class="flex items-center gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid rgba(255,255,255,0.05){% endif %}">
-                    <div class="w-8 h-8 rounded flex items-center justify-center text-sm flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f">
+                <div class="flex items-center gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid var(--border-subtle){% endif %}">
+                    <div class="w-8 h-8 rounded flex items-center justify-center text-sm flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)">
                         {% if g.category == 'semillero' %}<i class="fa-solid fa-microscope text-xs"></i>{% else %}<i class="fa-solid fa-flask text-xs"></i>{% endif %}
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-serif font-semibold group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ g.name }}</div>
                         <div class="text-xs" style="color:var(--muted-foreground)">{{ g.lead }}</div>
                     </div>
-                    <div class="text-xs font-mono px-2 py-0.5 rounded flex-shrink-0" style="background:rgba(255,255,255,0.04);color:var(--muted-foreground)">{{ g.members }} miembros</div>
+                    <div class="text-xs font-mono px-2 py-0.5 rounded flex-shrink-0" style="background:var(--surface-1);color:var(--muted-foreground)">{{ g.members }} miembros</div>
                 </div>
                 {% endfor %}
             </div>
@@ -204,13 +204,13 @@
 
         <div>
             <div class="flex items-center gap-2 mb-4">
-                <div class="text-xs font-mono uppercase tracking-widest" style="color:#d32f2f">Agenda</div>
+                <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--brown)">Agenda</div>
             </div>
             <div class="flex flex-col">
                 {% for ev in eventos_home[:3] %}
-                <div class="flex gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid rgba(255,255,255,0.05){% endif %}">
-                    <div class="w-10 flex-shrink-0 text-center rounded p-1" style="background:rgba(211,47,47,0.08);border:1px solid rgba(211,47,47,0.15)">
-                        <div class="text-xs font-mono font-bold leading-none" style="color:#d32f2f">{{ ev.date[8:10] }}</div>
+                <div class="flex gap-3 py-3 group" style="{% if not loop.last %}border-bottom:1px solid var(--border-subtle){% endif %}">
+                    <div class="w-10 flex-shrink-0 text-center rounded p-1" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
+                        <div class="text-xs font-mono font-bold leading-none" style="color:var(--brown)">{{ ev.date[8:10] }}</div>
                         <div class="text-[10px] leading-none mt-0.5" style="color:var(--muted-foreground)">{{ meses.get(ev.date[5:7], ev.date[5:7]) }}</div>
                     </div>
                     <a href="{{ url_for('web.detalle', cid=ev.id) }}" class="flex-1 min-w-0 block">
@@ -232,7 +232,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {% for s in [{'label': 'Piezas en el Archivo', 'value': '1.353'}, {'label': 'Años de Historia', 'value': '50'}, {'label': 'Egresados Destacados', 'value': '2.400+'}, {'label': 'Proyectos Laureados', 'value': '84'}] %}
             <div>
-                <div class="font-serif text-4xl font-black mb-1 text-primary-gradient">{{ s.value }}</div>
+                <div class="font-serif text-4xl font-black mb-1 text-gold">{{ s.value }}</div>
                 <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">{{ s.label }}</div>
             </div>
             {% endfor %}
@@ -274,7 +274,7 @@
         });
         dots.forEach(function (d, k) {
             d.style.width = (k === idx ? 24 : 8) + 'px';
-            d.style.background = k === idx ? '#d32f2f' : 'var(--border)';
+            d.style.background = k === idx ? 'var(--primary-solid)' : 'var(--border)';
         });
     }
     var timer = setInterval(function () { if (!hovered) go(idx + 1); }, 5000);
@@ -308,10 +308,10 @@
         groups.forEach(function (g) { g.classList.toggle('hidden', g.getAttribute('data-decade-content') !== active); });
         btns.forEach(function (b) {
             var on = b.getAttribute('data-decade') === active;
-            b.style.background = on ? '#d32f2f' : 'transparent';
+            b.style.background = on ? 'var(--primary-solid)' : 'transparent';
             b.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
-            b.style.border = on ? '1px solid #d32f2f' : '1px solid rgba(211,47,47,0.25)';
-            b.style.boxShadow = on ? '0 2px 10px rgba(211,47,47,0.35)' : 'none';
+            b.style.border = on ? '1px solid var(--primary)' : '1px solid var(--primary)';
+            b.style.boxShadow = on ? '0 2px 10px var(--primary)' : 'none';
             if (on && wiggleTarget) wiggle(b);
         });
     }

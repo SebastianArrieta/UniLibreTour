@@ -5,7 +5,7 @@
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
     {{ page_nav([('Inicio', url_for('web.home')), ('Mi Perfil', '')], back_url=url_for('web.home'), back_label='Inicio') }}
     <div class="mb-8">
-        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Identidad</div>
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Identidad</div>
         <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Mi Perfil</h2>
         <p class="mt-2 text-base" style="color:var(--muted-foreground)">Tu información dentro de Herencia Digital.</p>
     </div>
@@ -47,9 +47,9 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         visitante: 'Visitante', estudiante: 'Estudiante', docente: 'Docente', admin: 'Admin', egresado: 'Egresado'
     };
     var STATUS = {
-        activo: { label: 'Activo', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-        pendiente: { label: 'Pendiente de aprobación', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
-        inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(255,255,255,0.04)' }
+        activo: { label: 'Activo', color: 'var(--gold)', bg: 'var(--gold-soft)' },
+        pendiente: { label: 'Pendiente de aprobación', color: 'var(--brown)', bg: 'var(--brown-soft)' },
+        inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'var(--surface-1)' }
     };
     var ROLE_EMAIL = {
         estudiante: 'ana.bermudez@unilibre.edu.co',
@@ -85,13 +85,13 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
             '<div class="museum-card rounded p-6 text-center">' +
             '<div class="relative w-24 h-24 mx-auto">' +
             '<img src="' + esc(photo) + '" alt="' + esc(user.name) + '" class="w-24 h-24 rounded-full object-cover" ' +
-            'style="border:2px solid rgba(211,47,47,0.35)">' +
+            'style="border:2px solid var(--primary-border)">' +
             '<div class="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-xs"' +
-            'style="background:#d32f2f;color:#fff;border:2px solid var(--card)" title="Foto de perfil"><i class="fa-solid fa-camera"></i></div>' +
+            'style="background:var(--primary-solid);color:#fff;border:2px solid var(--card)" title="Foto de perfil"><i class="fa-solid fa-camera"></i></div>' +
             '</div>' +
             '<h2 class="font-serif text-xl font-bold mt-3" style="color:var(--foreground)">' + esc(user.name) + '</h2>' +
             '<div class="flex flex-wrap items-center justify-center gap-2 mt-2">' +
-            '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)">' + (ROLE_LABEL[user.role] || user.role) + '</span>' +
+            '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">' + (ROLE_LABEL[user.role] || user.role) + '</span>' +
             '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:' + status.bg + ';color:' + status.color + '">' + status.label + '</span>' +
             '</div>' +
             '<div class="text-sm mt-3" style="color:var(--muted-foreground)">' +
@@ -127,13 +127,13 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
             '</div>' +
             '<div class="flex flex-wrap items-center gap-6">' +
             '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Nivel</div>' +
-            '<div class="flex items-baseline gap-1"><span class="font-serif text-3xl font-black" style="color:#d32f2f">' + lvl.level + '</span>' +
+            '<div class="flex items-baseline gap-1"><span class="font-serif text-3xl font-black" style="color:var(--gold)">' + lvl.level + '</span>' +
             '<span class="text-xs" style="color:var(--muted-foreground)">/ ' + lvl.maxLevel + '</span></div></div>' +
             '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos</div>' +
             '<div class="font-serif text-xl font-bold" style="color:var(--foreground)">' + Number(user.points || 0).toLocaleString('es-CO') + '</div></div>' +
             '</div>' +
-            '<div class="h-2.5 rounded-full mt-4" style="background:rgba(255,255,255,0.06)">' +
-            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:linear-gradient(to right,#d32f2f,#ff4d4d)"></div></div>');
+            '<div class="h-2.5 rounded-full mt-4" style="background:var(--surface-2)">' +
+            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:linear-gradient(to right,var(--primary-solid),var(--primary-solid))"></div></div>');
     }
 
     function renderGrupo(user) {
@@ -145,9 +145,9 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         if (group) {
             var leader = group.lead === user.name;
             body += '<div class="flex items-center gap-3">' +
-                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f">' + (group.category === 'semillero' ? '<i class="fa-solid fa-microscope text-sm"></i>' : '<i class="fa-solid fa-flask text-sm"></i>') + '</div>' +
+                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)">' + (group.category === 'semillero' ? '<i class="fa-solid fa-microscope text-sm"></i>' : '<i class="fa-solid fa-flask text-sm"></i>') + '</div>' +
                 '<div><div class="text-sm font-serif font-semibold" style="color:var(--card-foreground)">' + esc(group.name) + '</div>' +
-                '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:' + (leader ? 'rgba(211,47,47,0.12)' : 'rgba(255,255,255,0.04)') + ';color:' + (leader ? '#d32f2f' : 'var(--muted-foreground)') + '">' + (leader ? 'Líder del grupo' : 'Miembro') + '</span></div></div>';
+                '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:' + (leader ? 'var(--gold-soft)' : 'var(--surface-2)') + ';color:' + (leader ? 'var(--gold)' : 'var(--muted-foreground)') + '">' + (leader ? 'Líder del grupo' : 'Miembro') + '</span></div></div>';
         } else {
             body += '<p class="text-sm" style="color:var(--muted-foreground)">No pertenece a ningún grupo de investigación o semillero todavía.</p>';
         }
@@ -160,7 +160,7 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         var body = '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Trayectoria de Egresado</h3>' +
             '<div class="flex flex-col gap-2 text-sm">';
         if (user.graduationYear) {
-            body += '<div class="flex justify-between" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">' +
+            body += '<div class="flex justify-between" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">' +
                 '<span style="color:var(--muted-foreground)">Año de grado</span><span style="color:var(--secondary-foreground)">' + user.graduationYear + '</span></div>';
         }
         if (user.currentPosition) {
@@ -177,16 +177,16 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
             var earned = earnedIds.indexOf(b.id) !== -1;
             var iconHtml = earned ? (b.icon && b.icon.indexOf('fa-') !== -1 ? '<i class="' + window.UI.esc(b.icon) + ' text-lg"></i>' : b.icon) : '<i class="fa-solid fa-lock text-sm opacity-40"></i>';
             return '<div class="flex flex-col items-center justify-center gap-1.5 p-3 rounded text-center min-h-[85px]" style="background:' +
-                (earned ? 'rgba(211,47,47,0.08)' : 'rgba(255,255,255,0.02)') +
-                ';border:1px solid ' + (earned ? 'rgba(211,47,47,0.3)' : 'rgba(255,255,255,0.06)') +
+                (earned ? 'var(--gold-soft)' : 'var(--surface-1)') +
+                ';border:1px solid ' + (earned ? 'var(--gold-border)' : 'var(--border-subtle)') +
                 ';opacity:' + (earned ? 1 : 0.45) + '">' +
-                '<span class="h-7 flex items-center justify-center" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + iconHtml + '</span>' +
-                '<span class="text-xs font-medium text-center line-clamp-1" style="color:' + (earned ? '#d32f2f' : 'var(--muted-foreground)') + '">' + esc(b.name) + '</span></div>';
+                '<span class="h-7 flex items-center justify-center" style="color:' + (earned ? 'var(--gold)' : 'var(--muted-foreground)') + '">' + iconHtml + '</span>' +
+                '<span class="text-xs font-medium text-center line-clamp-1" style="color:' + (earned ? 'var(--gold)' : 'var(--muted-foreground)') + '">' + esc(b.name) + '</span></div>';
         }).join('');
         el.innerHTML = card(
             '<div class="flex items-center justify-between mb-4">' +
             '<h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Insignias</h3>' +
-            '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f">' + earnedIds.length + ' / ' + badges.length + '</span>' +
+            '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--gold-soft);color:var(--gold)">' + earnedIds.length + ' / ' + badges.length + '</span>' +
             '</div>' +
             '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">' + grid + '</div>', 'p-5');
     }
@@ -195,8 +195,8 @@ window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w
         var el = document.getElementById('perfil-logros');
         var list = (D.achievements || []).map(function (a) {
             var iconCls = CATEGORY_ICON[a.category] || 'fa-solid fa-trophy';
-            return '<div class="flex items-start gap-3" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.75rem">' +
-                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f"><i class="' + iconCls + ' text-sm"></i></div>' +
+            return '<div class="flex items-start gap-3" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.75rem">' +
+                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)"><i class="' + iconCls + ' text-sm"></i></div>' +
                 '<div class="min-w-0">' +
                 '<div class="font-serif text-sm font-semibold" style="color:var(--card-foreground)">' + esc(a.title) + '</div>' +
                 '<div class="text-xs font-mono mt-0.5" style="color:var(--muted-foreground)">' + a.year + ' · ' + esc(a.institution) + '</div>' +

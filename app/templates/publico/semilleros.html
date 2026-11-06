@@ -9,7 +9,7 @@
     {{ page_nav([('Inicio', url_for('web.home')), ('Semilleros y Grupos', '')], back_url=url_for('web.home'), back_label='Inicio') }}
 
     <div class="mb-10">
-        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Investigación</div>
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Investigación</div>
         <h1 class="font-serif text-3xl md:text-4xl font-bold leading-tight mb-2" style="color:var(--foreground)">Semilleros y Grupos</h1>
         <p class="text-base" style="color:var(--muted-foreground)">La fuerza investigativa que impulsa la innovación en el Programa de Ingeniería de Sistemas.</p>
     </div>
@@ -19,13 +19,13 @@
         <div class="flex flex-col gap-3">
             {% for g in semilleros %}
             <div class="museum-card rounded p-5 flex gap-4 items-start">
-                <div class="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f"><i class="fa-solid fa-microscope"></i></div>
+                <div class="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-microscope"></i></div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                         <h3 class="font-serif font-semibold text-base" style="color:var(--card-foreground)">{{ g.name }}</h3>
-                        <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(255,255,255,0.04);color:var(--muted-foreground)">{{ g.members }} miembros</span>
+                        <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--surface-1);color:var(--muted-foreground)">{{ g.members }} miembros</span>
                     </div>
-                    <div class="text-sm mb-1" style="color:#d32f2f">{{ g.lead }}</div>
+                    <div class="text-sm mb-1" style="color:var(--brown)">{{ g.lead }}</div>
                     <p class="text-sm" style="color:var(--muted-foreground)">{{ g.description }}</p>
                 </div>
             </div>
@@ -38,13 +38,13 @@
         <div class="flex flex-col gap-3">
             {% for g in grupos %}
             <div class="museum-card rounded p-5 flex gap-4 items-start">
-                <div class="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style="background:rgba(211,47,47,0.08);color:#d32f2f"><i class="fa-solid fa-flask"></i></div>
+                <div class="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-flask"></i></div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                         <h3 class="font-serif font-semibold text-base" style="color:var(--card-foreground)">{{ g.name }}</h3>
-                        <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(255,255,255,0.04);color:var(--muted-foreground)">{{ g.members }} miembros</span>
+                        <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--surface-1);color:var(--muted-foreground)">{{ g.members }} miembros</span>
                     </div>
-                    <div class="text-sm mb-1" style="color:#d32f2f">{{ g.lead }}</div>
+                    <div class="text-sm mb-1" style="color:var(--brown)">{{ g.lead }}</div>
                     <p class="text-sm" style="color:var(--muted-foreground)">{{ g.description }}</p>
                 </div>
             </div>

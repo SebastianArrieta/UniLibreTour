@@ -29,7 +29,7 @@
             <p class="text-sm leading-relaxed mb-4" style="color:var(--secondary-foreground)">{{ item.description }}</p>
 
             {% if item.reviewNote %}
-            <div class="rounded p-4 mb-4 text-sm" style="background:rgba(239,68,68,0.06);color:#fca5a5;border:1px solid rgba(239,68,68,0.15)">
+            <div class="rounded p-4 mb-4 text-sm" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">
               <strong>Nota anterior:</strong> {{ item.reviewNote }}
             </div>
             {% endif %}
@@ -37,10 +37,10 @@
             <div class="museum-card rounded p-4">
               <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Archivos Adjuntos</div>
               {% for f in ['documento_principal.pdf', 'evidencia_fotografica.zip', 'certificado_autorizacion.pdf'] %}
-              <div class="flex items-center gap-3 py-2" style="border-bottom:1px solid rgba(255,255,255,0.04)">
-                <span class="text-lg"><i class="fa-solid fa-file-pdf" style="color:#d32f2f"></i></span>
+              <div class="flex items-center gap-3 py-2" style="border-bottom:1px solid var(--border-subtle)">
+                <span class="text-lg"><i class="fa-solid fa-file-pdf" style="color:var(--brown)"></i></span>
                 <span class="text-sm flex-1" style="color:var(--secondary-foreground)">{{ f }}</span>
-                <button type="button" class="text-xs" style="color:#d32f2f" onclick="toast('Descarga simulada de ' + '{{ f }}')">Descargar</button>
+                <button type="button" class="text-xs" style="color:var(--primary)" onclick="toast('Descarga simulada de ' + '{{ f }}')">Descargar</button>
               </div>
               {% endfor %}
             </div>
@@ -51,7 +51,7 @@
               <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Enviado por</div>
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold"
-                     style="background:rgba(211,47,47,0.12);color:#d32f2f">{{ (item.submittedBy or 'U')[0] }}</div>
+                     style="background:var(--brown-soft);color:var(--brown)">{{ (item.submittedBy or 'U')[0] }}</div>
                 <div>
                   <div class="font-medium text-sm" style="color:var(--card-foreground)">{{ item.submittedBy }}</div>
                   <div class="text-xs" style="color:var(--muted-foreground)">Docente · Ingeniería de Sistemas</div>
@@ -63,8 +63,8 @@
             <div class="museum-card rounded p-5">
               <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Verificación</div>
               {% for c in ['Contenido original verificado', 'Archivos completos y legibles', 'Relevancia institucional confirmada', 'Metadatos correctos'] %}
-              <div class="flex items-center gap-2 py-2 text-sm" style="border-bottom:1px solid rgba(255,255,255,0.04)">
-                <span style="color:#22c55e"><i class="fa-solid fa-check" style="font-size:11px"></i></span>
+              <div class="flex items-center gap-2 py-2 text-sm" style="border-bottom:1px solid var(--border-subtle)">
+                <span style="color:var(--gold)"><i class="fa-solid fa-check" style="font-size:11px"></i></span>
                 <span style="color:var(--secondary-foreground)">{{ c }}</span>
               </div>
               {% endfor %}
@@ -72,28 +72,28 @@
 
             <div class="flex flex-col gap-3">
               <button type="button" id="btn-aprobar" class="w-full py-3 rounded font-semibold text-sm flex items-center justify-center gap-2 btn-float"
-                      style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)"><i class="fa-solid fa-check"></i> Aprobar y Publicar</button>
+                      style="background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-border)"><i class="fa-solid fa-check"></i> Aprobar y Publicar</button>
 
               <button type="button" id="btn-devolver" class="w-full py-3 rounded font-semibold text-sm flex items-center justify-center gap-2"
-                      style="background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.25)"><i class="fa-solid fa-rotate-left"></i> Devolver con Nota</button>
+                      style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"><i class="fa-solid fa-rotate-left"></i> Devolver con Nota</button>
 
               <div id="devolver-form" class="hidden flex-col gap-2">
                 <div class="flex flex-wrap gap-1.5 mb-1">
                   {% for chip in ['Faltan firmas', 'Mala resolución', 'Datos incompletos', 'No cumple alcance'] %}
-                  <button type="button" data-chip class="text-xs px-2 py-1 rounded" style="background:rgba(255,255,255,0.05);color:var(--secondary-foreground)">+ {{ chip }}</button>
+                  <button type="button" data-chip class="text-xs px-2 py-1 rounded" style="background:var(--surface-2);color:var(--secondary-foreground)">+ {{ chip }}</button>
                   {% endfor %}
                 </div>
                 <textarea id="return-note" placeholder="Explica por qué se devuelve y qué debe corregirse…" rows="3"
                           class="museum-input w-full px-3 py-2 rounded text-sm resize-none"></textarea>
                 <button type="button" id="btn-devolver-confirmar" class="w-full py-2.5 rounded text-sm font-semibold"
-                        style="background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25)">Confirmar Devolución</button>
+                        style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">Confirmar Devolución</button>
               </div>
 
               <button type="button" id="btn-institucional" class="w-full py-2.5 rounded text-sm font-semibold"
-                      style="background:rgba(59,130,246,0.1);color:#93c5fd;border:1px solid rgba(59,130,246,0.25)"><i class="fa-solid fa-landmark"></i> Marcar institucional</button>
+                      style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)"><i class="fa-solid fa-landmark"></i> Marcar institucional</button>
 
               {% if not confirm_href %}
-              <div class="text-xs px-3 py-2 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.15)">
+              <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
                 ℹ Este ítem aún no tiene equivalente en el archivo: la confirmación queda simulada con toast.
               </div>
               {% endif %}

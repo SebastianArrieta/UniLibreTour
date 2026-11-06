@@ -104,10 +104,10 @@
         }
 
         var h = '';
-        if (query) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Búsqueda: ' + esc(q.value.trim()) + '</span>';
-        if (author) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Persona: ' + esc(a.value.trim()) + '</span>';
-        if (cat) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Categoría: ' + esc(cat) + '</span>';
-        if (year) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Año: ' + esc(year) + '</span>';
+        if (query) h += '<span class="text-xs px-2 py-1 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Búsqueda: ' + esc(q.value.trim()) + '</span>';
+        if (author) h += '<span class="text-xs px-2 py-1 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Persona: ' + esc(a.value.trim()) + '</span>';
+        if (cat) h += '<span class="text-xs px-2 py-1 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Categoría: ' + esc(cat) + '</span>';
+        if (year) h += '<span class="text-xs px-2 py-1 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Año: ' + esc(year) + '</span>';
         chips.innerHTML = h;
     }
 

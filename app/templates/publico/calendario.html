@@ -65,7 +65,7 @@
                         <div class="text-[10px] font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Día seleccionado</div>
                         <div id="cal-day-label" class="text-sm font-serif font-bold capitalize leading-snug" style="color:var(--foreground)" aria-live="polite"></div>
                     </div>
-                    <span id="cal-day-count" class="text-[10px] font-mono px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"></span>
+                    <span id="cal-day-count" class="text-[10px] font-mono px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--surface-2);color:var(--secondary-foreground);border:1px solid var(--border)"></span>
                 </div>
                 <div id="cal-days" role="status" aria-live="polite"></div>
             </div>
@@ -81,16 +81,10 @@
 {% block extra_head %}
 <style>
     :root {
-        --ev-conferencia: #e53935;
-        --ev-taller: #3b82f6;
-        --ev-graduacion: #22c55e;
-        --ev-cultural: #a855f7;
-    }
-    [data-theme='light'] {
-        --ev-conferencia: #c62828;
-        --ev-taller: #2563eb;
-        --ev-graduacion: #16a34a;
-        --ev-cultural: #9333ea;
+        --ev-conferencia: var(--primary);
+        --ev-taller: var(--brown);
+        --ev-graduacion: var(--gold);
+        --ev-cultural: var(--secondary-foreground);
     }
     .cal-toolbar {
         display: flex;

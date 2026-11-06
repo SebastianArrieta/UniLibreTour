@@ -30,10 +30,10 @@
         </div>
         <div class="flex flex-col justify-center gap-4">
             <div>
-                <span class="text-xs px-2 py-1 rounded font-mono" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)">{{ member.category }} · Graduado {{ member.year }}</span>
+                <span class="text-xs px-2 py-1 rounded font-mono" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">{{ member.category }} · Graduado {{ member.year }}</span>
             </div>
             <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ member.name }}</h1>
-            <p class="font-semibold" style="color:#d32f2f">{{ member.title }}</p>
+            <p class="font-semibold" style="color:var(--gold)">{{ member.title }}</p>
             <p class="text-base leading-relaxed" style="color:var(--secondary-foreground)">{{ member.achievement }}</p>
             <div class="museum-card rounded p-4 text-sm leading-relaxed" style="color:var(--muted-foreground)">{{ member.bio | default('Egresado del Programa de Ingeniería de Sistemas de la Universidad Libre, cohorte ' ~ member.year ~ '. Su trayectoria profesional ha sido un referente para las nuevas generaciones de ingenieros formados en la institución.') }}</div>
         </div>
@@ -42,33 +42,33 @@
 {% else %}
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     {{ page_nav([('Inicio', url_for('web.home')), ('Hall de la Fama', '')], back_url=url_for('web.home'), back_label='Inicio') }}
-    <div class="relative rounded overflow-hidden mb-10 p-10" style="background:linear-gradient(135deg, #0f0f0d, #1a1400)">
-        <div class="absolute inset-0" style="opacity:0.05;background-image:repeating-linear-gradient(45deg, #d32f2f 0, #d32f2f 1px, transparent 0, transparent 50%);background-size:16px 16px"></div>
+    <div class="relative rounded overflow-hidden mb-10 p-10" style="background:linear-gradient(135deg, var(--card), var(--gold-soft));border:1px solid var(--gold-border)">
+        <div class="absolute inset-0" style="opacity:0.05;background-image:repeating-linear-gradient(45deg, var(--brown) 0, var(--brown) 1px, transparent 0, transparent 50%);background-size:16px 16px"></div>
         <div class="relative">
-            <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Reconocimiento</div>
+            <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Reconocimiento</div>
             <h1 class="font-serif text-4xl md:text-5xl font-black mb-2" style="color:var(--foreground)">Hall de la Fama</h1>
             <p class="text-base" style="color:var(--muted-foreground)">Egresados y docentes cuya excelencia ha trascendido las aulas.</p>
         </div>
     </div>
 
     <div class="flex flex-wrap gap-2 mb-8">
-        <a href="{{ url_for('web.hall_fama') }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if not cat_f %}background:#d32f2f;color:var(--background);border:1px solid #d32f2f{% else %}background:rgba(255,255,255,0.04);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1){% endif %}">Todos</a>
+        <a href="{{ url_for('web.hall_fama') }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if not cat_f %}background:var(--primary-solid);color:var(--background);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">Todos</a>
         {% for c in cats_ns.vals %}
-        <a href="{{ url_for('web.hall_fama') }}?cat={{ c | urlencode }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if cat_f == c %}background:#d32f2f;color:var(--background);border:1px solid #d32f2f{% else %}background:rgba(255,255,255,0.04);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1){% endif %}">{{ c }}</a>
+        <a href="{{ url_for('web.hall_fama') }}?cat={{ c | urlencode }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if cat_f == c %}background:var(--primary-solid);color:var(--background);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">{{ c }}</a>
         {% endfor %}
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {% for m in filtered %}
         <a href="{{ url_for('web.hall_fama') }}?member={{ m.id }}" class="museum-card rounded overflow-hidden text-left group block">
-            <div class="relative overflow-hidden" style="aspect-ratio:4 / 3;background:#111827">
+            <div class="relative overflow-hidden" style="aspect-ratio:4 / 3;background:var(--muted)">
                 <img src="{{ m.image }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>
                 <div class="absolute bottom-0 left-0 right-0 p-4">
                     <div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--foreground)">{{ m.name }}</div>
-                    <div class="text-xs" style="color:#d32f2f">{{ m.title }}</div>
+                    <div class="text-xs" style="color:var(--gold)">{{ m.title }}</div>
                 </div>
-                <div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.7);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">{{ m.year }}</div>
+                <div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.7);color:var(--medal-gold);border:1px solid var(--gold-border)">{{ m.year }}</div>
             </div>
             <div class="p-4">
                 <div class="text-xs mb-1 font-mono" style="color:var(--muted-foreground)">{{ m.category }}</div>

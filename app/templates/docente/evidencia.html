@@ -14,7 +14,7 @@
     <div class="min-w-0">
       {{ page_nav([('Panel Docente', url_for('web.docente')), ('Registrar Evidencia', '')], back_url=url_for('web.docente'), back_label='Panel Docente') }}
       <div class="mb-8">
-        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Nuevo registro</div>
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Nuevo registro</div>
         <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Registrar Evidencia</h2>
         <p class="mt-2 text-base" style="color:var(--muted-foreground)">Registra una evidencia del legado institucional para el museo digital.</p>
       </div>
@@ -78,8 +78,8 @@
               <input type="url" id="dw-imagen" placeholder="https://images.unsplash.com/…" class="museum-input w-full px-4 py-2.5 rounded text-sm" />
             </div>
             <div id="dw-dropzone" class="rounded-lg border-2 border-dashed p-8 text-center cursor-pointer transition-all"
-                 style="border-color:rgba(211,47,47,0.2);background:transparent">
-              <div class="text-2xl mb-2 opacity-50" style="color:#d32f2f"><i class="fa-solid fa-paperclip"></i></div>
+                 style="border-color:var(--border);background:transparent">
+              <div class="text-2xl mb-2 opacity-50" style="color:var(--brown)"><i class="fa-solid fa-paperclip"></i></div>
               <p class="text-sm font-medium" style="color:var(--secondary-foreground)">Arrastra archivos aquí o haz clic para seleccionar</p>
               <p class="text-xs mt-1" style="color:var(--muted-foreground)">PDF, DOCX, PPTX, imágenes (máx. 100 MB por archivo)</p>
             </div>
@@ -99,15 +99,15 @@
               <div class="museum-card rounded p-6">
                 <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Vista Previa de la Evidencia</h3>
                 <div class="flex flex-col gap-3 text-sm">
-                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Título</span><span id="dw-sum-titulo" style="color:var(--secondary-foreground)">—</span></div>
-                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Categoría</span><span id="dw-sum-cat" style="color:var(--secondary-foreground)">—</span></div>
-                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Año</span><span id="dw-sum-anio" style="color:var(--secondary-foreground)">—</span></div>
-                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Archivos adjuntos</span><span id="dw-sum-files" style="color:var(--secondary-foreground)">—</span></div>
-                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid rgba(255,255,255,0.05)"><span style="color:var(--muted-foreground)">Etiquetas</span><span id="dw-sum-tags" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid var(--border-subtle)"><span style="color:var(--muted-foreground)">Título</span><span id="dw-sum-titulo" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid var(--border-subtle)"><span style="color:var(--muted-foreground)">Categoría</span><span id="dw-sum-cat" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid var(--border-subtle)"><span style="color:var(--muted-foreground)">Año</span><span id="dw-sum-anio" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid var(--border-subtle)"><span style="color:var(--muted-foreground)">Archivos adjuntos</span><span id="dw-sum-files" style="color:var(--secondary-foreground)">—</span></div>
+                  <div class="flex justify-between items-center gap-4 py-2" style="border-bottom:1px solid var(--border-subtle)"><span style="color:var(--muted-foreground)">Etiquetas</span><span id="dw-sum-tags" style="color:var(--secondary-foreground)">—</span></div>
                 </div>
                 <div class="mt-4 max-w-sm" id="dw-preview"></div>
               </div>
-              <div class="text-xs p-4 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">
+              <div class="text-xs p-4 rounded" style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
                 Al enviar, esta evidencia pasará a la cola de validación administrativa. Recibirás una notificación con el resultado.
               </div>
               <div class="flex gap-2">
@@ -122,10 +122,10 @@
       <div id="wizard-ok" style="display:none">
         <div class="flex items-center justify-center min-h-[24rem]">
           <div class="text-center max-w-sm">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3);color:#22c55e"><i class="fa-solid fa-check"></i></div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" style="background:var(--gold-soft);border:2px solid var(--gold-border);color:var(--gold)"><i class="fa-solid fa-check"></i></div>
             <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Evidencia registrada!</h2>
             <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu evidencia fue enviada a la cola de validación del administrador. Recibirás una notificación con el resultado.</p>
-            <div class="text-xs px-3 py-2 rounded mb-4" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.2)">Estado: <strong>En Cola de Validación</strong></div>
+            <div class="text-xs px-3 py-2 rounded mb-4" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Estado: <strong>En Cola de Validación</strong></div>
             <div class="flex gap-2 justify-center">
               <a href="{{ url_for('web.docente_notificaciones') }}" class="btn-outline-primary px-4 py-2 rounded text-sm">Ver Notificaciones</a>
               <a href="{{ url_for('web.docente') }}" class="btn-primary px-4 py-2 rounded text-sm">Ir al Dashboard</a>
@@ -169,9 +169,9 @@
     if (!files.length) { filesBox.classList.add('hidden'); filesBox.innerHTML = ''; return; }
     filesBox.classList.remove('hidden');
     filesBox.innerHTML = files.map(function (f, i) {
-      return '<div class="flex items-center gap-3 px-3 py-2 rounded" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2)">' +
-        '<i class="fa-solid fa-file-lines text-base" style="color:#22c55e"></i><span class="text-sm flex-1" style="color:var(--secondary-foreground)">' + window.UI.esc(f) + '</span>' +
-        '<span class="text-xs font-mono" style="color:#22c55e">Cargado</span>' +
+      return '<div class="flex items-center gap-3 px-3 py-2 rounded" style="background:var(--gold-soft);border:1px solid var(--gold-border)">' +
+        '<i class="fa-solid fa-file-lines text-base" style="color:var(--gold)"></i><span class="text-sm flex-1" style="color:var(--secondary-foreground)">' + window.UI.esc(f) + '</span>' +
+        '<span class="text-xs font-mono" style="color:var(--gold)">Cargado</span>' +
         '<button type="button" data-rm-file="' + i + '" class="text-xs ml-2 hover:text-red-400" style="color:var(--muted-foreground)"><i class="fa-solid fa-xmark"></i></button></div>';
     }).join('');
     Array.prototype.forEach.call(filesBox.querySelectorAll('[data-rm-file]'), function (b) {
@@ -188,16 +188,16 @@
   });
   dropzone.addEventListener('dragover', function (e) {
     e.preventDefault();
-    dropzone.style.borderColor = 'rgba(211,47,47,0.6)';
-    dropzone.style.background = 'rgba(211,47,47,0.04)';
+    dropzone.style.borderColor = 'var(--primary-border)';
+    dropzone.style.background = 'var(--primary-soft)';
   });
   dropzone.addEventListener('dragleave', function () {
-    dropzone.style.borderColor = 'rgba(211,47,47,0.2)';
+    dropzone.style.borderColor = 'var(--border)';
     dropzone.style.background = 'transparent';
   });
   dropzone.addEventListener('drop', function (e) {
     e.preventDefault();
-    dropzone.style.borderColor = 'rgba(211,47,47,0.2)';
+    dropzone.style.borderColor = 'var(--border)';
     dropzone.style.background = 'transparent';
     var dropped = Array.prototype.map.call(e.dataTransfer.files, function (f) { return f.name; });
     files = files.concat(dropped);

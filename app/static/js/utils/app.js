@@ -61,11 +61,11 @@
 
     /* Mismo estilo (rojo) para todos los roles; solo cambian etiqueta, ruta e icono. */
     var DASH_STYLE = {
-        color: '#d32f2f',
-        bg: 'rgba(211,47,47,0.12)',
-        border: 'rgba(211,47,47,0.3)',
-        activeBg: 'rgba(211,47,47,0.22)',
-        activeBorder: '#d32f2f',
+        color: 'var(--primary)',
+        bg: 'var(--primary-soft)',
+        border: 'var(--border)',
+        activeBg: 'var(--primary)',
+        activeBorder: 'var(--primary)',
     };
     function dashEntry(label, href, icon) {
         return {
@@ -191,7 +191,7 @@
         var knob = btn.querySelector('.theme-toggle-knob');
         var icon = btn.querySelector('[data-theme-icon]');
         if (knob) knob.style.transform = theme === 'dark' ? 'translateX(16px)' : 'translateX(0)';
-        if (icon) icon.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun" style="font-size:11px;color:#facc15"></i>' : '<i class="fa-solid fa-moon" style="font-size:11px;color:#818cf8"></i>';
+        if (icon) icon.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun" style="font-size:11px;color:var(--medal-gold)"></i>' : '<i class="fa-solid fa-moon" style="font-size:11px;color:var(--secondary-foreground)"></i>';
         btn.setAttribute('data-theme', theme);
     }
 
@@ -376,7 +376,7 @@
             'title="Acceso directo a ' + esc(dash.label) + '">' +
             '<i class="' + dash.icon + ' text-xs" style="color:' + (active ? '#ffffff' : dash.color) + '"></i>' +
             '<span class="font-sans tracking-wide">' + esc(dash.label) + '</span>' +
-            (role === 'admin' ? '<span class="hidden lg:inline text-[9px] px-1.5 py-0.2 rounded font-mono uppercase font-bold" style="background:rgba(211,47,47,0.35);color:#ff8585">GESTIÓN</span>' : '') +
+            (role === 'admin' ? '<span class="hidden lg:inline text-[9px] px-1.5 py-0.2 rounded font-mono uppercase font-bold" style="background:var(--primary-border);color:var(--primary)">GESTIÓN</span>' : '') +
             '</a>';
     }
 
@@ -391,7 +391,7 @@
 
         var logoutBtnHtml =
             '<button type="button" data-action="logout" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-medium transition-all group" ' +
-            'style="background:rgba(211,47,47,0.08);color:#f87171;border:1px solid rgba(211,47,47,0.3)" title="Cerrar sesión">' +
+            'style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--border)" title="Cerrar sesión">' +
             '<i class="fa-solid fa-arrow-right-from-bracket text-xs transition-transform group-hover:translate-x-0.5"></i>' +
             '<span class="hidden sm:inline">Cerrar sesión</span><span class="sm:hidden">Salir</span></button>';
 
@@ -399,7 +399,7 @@
             var label = (me && me.name) || role;
             area.innerHTML =
                 '<a href="/perfil" class="hidden sm:flex items-center gap-2 text-xs px-2.5 py-1 rounded-full font-mono transition-colors museo-profile-pill" ' +
-                'style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)" title="Ver mi perfil">' +
+                'style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--border)" title="Ver mi perfil">' +
                 '<i class="fa-solid fa-user-circle text-xs"></i><span class="truncate max-w-[120px]">' + esc(label) + '</span>' +
                 '</a>' +
                 logoutBtnHtml;
@@ -496,7 +496,7 @@
             btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
             btn.classList.toggle('is-fav', Museo.isFav(id));
             var initIcon = btn.querySelector('[data-fav-icon]');
-            if (initIcon) initIcon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:#d32f2f"></i>' : '<i class="fa-regular fa-heart"></i>';
+            if (initIcon) initIcon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>' : '<i class="fa-regular fa-heart"></i>';
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -504,7 +504,7 @@
                 btn.classList.toggle('is-fav', Museo.isFav(id));
                 btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
                 var icon = btn.querySelector('[data-fav-icon]');
-                if (icon) icon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:#d32f2f"></i>' : '<i class="fa-regular fa-heart"></i>';
+                if (icon) icon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>' : '<i class="fa-regular fa-heart"></i>';
                 if (typeof onChanged === 'function') onChanged(Museo.countFavs());
             });
         });

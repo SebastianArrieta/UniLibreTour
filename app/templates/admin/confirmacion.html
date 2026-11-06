@@ -6,7 +6,7 @@
         position: absolute;
         inset: -0.5rem;
         border-radius: 9999px;
-        border: 2px solid #22c55e;
+        border: 2px solid var(--gold);
         opacity: 0.3;
         animation: pingc 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
@@ -28,8 +28,8 @@
         <div class="text-center max-w-md">
           <div class="relative w-24 h-24 mx-auto mb-6">
             <div class="w-24 h-24 rounded-full flex items-center justify-center"
-                 style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.4)">
-              <span class="text-4xl" style="color:#22c55e"><i class="fa-solid fa-circle-check"></i></span>
+                 style="background:var(--gold-soft);border:2px solid var(--gold-border)">
+              <span class="text-4xl" style="color:var(--gold)"><i class="fa-solid fa-circle-check"></i></span>
             </div>
             <div class="ping-ring"></div>
           </div>
@@ -49,8 +49,8 @@
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono"
-                    style="color:#22c55e;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25)">
-                <span class="w-1.5 h-1.5 rounded-full" style="background:#22c55e"></span>
+                    style="color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold-border)">
+                <span class="w-1.5 h-1.5 rounded-full" style="background:var(--gold)"></span>
                 Publicado en el Archivo
               </span>
               <span class="text-xs font-mono" style="color:var(--muted-foreground)">
@@ -59,7 +59,7 @@
             </div>
           </div>
 
-          <div class="text-xs px-4 py-3 rounded mb-6" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.15)">
+          <div class="text-xs px-4 py-3 rounded mb-6" style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
             ℹ Se ha enviado una notificación automática al autor y a los usuarios suscritos a esta categoría.
           </div>
 

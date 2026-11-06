@@ -24,14 +24,14 @@
         {{ section_header('Revisión', 'Cola de Contenido', 'Piezas en espera de validación y publicación.') }}
 
         <div class="flex flex-wrap items-center gap-3 mb-2">
-          <div class="text-xs font-mono px-3 py-1.5 rounded-full" style="background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.25)">{{ pendientes | length }} en espera</div>
+          <div class="text-xs font-mono px-3 py-1.5 rounded-full" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">{{ pendientes | length }} en espera</div>
         </div>
 
         <div class="flex flex-wrap gap-2 mb-6" id="cola-filtros">
           {% for f in filtros %}
           {% set n = contentQueue | selectattr('status', 'equalto', f.value) | list | length if f.value else contentQueue | length %}
           <button type="button" data-filter="{{ f.value }}" class="{{ 'fil-aktivo px-3 py-1.5 rounded text-sm' if loop.first else 'px-3 py-1.5 rounded text-sm' }}"
-                  style="{{ 'background:#d32f2f;color:var(--background);border:1px solid #d32f2f' if loop.first else 'background:rgba(255,255,255,0.04);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)' }}">
+                  style="{{ 'background:var(--primary-solid);color:var(--background);border:1px solid var(--primary)' if loop.first else 'background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border)' }}">
             {{ f.label }} ({{ n }})
           </button>
           {% endfor %}
@@ -55,7 +55,7 @@
                 <span class="font-mono">{{ item.date }}</span>
               </div>
               {% if item.reviewNote %}
-              <div class="mt-2 text-xs px-3 py-2 rounded" style="background:rgba(239,68,68,0.06);color:#fca5a5;border:1px solid rgba(239,68,68,0.15)">
+              <div class="mt-2 text-xs px-3 py-2 rounded" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">
                 ↩ Nota: {{ item.reviewNote }}
               </div>
               {% endif %}
@@ -83,9 +83,9 @@
   function applyFilter(val) {
     chips.forEach(function (c) {
       var on = c.getAttribute('data-filter') === val;
-      c.style.background = on ? '#d32f2f' : 'rgba(255,255,255,0.04)';
-      c.style.color = on ? 'var(--background)' : 'var(--secondary-foreground)';
-      c.style.border = on ? '1px solid #d32f2f' : '1px solid rgba(255,255,255,0.1)';
+      c.style.background = on ? 'var(--primary-solid)' : 'var(--surface-1)';
+      c.style.color = on ? 'var(--primary-foreground)' : 'var(--secondary-foreground)';
+      c.style.border = on ? '1px solid var(--primary-solid)' : '1px solid var(--border)';
     });
     cards.forEach(function (card) {
       card.style.display = (!val || card.getAttribute('data-status') === val) ? '' : 'none';

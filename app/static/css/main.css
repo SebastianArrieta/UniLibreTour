@@ -1,7 +1,7 @@
 /* ============================================================
    UniLibreTour — Sistema de diseño y estilos globales
    Tipografía museo (Playfair Display / Inter / JetBrains Mono),
-   tema oscuro/claro, acento institucional U. Libre #d32f2f.
+   tema oscuro/claro. Paleta rojo/dorado/marrón/neutros: ver docs/brief-paleta.md.
    Organización:
      1. Fuentes
      2. Tokens de tema (dark / light)
@@ -734,6 +734,7 @@ body.ui-modal-open { overflow: hidden; }
 .group:hover .group-hover\:translate-x-1 { transform: translateX(0.25rem); }
 .group:hover .group-hover\:translate-x-0 { transform: translateX(0); }
 .group:hover .group-hover\:text-primary,
+.text-\[\#d32f2f\] { color: var(--primary); }
 .group:hover .group-hover\:text-\[\#d32f2f\] { color: var(--primary); }
 .group:hover .group-hover\:border-primary\/40 { border-color: var(--primary-border); }
 .group-hover\:opacity-100 { opacity: 1; }
