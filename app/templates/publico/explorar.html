@@ -21,13 +21,13 @@
     {{ section_header('Colecciones', 'Descubrir Contenido', 'Navega por las colecciones temáticas del museo.') }}
 
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-8">
-        <nav class="relative flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+        <nav id="explorar-nav" class="relative flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
             {% for cid, icon, clabel, cnt in cats %}
             {% set is_active = (cat == cid) or (not cat and cid == '') %}
-            <a href="{{ url_for('web.explorar') }}{{ ('?cat=' ~ cid) if cid }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap lg:whitespace-normal text-left w-auto lg:w-full {{ 'sb-active' if is_active else 'hover:translate-x-1' }}" style="color:{{ '#ffffff' if is_active else 'var(--secondary-foreground)' }}">
+            <a href="{{ url_for('web.explorar') }}{{ ('?cat=' ~ cid) if cid }}" data-filter="{{ cid }}"{% if is_active %} aria-current="page"{% endif %} class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap lg:whitespace-normal text-left w-auto lg:w-full {{ 'sb-active' if is_active else 'hover:translate-x-1' }}" style="color:{{ '#ffffff' if is_active else 'var(--secondary-foreground)' }}">
                 <span class="sb-chip {{ 'sb-chip-on' if is_active }}"><i class="{{ icon }} text-xs"></i></span>
                 <span class="flex-1 truncate">{{ clabel }}</span>
-                <span class="text-xs font-mono flex-shrink-0" style="color:{{ 'rgba(255,255,255,0.85)' if is_active else 'var(--muted-foreground)' }}">{{ cnt }}</span>
+                <span data-count class="text-xs font-mono flex-shrink-0" style="color:{{ 'rgba(255,255,255,0.85)' if is_active else 'var(--muted-foreground)' }}">{{ cnt }}</span>
             </a>
             {% endfor %}
         </nav>
@@ -52,15 +52,15 @@
                 </article>
             </div>
             {% else %}
+            {% set initial_count = (news | length) if cat == 'noticias' else (visible | length) %}
             <div class="flex items-center gap-2 mb-5">
-                <h3 class="font-serif font-semibold text-lg" style="color:var(--foreground)">{{ labels.get(cat, 'Todo') }}</h3>
-                <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.08);color:#d32f2f">{{ (news | length) if cat == 'noticias' else (visible | length) }} resultado{{ '' if ((news | length) if cat == 'noticias' else (visible | length)) == 1 else 's' }}</span>
+                <h3 id="explorar-title" class="font-serif font-semibold text-lg" style="color:var(--foreground)">{{ labels.get(cat, 'Todo') }}</h3>
+                <span id="explorar-count" aria-live="polite" class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.08);color:#d32f2f">{{ initial_count }} resultado{{ '' if initial_count == 1 else 's' }}</span>
             </div>
 
-            {% if cat == 'noticias' %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div id="explorar-news" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"{% if cat != 'noticias' %} data-hidden="true"{% endif %}>
                 {% for n in news %}
-                <a href="{{ url_for('web.explorar') }}?cat=noticias&news={{ n.id }}" class="museum-card rounded overflow-hidden text-left group fade-up-delayed flex flex-col">
+                <a href="{{ url_for('web.explorar') }}?cat=noticias&news={{ n.id }}" data-news-card class="museum-card rounded overflow-hidden text-left group fade-up-delayed flex flex-col">
                     <div class="relative h-40 overflow-hidden">
                         <img src="{{ n.image }}" alt="{{ n.title }}" class="w-full h-full object-cover opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105">
                         <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ n.category }}</span>
@@ -73,21 +73,111 @@
                 </a>
                 {% endfor %}
             </div>
-            {% elif visible | length > 0 %}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <div id="explorar-content" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"{% if cat == 'noticias' or (cat and (visible | length) == 0) %} data-hidden="true"{% endif %}>
                 {% for item in visible %}
-                <div class="fade-up-delayed h-full">{{ content_card(item) }}</div>
+                <div class="fade-up-delayed h-full" data-item-cat="{{ item.category }}"{% if cat and cat != item.category %} data-hidden="true"{% endif %}>{{ content_card(item) }}</div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="museum-card rounded py-16 px-6 flex flex-col items-center justify-center text-center gap-3">
+
+            <div id="explorar-empty" class="museum-card rounded py-16 px-6 flex flex-col items-center justify-center text-center gap-3"{% if initial_count != 0 %} data-hidden="true"{% endif %}>
                 <i class="fa-solid fa-folder-open empty-float text-4xl opacity-30" style="color:var(--muted-foreground)"></i>
-                <p class="text-sm" style="color:var(--muted-foreground)">No hay contenido en esta categoría aún.</p>
-                <a href="{{ url_for('web.explorar') }}" class="inline-flex text-xs btn-outline-primary px-4 py-2 rounded mt-1">Ver todas las colecciones</a>
+                <p class="text-xs" style="color:var(--muted-foreground)">No hay contenido en esta categoría aún.</p>
+                <a href="{{ url_for('web.explorar') }}" data-filter="" class="inline-flex text-xs btn-outline-primary px-4 py-2 rounded mt-1">Ver todas las colecciones</a>
             </div>
-            {% endif %}
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    [data-hidden="true"] { display: none !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var nav = document.getElementById('explorar-nav');
+    var titleEl = document.getElementById('explorar-title');
+    var countEl = document.getElementById('explorar-count');
+    var newsBox = document.getElementById('explorar-news');
+    var contentBox = document.getElementById('explorar-content');
+    var emptyBox = document.getElementById('explorar-empty');
+    if (!nav || !titleEl || !countEl || !newsBox || !contentBox || !emptyBox) return;
+
+    var LABELS = {};
+    Array.prototype.forEach.call(nav.querySelectorAll('[data-filter]'), function (link) {
+        var textEl = link.querySelector('.flex-1');
+        if (textEl) LABELS[link.getAttribute('data-filter') || ''] = textEl.textContent.trim();
+    });
+    var cards = Array.prototype.slice.call(contentBox.querySelectorAll('[data-item-cat]'));
+    var newsCount = newsBox.querySelectorAll('[data-news-card]').length;
+    var current = (new URLSearchParams(window.location.search).get('cat')) || '';
+
+    function setHidden(el, hidden) {
+        if (!el) return;
+        if (hidden) el.setAttribute('data-hidden', 'true');
+        else el.removeAttribute('data-hidden');
+    }
+
+    function paint(cat) {
+        current = cat;
+        var isNews = cat === 'noticias';
+        var count = 0;
+
+        if (isNews) {
+            setHidden(contentBox, true);
+            setHidden(newsBox, false);
+            count = newsCount;
+        } else {
+            setHidden(newsBox, true);
+            cards.forEach(function (card) {
+                var match = !cat || card.getAttribute('data-item-cat') === cat;
+                setHidden(card, !match);
+                if (match) count++;
+            });
+            setHidden(contentBox, count === 0);
+        }
+
+        titleEl.textContent = LABELS[cat] || 'Todo';
+        countEl.textContent = count + ' resultado' + (count === 1 ? '' : 's');
+        setHidden(emptyBox, count !== 0);
+
+        Array.prototype.forEach.call(nav.querySelectorAll('[data-filter]'), function (link) {
+            var on = (link.getAttribute('data-filter') || '') === cat;
+            link.classList.toggle('sb-active', on);
+            link.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
+            var chip = link.querySelector('.sb-chip');
+            if (chip) chip.classList.toggle('sb-chip-on', on);
+            var cnt = link.querySelector('[data-count]');
+            if (cnt) cnt.style.color = on ? 'rgba(255,255,255,0.85)' : 'var(--muted-foreground)';
+            if (on) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        var link = e.target && e.target.closest ? e.target.closest('[data-filter]') : null;
+        if (!link || e.defaultPrevented) return;
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        var cat = link.getAttribute('data-filter') || '';
+        e.preventDefault();
+        if (cat === current) return;
+        paint(cat);
+        var url = window.location.pathname + (cat ? '?cat=' + encodeURIComponent(cat) : '');
+        try { history.pushState({ cat: cat }, '', url); } catch (err) { /* noop */ }
+    });
+
+    window.addEventListener('popstate', function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('news')) return;
+        paint(params.get('cat') || '');
+    });
+
+    paint(current);
+})();
+</script>
 {% endblock %}
