@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Acceso al Museo — UniLibreTour{% endblock %}
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center px-4">
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-8">
     <div class="w-full max-w-md">
+        <div class="mb-2">
+            <a href="{{ url_for('web.home') }}" class="museo-back-btn">
+                <i class="fa-solid fa-arrow-left-long"></i>
+                <span>Volver al inicio</span>
+            </a>
+        </div>
         <div class="text-center mb-8">
             <div class="mt-8 mb-3 flex justify-center">
                 {% include 'components/logo.html' %}

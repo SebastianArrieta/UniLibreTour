@@ -2,6 +2,7 @@
 {% block title %}Notificaciones — UniLibreTour{% endblock %}
 {% block content %}
 {% from 'components/sidebar.html' import sidebar_for %}
+{% from 'components/macros.html' import page_nav %}
 
 {% set notifs = [
   {'id':1, 'type':'aprobado', 'title':'Contribución aprobada y publicada', 'body':'"Sistema de Predicción de Deserción Estudiantil" fue aprobada por el administrador y está disponible en el archivo.', 'time':'28 Jun 2024, 10:45', 'color':'#22c55e', 'icon':'fa-solid fa-check', 'read':false},
@@ -18,6 +19,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
     {{ sidebar_for('docente', current_page) }}
     <div class="min-w-0">
+      {{ page_nav([('Panel Docente', url_for('web.docente')), ('Notificaciones', '')], back_url=url_for('web.docente'), back_label='Panel Docente') }}
       <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
           <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--primary)">Actualizaciones</div>

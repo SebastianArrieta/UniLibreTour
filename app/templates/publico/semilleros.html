@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% from 'components/macros.html' import page_nav %}
 {% block title %}Semilleros y Grupos — UniLibreTour{% endblock %}
 {% block content %}
 {% set semilleros = researchGroups | selectattr('category', 'equalto', 'semillero') | list %}
 {% set grupos = researchGroups | selectattr('category', 'equalto', 'grupo') | list %}
 
 <div class="max-w-4xl mx-auto px-4 md:px-8 py-10">
-    <a href="{{ url_for('web.home') }}" class="inline-flex items-center gap-2 text-sm mb-8 btn-outline-primary px-3 py-1.5 rounded">← Volver al Inicio</a>
+    {{ page_nav([('Inicio', url_for('web.home')), ('Semilleros y Grupos', '')], back_url=url_for('web.home'), back_label='Inicio') }}
 
     <div class="mb-10">
         <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Investigación</div>

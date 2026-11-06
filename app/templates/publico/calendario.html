@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% from 'components/macros.html' import section_header %}
+{% from 'components/macros.html' import section_header, page_nav %}
 {% block title %}Calendario de Actividades — UniLibreTour{% endblock %}
 {% block content %}
 {% set event_types = ['conferencia', 'taller', 'graduacion', 'cultural'] %}
 {% set type_labels = {'conferencia': 'Conferencia', 'taller': 'Taller', 'graduacion': 'Graduación', 'cultural': 'Cultural'} %}
 
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-12">
+    {{ page_nav([('Inicio', url_for('web.home')), ('Calendario', '')], back_url=url_for('web.home'), back_label='Inicio') }}
     {{ section_header('Comunidad', 'Calendario de Actividades', 'Conferencias, talleres y vida universitaria del programa, mes a mes.') }}
 
     <div class="flex flex-col lg:flex-row gap-6 items-start">
@@ -50,7 +51,7 @@
                 <span class="cal-legend-title">Tipos</span>
                 {% for t in event_types %}
                 <span class="cal-legend-item">
-                    <span class="cal-dot" style="--ev-color:var(--ev-{{ t }})"></span>
+                    <span class="cal-dot cal-dot-{{ t }}"></span>
                     {{ type_labels[t] }}
                 </span>
                 {% endfor %}
@@ -213,6 +214,10 @@
         background: var(--ev-color, var(--primary));
         flex-shrink: 0;
     }
+    .cal-dot-conferencia { background: var(--ev-conferencia); }
+    .cal-dot-taller { background: var(--ev-taller); }
+    .cal-dot-graduacion { background: var(--ev-graduacion); }
+    .cal-dot-cultural { background: var(--ev-cultural); }
     .cal-more {
         font-family: var(--font-mono);
         font-size: 0.55rem;

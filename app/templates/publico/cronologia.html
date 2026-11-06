@@ -36,11 +36,37 @@
     transform: scale(1.22);
 }
 
+/* Paleta semántica por tipo de hito */
+.ruta-type-fundacion {
+    --h-color: #d32f2f;
+    --h-glow: rgba(211, 47, 47, 0.45);
+    --h-soft: rgba(211, 47, 47, 0.12);
+    --h-border: rgba(211, 47, 47, 0.35);
+}
+.ruta-type-logro {
+    --h-color: #22c55e;
+    --h-glow: rgba(34, 197, 94, 0.45);
+    --h-soft: rgba(34, 197, 94, 0.12);
+    --h-border: rgba(34, 197, 94, 0.35);
+}
+.ruta-type-evento {
+    --h-color: #3b82f6;
+    --h-glow: rgba(59, 130, 246, 0.45);
+    --h-soft: rgba(59, 130, 246, 0.12);
+    --h-border: rgba(59, 130, 246, 0.35);
+}
+.ruta-type-investigacion {
+    --h-color: #a855f7;
+    --h-glow: rgba(168, 85, 247, 0.45);
+    --h-soft: rgba(168, 85, 247, 0.12);
+    --h-border: rgba(168, 85, 247, 0.35);
+}
+
 .node-pulse-halo {
     position: absolute;
     inset: -7px;
     border-radius: 9999px;
-    border: 2px solid #d32f2f;
+    border: 2px solid var(--h-color, #d32f2f);
     opacity: 0;
     pointer-events: none;
 }
@@ -54,19 +80,64 @@
     100% { transform: scale(2.6); opacity: 0; }
 }
 
-/* Conector luminoso horizontal entre tarjeta y nodo central */
-.ruta-connector-line {
+.ruta-node-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    z-index: 10;
+    background: var(--h-color, #d32f2f);
+    box-shadow: 0 0 14px var(--h-color, #d32f2f);
+    transition: transform 0.3s;
+}
+.ruta-node-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    border: 2px solid var(--h-border, rgba(211, 47, 47, 0.35));
+    background: var(--card, #161614);
+}
+
+/* Conectores luminosos horizontales entre tarjeta y nodo central */
+.ruta-connector-left {
     position: absolute;
     top: 50%;
+    right: 14px;
     height: 2px;
     width: 36px;
     transform: translateY(-50%);
     pointer-events: none;
     opacity: 0.45;
     transition: opacity 0.3s ease;
+    background: linear-gradient(to right, var(--h-glow, rgba(211, 47, 47, 0.45)), var(--h-color, #d32f2f));
 }
-.ruta-row-active .ruta-connector-line {
+.ruta-connector-right {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    height: 2px;
+    width: 36px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: 0.45;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(to left, var(--h-glow, rgba(211, 47, 47, 0.45)), var(--h-color, #d32f2f));
+}
+.ruta-row-active .ruta-connector-left,
+.ruta-row-active .ruta-connector-right {
     opacity: 1;
+}
+
+.ruta-badge-chip {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    background: var(--h-soft, rgba(211, 47, 47, 0.12));
+    color: var(--h-color, #d32f2f);
+    border: 1px solid var(--h-border, rgba(211, 47, 47, 0.35));
 }
 
 /* Tarjeta interactiva compacta y pulida */
@@ -115,7 +186,7 @@
 {% set type_colors = {'fundacion': '#d32f2f', 'logro': '#22c55e', 'evento': '#3b82f6', 'investigacion': '#a855f7'} %}
 {% set type_labels = {'fundacion': 'Fundación', 'logro': 'Logro', 'evento': 'Evento', 'investigacion': 'Investigación'} %}
 
-{% macro event_card(ev, color, label, href, anim_class) %}
+{% macro event_card(ev, label, href, anim_class) %}
 <a href="{{ href }}" class="group block w-full ruta-card-wrap {{ anim_class }}" style="max-width: 440px;">
 <article class="museum-card ruta-item-card rounded-xl p-5 md:p-6 w-full cursor-pointer group shadow-lg relative"
          style="border: 1px solid rgba(255, 255, 255, 0.09); background: var(--card, #161614);">
@@ -126,8 +197,7 @@
             <span class="font-serif text-2xl md:text-3xl font-black text-primary-gradient tracking-tight leading-none">
                 {{ ev.year if ev.year else '—' }}
             </span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-mono uppercase tracking-wider font-semibold"
-                  style="background: {{ color }}18; color: {{ color }}; border: 1px solid {{ color }}40">
+            <span class="ruta-badge-chip">
                 {{ label }}
             </span>
         </div>
@@ -164,8 +234,11 @@
              style="background:radial-gradient(circle at 50% 30%, rgba(211,47,47,0.16), transparent 60%)"></div>
         <div class="relative z-10 text-center max-w-3xl animate-fadeInUp py-16">
             <a href="{{ url_for('web.home') }}"
-               class="inline-flex items-center gap-2 text-xs font-mono mb-6 hover:opacity-70 transition-opacity"
-               style="color:var(--muted-foreground)">← Volver al inicio</a>
+               class="museo-back-btn inline-flex mb-6"
+               style="color:var(--secondary-foreground)">
+                <i class="fa-solid fa-arrow-left-long"></i>
+                <span>Volver al inicio</span>
+            </a>
             <div class="text-xs font-mono uppercase tracking-widest mb-2.5" style="color:#d32f2f">
                 <i class="fa-solid fa-timeline mr-1"></i> Cronología Viva · {{ first_year }} — {{ last_year }}
             </div>
@@ -230,35 +303,35 @@
 
         <!-- Vista Móvil (< lg) -->
         <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
-             class="relative ruta-row-mobile items-center gap-4 py-6 pl-3 pr-4">
+             class="relative ruta-row-mobile ruta-type-{{ ev.type }} items-center gap-4 py-6 pl-3 pr-4">
             <div data-row-node class="ruta-node-box relative z-10 shrink-0 flex items-center justify-center" style="width:42px;height:42px">
-                <div class="node-pulse-halo" style="border-color:{{ color }}"></div>
-                <div class="absolute inset-0 rounded-full" style="border:1.5px solid {{ color }}66;background:var(--card, #161614)"></div>
-                <div data-row-dot class="rounded-full z-10" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 12px {{ color }}"></div>
+                <div class="node-pulse-halo"></div>
+                <div class="ruta-node-ring"></div>
+                <div data-row-dot class="ruta-node-dot"></div>
             </div>
-            {{ event_card(ev, color, label, href, 'ruta-card-mobile') }}
+            {{ event_card(ev, label, href, 'ruta-card-mobile') }}
         </div>
 
         <!-- Vista Desktop: Intercalado Izquierda / Derecha Sin Colisión -->
         <div data-ruta-index="{{ loop.index0 }}" data-year="{{ ev.year }}"
-             class="relative ruta-row-desktop items-center py-6"
+             class="relative ruta-row-desktop ruta-type-{{ ev.type }} items-center py-6"
              style="min-height:34vh">
 
             <!-- Lado Izquierdo (50%) -->
             <div class="w-1/2 flex justify-end pr-14 relative">
                 {% if left %}
-                    {{ event_card(ev, color, label, href, 'ruta-card-left') }}
+                    {{ event_card(ev, label, href, 'ruta-card-left') }}
                     <!-- Conector horizontal hacia el centro -->
-                    <div class="ruta-connector-line" style="right: 14px; background: linear-gradient(to right, {{ color }}44, {{ color }});"></div>
+                    <div class="ruta-connector-left"></div>
                 {% endif %}
             </div>
 
             <!-- Nodo Central en la Onda -->
             <div data-row-node class="absolute z-10" style="left:50%;top:50%;transform:translate(-50%,-50%)">
                 <div class="ruta-node-box relative flex items-center justify-center" style="width:42px;height:42px">
-                    <div class="node-pulse-halo" style="border-color:{{ color }}"></div>
-                    <div class="absolute inset-0 rounded-full shadow-md" style="border:2px solid {{ color }}88;background:var(--card, #161614)"></div>
-                    <div data-row-dot class="rounded-full z-10" style="width:12px;height:12px;background:{{ color }};box-shadow:0 0 14px {{ color }};transition:transform .3s"></div>
+                    <div class="node-pulse-halo"></div>
+                    <div class="ruta-node-ring shadow-md"></div>
+                    <div data-row-dot class="ruta-node-dot"></div>
                 </div>
             </div>
 
@@ -266,8 +339,8 @@
             <div class="w-1/2 flex justify-start pl-14 relative">
                 {% if not left %}
                     <!-- Conector horizontal hacia el centro -->
-                    <div class="ruta-connector-line" style="left: 14px; background: linear-gradient(to left, {{ color }}44, {{ color }});"></div>
-                    {{ event_card(ev, color, label, href, 'ruta-card-right') }}
+                    <div class="ruta-connector-right"></div>
+                    {{ event_card(ev, label, href, 'ruta-card-right') }}
                 {% endif %}
             </div>
         </div>

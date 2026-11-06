@@ -19,7 +19,8 @@
       {% from 'components/sidebar.html' import sidebar_for %}
       {{ sidebar_for('admin', current_page, pendientes | length) }}
       <div class="min-w-0">
-        {% from 'components/macros.html' import section_header, status_badge, category_badge %}
+        {% from 'components/macros.html' import section_header, status_badge, category_badge, page_nav %}
+        {{ page_nav([('Panel Admin', url_for('web.admin')), ('Cola de Contenido', '')], back_url=url_for('web.admin'), back_label='Panel Admin') }}
         {{ section_header('Revisión', 'Cola de Contenido', 'Piezas en espera de validación y publicación.') }}
 
         <div class="flex flex-wrap items-center gap-3 mb-2">

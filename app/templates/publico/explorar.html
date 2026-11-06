@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from 'components/macros.html' import content_card, section_header %}
+{% from 'components/macros.html' import content_card, section_header, page_nav %}
 {% block title %}Explorar — UniLibreTour{% endblock %}
 {% block content %}
 {% set cat = request.args.get('cat', '') %}
@@ -18,6 +18,7 @@
 {% endif %}
 
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    {{ page_nav([('Inicio', url_for('web.home')), ('Explorar', '')], back_url=url_for('web.home'), back_label='Inicio') }}
     {{ section_header('Colecciones', 'Descubrir Contenido', 'Navega por las colecciones temáticas del museo.') }}
 
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-8">

@@ -1536,3 +1536,111 @@ label {
 @media (min-width: 1280px) {
     .xl\:text-\[110px\] { font-size: 110px; }
 }
+
+
+/* ============================================================
+   Navegación contextual: page_nav macro — back button + breadcrumbs
+   ============================================================ */
+
+.museo-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+}
+
+/* Botón volver */
+.museo-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px 6px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--secondary-foreground);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+[data-theme='light'] .museo-back-btn {
+    border-color: rgba(0,0,0,0.1);
+}
+.museo-back-btn i {
+    font-size: 0.75rem;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.museo-back-btn:hover {
+    background: rgba(211,47,47,0.08);
+    border-color: rgba(211,47,47,0.35);
+    color: #d32f2f;
+    transform: translateX(-2px);
+}
+.museo-back-btn:hover i {
+    transform: translateX(-3px);
+}
+
+/* Separador vertical entre botón y breadcrumbs */
+.museo-nav-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 12px;
+    flex-shrink: 0;
+}
+[data-theme='light'] .museo-nav-sep {
+    background: rgba(0,0,0,0.12);
+}
+
+/* Breadcrumbs */
+.museo-breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+}
+
+.museo-crumb {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--muted-foreground);
+}
+
+.museo-crumb-link {
+    color: var(--muted-foreground);
+    text-decoration: none;
+    transition: color 0.18s ease;
+    white-space: nowrap;
+}
+.museo-crumb-link:hover {
+    color: #d32f2f;
+}
+
+.museo-crumb-active {
+    color: var(--secondary-foreground);
+    font-weight: 500;
+}
+.museo-crumb-active span {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.museo-crumb-sep {
+    font-size: 0.55rem;
+    opacity: 0.4;
+    flex-shrink: 0;
+}

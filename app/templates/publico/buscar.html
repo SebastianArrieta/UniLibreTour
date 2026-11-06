@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from 'components/macros.html' import content_card, section_header %}
+{% from 'components/macros.html' import content_card, section_header, page_nav %}
 {% block title %}Buscador — UniLibreTour{% endblock %}
 {% block content %}
 {% set visible = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
@@ -7,6 +7,7 @@
 {% set anios = ['2024', '2023', '2022', '2021', '2020', '2019'] %}
 
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    {{ page_nav([('Inicio', url_for('web.home')), ('Buscador', '')], back_url=url_for('web.home'), back_label='Inicio') }}
     {{ section_header('Búsqueda', 'Buscador', 'Encuentra proyectos, investigaciones y eventos del programa.') }}
 
     <div class="museum-card rounded p-5 mb-8 flex flex-col md:flex-row gap-3">

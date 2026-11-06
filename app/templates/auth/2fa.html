@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Verificación en 2 pasos — UniLibreTour{% endblock %}
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center px-4">
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-8">
     <div class="w-full max-w-sm">
+        <div class="mb-4">
+            <a href="{{ url_for('web.login') }}" class="museo-back-btn">
+                <i class="fa-solid fa-arrow-left-long"></i>
+                <span>Volver a iniciar sesión</span>
+            </a>
+        </div>
         <div class="text-center mb-8">
             <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
                  style="background:rgba(211,47,47,0.1);border:2px solid rgba(211,47,47,0.3)"><i class="fa-solid fa-shield-halved" style="color:#d32f2f"></i></div>

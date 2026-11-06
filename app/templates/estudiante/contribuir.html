@@ -2,6 +2,7 @@
 {% block title %}Registrar Contribución — UniLibreTour{% endblock %}
 {% block content %}
 {% from 'components/sidebar.html' import sidebar_for %}
+{% from 'components/macros.html' import page_nav %}
 
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
@@ -11,6 +12,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
     {{ sidebar_for('estudiante', current_page) }}
     <div class="min-w-0">
+      {{ page_nav([('Mi Panel', url_for('web.estudiante')), ('Contribuir', '')], back_url=url_for('web.estudiante'), back_label='Mi Panel') }}
       <div class="mb-8">
         <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Nuevo aporte</div>
         <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Registrar Contribución</h2>

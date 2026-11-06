@@ -12,8 +12,8 @@
       {% from 'components/sidebar.html' import sidebar_for %}
       {{ sidebar_for('admin', sb_active, pendientes | length) }}
       <div class="min-w-0">
-        {% from 'components/macros.html' import status_badge, category_badge %}
-        <a href="{{ url_for('web.admin_cola') }}" class="flex items-center gap-2 text-sm mb-8 btn-outline-primary px-3 py-1.5 rounded">← Volver a la Cola</a>
+        {% from 'components/macros.html' import status_badge, category_badge, page_nav %}
+        {{ page_nav([('Panel Admin', url_for('web.admin')), ('Cola', url_for('web.admin_cola')), ('Validación', '')], back_url=url_for('web.admin_cola'), back_label='Volver a la Cola') }}
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2">

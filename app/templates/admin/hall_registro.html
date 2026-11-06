@@ -10,7 +10,8 @@
       {% from 'components/sidebar.html' import sidebar_for %}
       {{ sidebar_for('admin', sb_active, pendientes | length) }}
       <div class="min-w-0">
-        {% from 'components/macros.html' import section_header %}
+        {% from 'components/macros.html' import section_header, page_nav %}
+        {{ page_nav([('Panel Admin', url_for('web.admin')), ('Destacar Proyecto', '')], back_url=url_for('web.admin'), back_label='Panel Admin') }}
         {{ section_header('Hall de la Fama', 'Destacar Proyecto') }}
 
         <div class="flex items-center gap-2 mb-8">

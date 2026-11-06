@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'components/macros.html' import page_nav %}
 {% block title %}Ranking — UniLibreTour{% endblock %}
 {% block content %}
 {% set role_labels = {'estudiante': 'Estudiante', 'docente': 'Docente', 'egresado': 'Egresado', 'admin': 'Admin', 'visitante': 'Visitante'} %}
@@ -13,6 +14,7 @@
 ] %}
 
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    {{ page_nav([('Inicio', url_for('web.home')), ('Ranking', '')], back_url=url_for('web.home'), back_label='Inicio') }}
     <div class="flex gap-8">
         <div class="flex-1 min-w-0">
             <div class="mb-8">

@@ -12,7 +12,8 @@
       {% from 'components/sidebar.html' import sidebar_for %}
       {{ sidebar_for('admin', current_page, contentQueue | selectattr('status', 'equalto', 'pendiente') | list | length) }}
       <div class="min-w-0">
-        {% from 'components/macros.html' import section_header, status_badge %}
+        {% from 'components/macros.html' import section_header, status_badge, page_nav %}
+        {{ page_nav([('Panel Admin', url_for('web.admin')), ('Registros', '')], back_url=url_for('web.admin'), back_label='Panel Admin') }}
         {{ section_header('Archivo', 'Registros Generales', 'Todo el contenido del museo') }}
 
         <div class="mb-6">

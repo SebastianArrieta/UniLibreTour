@@ -1,18 +1,12 @@
 {% extends "base.html" %}
-{% from 'components/macros.html' import status_badge, category_badge, tag_list %}
+{% from 'components/macros.html' import status_badge, category_badge, tag_list, page_nav %}
 {% block title %}{{ item.title }} — UniLibreTour{% endblock %}
 {% block content %}
 {% set authorUser = users | selectattr('name', 'equalto', item.author) | selectattr('role', 'ne', 'admin') | list | first %}
 {% set related = contentItems | selectattr('category', 'equalto', item.category) | selectattr('id', 'ne', item.id) | list %}
 
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
-    <nav class="flex items-center gap-2 text-sm mb-8 flex-wrap" style="color:var(--muted-foreground)">
-        <a href="{{ url_for('web.home') }}" class="hover:text-primary transition-colors">Inicio</a>
-        <span>/</span>
-        <a href="{{ url_for('web.explorar') }}" class="hover:text-primary transition-colors">Explorar</a>
-        <span>/</span>
-        <span class="truncate" style="color:var(--secondary-foreground)">{{ item.title }}</span>
-    </nav>
+    {{ page_nav([('Inicio', url_for('web.home')), ('Explorar', url_for('web.explorar')), (item.title, '')], back_url=url_for('web.explorar'), back_label='Explorar') }}
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">

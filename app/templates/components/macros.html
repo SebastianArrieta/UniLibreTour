@@ -1,7 +1,54 @@
 {#
     Macros de UI — port de src/components/UI.tsx para render server-side.
-    Uso: {% from 'components/macros.html' import content_card, status_badge, ... %}
+    Uso: {% from 'components/macros.html' import content_card, status_badge, page_nav ... %}
 #}
+
+{#
+    page_nav — Barra de navegación contextual (breadcrumbs + botón volver)
+    Parámetros:
+      crumbs   : lista de tuplas (label, url) — si url es '' no es enlace
+      back_url : URL del botón "← Volver" (opcional, si no se pasa usa JS history.back)
+      back_label: texto del botón volver (default "Volver")
+    Ejemplo:
+      {{ page_nav([('Inicio', url_for('web.home')), ('Explorar', url_for('web.explorar')), ('Detalle', '')]) }}
+#}
+{% macro page_nav(crumbs=[], back_url='', back_label='Volver') %}
+<nav class="museo-page-nav" aria-label="Navegación de página">
+    {# Botón Volver #}
+    {% if back_url %}
+    <a href="{{ back_url }}" class="museo-back-btn" aria-label="{{ back_label }}">
+        <i class="fa-solid fa-arrow-left-long"></i>
+        <span>{{ back_label }}</span>
+    </a>
+    {% else %}
+    <button type="button" class="museo-back-btn" onclick="history.back()" aria-label="{{ back_label }}">
+        <i class="fa-solid fa-arrow-left-long"></i>
+        <span>{{ back_label }}</span>
+    </button>
+    {% endif %}
+
+    {# Separador #}
+    {% if crumbs %}
+    <div class="museo-nav-sep" aria-hidden="true"></div>
+
+    {# Breadcrumbs #}
+    <ol class="museo-breadcrumbs" aria-label="Ruta de navegación">
+        {% for label, url in crumbs %}
+        <li class="museo-crumb{% if loop.last %} museo-crumb-active{% endif %}">
+            {% if url and not loop.last %}
+            <a href="{{ url }}" class="museo-crumb-link">{{ label }}</a>
+            {% else %}
+            <span>{{ label }}</span>
+            {% endif %}
+            {% if not loop.last %}
+            <i class="fa-solid fa-chevron-right museo-crumb-sep" aria-hidden="true"></i>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+    {% endif %}
+</nav>
+{% endmacro %}
 
 {% macro status_badge(status) %}
 {%- set cfg = {'publicado': ('Publicado', '#22c55e'), 'pendiente': ('En Revisión', '#f97316'),
