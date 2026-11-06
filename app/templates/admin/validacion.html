@@ -128,14 +128,26 @@ window.__DATOS = {{ datos | tojson }};
   }
   window.toast = toast;
 
-  document.getElementById('btn-aprobar').addEventListener('click', function () {
-    if (CONFIRM_HREF) {
-      toast('Contenido aprobado. Redirigiendo a confirmación…');
-      setTimeout(function () { location.href = CONFIRM_HREF; }, 900);
-    } else {
-      toast('Contenido aprobado (vista de confirmación no disponible para este ítem).');
-      setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+  function validar(payload) {
+    if (!window.Museo || !Museo.isAuthenticated()) {
+      return Promise.reject(new Error('Inicia sesión como administrador para validar contenido.'));
     }
+    return Museo.apiJson('/api/admin/contenidos/' + encodeURIComponent(ITEM_ID) + '/validar',
+      'PUT', payload, Museo.getToken());
+  }
+
+  document.getElementById('btn-aprobar').addEventListener('click', function () {
+    var button = this;
+    button.disabled = true;
+    validar({ accion: 'aprobar' })
+      .then(function () {
+        toast('Contenido aprobado. Redirigiendo a confirmación…');
+        setTimeout(function () { location.href = CONFIRM_HREF || '/admin/cola'; }, 900);
+      })
+      .catch(function (err) {
+        toast(err.message || 'No fue posible aprobar el contenido', 'err');
+      })
+      .finally(function () { button.disabled = false; });
   });
 
   var form = document.getElementById('devolver-form');
@@ -153,13 +165,31 @@ window.__DATOS = {{ datos | tojson }};
 
   document.getElementById('btn-devolver-confirmar').addEventListener('click', function () {
     if (!note.value.trim()) { toast('Escribe una observación antes de devolver', 'err'); return; }
-    toast('Pieza devuelta con observaciones. El autor recibirá una notificación.');
-    setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+    var button = this;
+    button.disabled = true;
+    validar({ accion: 'devolver', nota: note.value.trim() })
+      .then(function () {
+        toast('Pieza devuelta con observaciones. El autor recibirá una notificación.');
+        setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+      })
+      .catch(function (err) {
+        toast(err.message || 'No fue posible devolver la pieza', 'err');
+      })
+      .finally(function () { button.disabled = false; });
   });
 
   document.getElementById('btn-institucional').addEventListener('click', function () {
-    toast('Marcada como pieza institucional.');
-    setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+    var button = this;
+    button.disabled = true;
+    validar({ accion: 'institucional' })
+      .then(function () {
+        toast('Marcada como pieza institucional.');
+        setTimeout(function () { location.href = '/admin/cola'; }, 1300);
+      })
+      .catch(function (err) {
+        toast(err.message || 'No fue posible marcar la pieza', 'err');
+      })
+      .finally(function () { button.disabled = false; });
   });
 })();
 </script>

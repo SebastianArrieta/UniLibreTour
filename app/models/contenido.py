@@ -79,7 +79,6 @@ class Contenido(db.Model):
     creador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[creador_id], back_populates=None)
     validador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[validado_por], back_populates=None)
     etiquetas: Mapped[list["Etiqueta"]] = relationship("Etiqueta", secondary="contenido_etiquetas")
-    favoritos: Mapped[list["Favorito"]] = relationship("Favorito", back_populates="contenido")
 
     def to_dict(self) -> dict:
         return {
@@ -98,23 +97,4 @@ class Contenido(db.Model):
             "coleccion_id": self.coleccion_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
-
-class Favorito(db.Model):
-    __tablename__ = "favoritos"
-
-    usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios.id"), primary_key=True)
-    contenido_id: Mapped[int] = mapped_column(Integer, ForeignKey("contenidos.id"), primary_key=True)
-    fecha: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-
-    # Relationships
-    usuario: Mapped["Usuario"] = relationship("Usuario", back_populates="favoritos")
-    contenido: Mapped["Contenido"] = relationship("Contenido", back_populates="favoritos")
-
-    def to_dict(self) -> dict:
-        return {
-            "usuario_id": self.usuario_id,
-            "contenido_id": self.contenido_id,
-            "fecha": self.fecha.isoformat() if self.fecha else None,
         }

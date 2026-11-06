@@ -52,36 +52,6 @@ CREATE TABLE IF NOT EXISTS notificaciones (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS comentarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NOT NULL,
-    entidad_tipo VARCHAR(50) NOT NULL,
-    entidad_id INT NOT NULL,
-    texto TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS reacciones (
-    usuario_id INT NOT NULL,
-    entidad_tipo VARCHAR(50) NOT NULL,
-    entidad_id INT NOT NULL,
-    tipo VARCHAR(30) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (usuario_id, entidad_tipo, entidad_id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS evidencias (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    entidad_tipo VARCHAR(50) NOT NULL,
-    entidad_id INT NOT NULL,
-    tipo_archivo VARCHAR(50),
-    url VARCHAR(500) NOT NULL,
-    descripcion VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS colecciones (
     id INT AUTO_INCREMENT PRIMARY KEY,
     slug VARCHAR(100) UNIQUE,
@@ -125,15 +95,6 @@ CREATE TABLE IF NOT EXISTS contenido_etiquetas (
     FOREIGN KEY (etiqueta_id) REFERENCES etiquetas(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS favoritos (
-    usuario_id INT NOT NULL,
-    contenido_id INT NOT NULL,
-    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (usuario_id, contenido_id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
-    FOREIGN KEY (contenido_id) REFERENCES contenidos(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE IF NOT EXISTS insignias (
     id INT AUTO_INCREMENT PRIMARY KEY,
     slug VARCHAR(100) UNIQUE,
@@ -149,36 +110,6 @@ CREATE TABLE IF NOT EXISTS usuarios_insignias (
     PRIMARY KEY (usuario_id, insignia_id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (insignia_id) REFERENCES insignias(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS proyectos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(200) NOT NULL,
-    anio INT,
-    linea_investigacion VARCHAR(200),
-    docente_id INT,
-    descripcion TEXT,
-    tecnologias TEXT,
-    resultados_impacto TEXT,
-    estado VARCHAR(20) DEFAULT 'borrador' NOT NULL,
-    observaciones TEXT,
-    validado_por INT,
-    fecha_validacion DATETIME,
-    creador_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (docente_id) REFERENCES usuarios(id),
-    FOREIGN KEY (validado_por) REFERENCES usuarios(id),
-    FOREIGN KEY (creador_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS proyecto_integrantes (
-    proyecto_id INT NOT NULL,
-    usuario_id INT NOT NULL,
-    rol_en_proyecto VARCHAR(100),
-    PRIMARY KEY (proyecto_id, usuario_id),
-    FOREIGN KEY (proyecto_id) REFERENCES proyectos(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS premios (
@@ -198,14 +129,6 @@ CREATE TABLE IF NOT EXISTS premios (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (validado_por) REFERENCES usuarios(id),
     FOREIGN KEY (creador_id) REFERENCES usuarios(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS premio_participantes (
-    premio_id INT NOT NULL,
-    usuario_id INT NOT NULL,
-    PRIMARY KEY (premio_id, usuario_id),
-    FOREIGN KEY (premio_id) REFERENCES premios(id),
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS cronologia_hitos (

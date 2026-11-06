@@ -12,8 +12,6 @@ MESES_LARGO = [
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ]
 
-DAY_SUFFIX = ""
-
 def _parse_fecha(value):
     if isinstance(value, datetime):
         return value

@@ -24,17 +24,26 @@ UniLibreTour/
 │   ├── config.py            # Configuración por entorno (dev/prod/test)
 │   ├── extensions.py        # Instancias compartidas (db, jwt)
 │   ├── controllers/         # Capa de presentación (blueprints Flask)
-│   │   ├── auth.py          #   POST /api/auth/login
+│   │   ├── admin.py         #   Altas y validación /api/admin
+│   │   ├── auth.py          #   /api/auth/*
 │   │   ├── health.py        #   GET  /api/health
+│   │   ├── museo.py         #   Lectura /api/museo/*
+│   │   ├── notificaciones.py #  /api/notificaciones
 │   │   ├── usuarios.py      #   CRUD /api/usuarios
-│   │   └── views.py         #   Páginas Jinja2 (/, /usuarios)
+│   │   └── web.py           #   Páginas Jinja2
 │   ├── models/              # Modelos SQLAlchemy
-│   │   └── usuario.py       #   Tabla `usuarios`
 │   ├── schemas/             # Schemas Marshmallow (validación/serialización)
+│   │   ├── admin.py
 │   │   ├── auth.py
+│   │   ├── contenido.py
 │   │   └── usuario.py
-│   ├── services/            # Lógica de negocio (incluye seeds de usuarios)
+│   ├── services/            # Lógica de negocio (incluye seeds)
+│   │   ├── admin.py
 │   │   ├── auth.py
+│   │   ├── contenido.py
+│   │   ├── museo.py
+│   │   ├── notificacion.py
+│   │   ├── seed_demo.py
 │   │   └── usuario.py
 │   ├── middleware/          # Decoradores de autorización
 │   │   └── auth.py          #   role_required(*roles)
@@ -47,9 +56,12 @@ UniLibreTour/
 │   │   └── images/
 │   └── templates/           # Plantillas Jinja2
 │       ├── base.html
-│       ├── index.html
-│       ├── usuarios.html
-│       └── components/navbar.html
+│       ├── publico/
+│       ├── auth/
+│       ├── estudiante/
+│       ├── docente/
+│       ├── admin/
+│       └── components/
 ├── database/
 │   └── init/01_schema.sql   # Esquema de referencia (SQLAlchemy crea las tablas)
 ├── docker-compose.yml       # MySQL 8.0 + servidor Flask

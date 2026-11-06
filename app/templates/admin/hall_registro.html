@@ -197,10 +197,42 @@ window.__DATOS = {{ datos | tojson }};
     if (missing.length) { toast('El campo "' + missing[0] + '" es obligatorio.', 'err'); return; }
     var year = Number(fd.get('year'));
     if (!Number.isInteger(year) || year < 1900 || year > 2100) { toast('El año debe estar entre 1900 y 2100.', 'err'); return; }
-    preview.innerHTML = hallCardHTML(readMember());
-    document.getElementById('hall-ok').classList.remove('hidden');
-    document.getElementById('hall-ok').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    toast('Miembro registrado en el Hall de la Fama');
+    if (!window.Museo || !Museo.isAuthenticated()) {
+      toast('Inicia sesión como administrador para registrar en el Hall.', 'err');
+      return;
+    }
+
+    var payload = {
+      name: (fd.get('name') || '').trim(),
+      title: (fd.get('title') || '').trim(),
+      year: year,
+      category: fd.get('category'),
+      achievement: (fd.get('achievement') || '').trim(),
+      bio: (fd.get('bio') || '').trim() || null,
+      image: (fd.get('image') || '').trim() || null,
+      badges: fd.getAll('badges')
+    };
+    var button = form.querySelector('button[type="submit"]');
+    var original = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Registrando…';
+
+    Museo.apiJson('/api/admin/hall', 'POST', payload, Museo.getToken())
+      .then(function () {
+        preview.innerHTML = hallCardHTML(readMember());
+        form.reset();
+        renderPreview();
+        document.getElementById('hall-ok').classList.remove('hidden');
+        document.getElementById('hall-ok').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast('Miembro registrado en el Hall de la Fama');
+      })
+      .catch(function (err) {
+        toast(err.message || 'No fue posible registrar al miembro.', 'err');
+      })
+      .finally(function () {
+        button.disabled = false;
+        button.innerHTML = original;
+      });
   });
 
   renderPreview();

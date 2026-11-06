@@ -92,6 +92,55 @@
           </div>
         </div>
 
+        <!-- Modal Editar Usuario -->
+        <div id="modal-editar-usuario" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" style="background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);">
+          <div class="museum-card w-full max-w-md rounded-xl p-6 relative shadow-2xl border" style="border-color:rgba(211,47,47,0.3)">
+            <div class="flex items-center justify-between mb-4 border-b pb-3" style="border-color:rgba(255,255,255,0.08)">
+              <h3 class="font-serif text-lg font-bold flex items-center gap-2" style="color:var(--foreground)">
+                <i class="fa-solid fa-user-pen" style="color:#d32f2f"></i> Editar Usuario
+              </h3>
+              <button type="button" id="btn-close-edit-modal" class="text-sm px-2 py-1 rounded hover:opacity-80" style="color:var(--muted-foreground)">
+                <i class="fa-solid fa-xmark text-lg"></i>
+              </button>
+            </div>
+            <form id="editUserForm" class="flex flex-col gap-4">
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Nombre completo</label>
+                <input id="edit-nombre" type="text" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" required>
+              </div>
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Correo institucional</label>
+                <input id="edit-email" type="email" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" required>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Rol</label>
+                  <select id="edit-rol" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" required>
+                    <option value="estudiante" style="background:var(--card)">Estudiante</option>
+                    <option value="docente" style="background:var(--card)">Docente</option>
+                    <option value="egresado" style="background:var(--card)">Egresado</option>
+                    <option value="admin" style="background:var(--card)">Administrador</option>
+                    <option value="visitante" style="background:var(--card)">Visitante</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Estado</label>
+                  <select id="edit-estado" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" required>
+                    <option value="activo" style="background:var(--card)">Activo</option>
+                    <option value="pendiente" style="background:var(--card)">Pendiente</option>
+                    <option value="inactivo" style="background:var(--card)">Inactivo</option>
+                  </select>
+                </div>
+              </div>
+              <div id="edit-user-error" class="text-xs px-3 py-2 rounded hidden" style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+              <div class="flex justify-end gap-2.5 mt-2">
+                <button type="button" id="btn-cancel-edit-modal" class="btn-outline-primary px-4 py-2 rounded text-xs">Cancelar</button>
+                <button type="submit" id="btn-save-edit-user" class="btn-primary px-5 py-2 rounded text-xs font-semibold">Guardar cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <div class="museum-card rounded overflow-hidden">
           <div class="overflow-x-auto">
             <table class="museum-table w-full text-sm">
@@ -109,7 +158,9 @@
               </thead>
               <tbody id="users-tbody">
                 {% for u in users %}
-                <tr data-name="{{ u.name | lower }} {{ u.email | lower }}" data-role="{{ u.role }}" class="transition-colors hover:opacity-80">
+                <tr data-name="{{ u.name | lower }} {{ u.email | lower }}" data-role="{{ u.role }}"
+                    data-user-id="{{ u.id }}" data-user-name="{{ u.name }}" data-user-email="{{ u.email }}"
+                    data-user-role="{{ u.role }}" data-user-status="{{ u.status }}" class="transition-colors hover:opacity-80">
                   <td>
                     <div class="flex items-center gap-2.5">
                       <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
@@ -132,9 +183,9 @@
                   <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ (u.badgeIds or []) | length }}</td>
                   <td>
                     <div class="flex gap-1.5">
-                      <button type="button" class="text-xs px-2.5 py-1 rounded btn-outline-primary" onclick="toastUsr('Edición de usuario simulada')">Editar</button>
+                      <button type="button" class="text-xs px-2.5 py-1 rounded btn-outline-primary" onclick="editarUsuario(this.closest('tr'))">Editar</button>
                       {% if u.status == 'pendiente' %}
-                      <button type="button" class="text-xs px-2.5 py-1 rounded" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.25)" onclick="toastUsr('Usuario aprobado')">Aprobar</button>
+                      <button type="button" class="text-xs px-2.5 py-1 rounded" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.25)" onclick="aprobarUsuario(this.closest('tr'))">Aprobar</button>
                       {% endif %}
                     </div>
                   </td>
@@ -157,16 +208,88 @@
 {% block extra_js %}
 <script>
 (function () {
-  function toastUsr(msg) {
+  function toastUsr(msg, isError) {
     var box = document.createElement('div');
     box.textContent = msg;
-    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:rgba(34,197,94,0.95);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
+    box.style.cssText = 'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:' + (isError ? 'rgba(239,68,68,0.95)' : 'rgba(34,197,94,0.95)') + ';color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-family:var(--font-mono);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;opacity:0;transition:opacity .25s';
     document.body.appendChild(box);
     requestAnimationFrame(function () { box.style.opacity = '1'; });
     setTimeout(function () { box.style.opacity = '0'; }, 2200);
     setTimeout(function () { box.remove(); }, 2700);
   }
   window.toastUsr = toastUsr;
+
+  function requireAdmin() {
+    if (!window.Museo || !Museo.isAuthenticated()) {
+      toastUsr('Inicia sesión como administrador para gestionar usuarios.', true);
+      return false;
+    }
+    return true;
+  }
+
+  var editRow = null;
+  var editModal = document.getElementById('modal-editar-usuario');
+  var editError = document.getElementById('edit-user-error');
+
+  function hideEditModal() {
+    editModal.classList.add('hidden');
+    editModal.style.display = 'none';
+    editRow = null;
+  }
+
+  window.editarUsuario = function (tr) {
+    if (!tr) return;
+    if (!requireAdmin()) return;
+    editRow = tr;
+    document.getElementById('edit-nombre').value = tr.getAttribute('data-user-name') || '';
+    document.getElementById('edit-email').value = tr.getAttribute('data-user-email') || '';
+    document.getElementById('edit-rol').value = tr.getAttribute('data-user-role') || 'estudiante';
+    document.getElementById('edit-estado').value = tr.getAttribute('data-user-status') || 'activo';
+    editError.classList.add('hidden');
+    editModal.classList.remove('hidden');
+    editModal.style.display = 'flex';
+  };
+
+  window.aprobarUsuario = function (tr) {
+    if (!tr) return;
+    if (!requireAdmin()) return;
+    var id = tr.getAttribute('data-user-id');
+    Museo.apiJson('/api/admin/usuarios/' + encodeURIComponent(id) + '/aprobar', 'PUT', {}, Museo.getToken())
+      .then(function () {
+        toastUsr('Usuario aprobado');
+        setTimeout(function () { location.reload(); }, 600);
+      })
+      .catch(function (err) { toastUsr(err.message || 'No fue posible aprobar el usuario', true); });
+  };
+
+  document.getElementById('btn-close-edit-modal').addEventListener('click', hideEditModal);
+  document.getElementById('btn-cancel-edit-modal').addEventListener('click', hideEditModal);
+  editModal.addEventListener('click', function (e) { if (e.target === editModal) hideEditModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideEditModal(); });
+
+  document.getElementById('editUserForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!editRow || !requireAdmin()) return;
+    var id = editRow.getAttribute('data-user-id');
+    var button = document.getElementById('btn-save-edit-user');
+    button.disabled = true;
+    editError.classList.add('hidden');
+    Museo.apiJson('/api/admin/usuarios/' + encodeURIComponent(id), 'PUT', {
+      nombre: document.getElementById('edit-nombre').value.trim(),
+      email: document.getElementById('edit-email').value.trim(),
+      rol: document.getElementById('edit-rol').value,
+      estado: document.getElementById('edit-estado').value
+    }, Museo.getToken())
+      .then(function () {
+        toastUsr('Usuario actualizado');
+        setTimeout(function () { location.reload(); }, 600);
+      })
+      .catch(function (err) {
+        editError.textContent = err.message || 'No fue posible actualizar el usuario';
+        editError.classList.remove('hidden');
+      })
+      .finally(function () { button.disabled = false; });
+  });
 
   var search = document.getElementById('user-search');
   var role = document.getElementById('user-role');

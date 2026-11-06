@@ -140,7 +140,7 @@
         if (!force && _data) return Promise.resolve(_data);
         if (_fetching) return _fetching;
         _fetching = fetch(DATA_ENDPOINT, { headers: { Accept: 'application/json' } })
-            .then(function (r) { if (!r.ok) throw new Error('demo-data ' + r.status); return r.json(); })
+            .then(function (r) { if (!r.ok) throw new Error('museo-data ' + r.status); return r.json(); })
             .then(function (json) {
                 _data = json;
                 try { localStorage.setItem(KEYS.DATA, JSON.stringify(json)); } catch (e) { /* noop */ }

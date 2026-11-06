@@ -39,5 +39,5 @@ Thumbs.db
 mysql_data/
 
 #GIt
-.gir/
+.git/
 .gitignore

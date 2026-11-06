@@ -9,7 +9,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from flask import Blueprint, abort, jsonify, render_template
+from flask import Blueprint, abort, render_template
 
 from app.services import museo
 
@@ -40,7 +40,6 @@ def _ctx(page: str, **extra) -> dict:
     base = {
         "current_page": page,
         "datos": d,
-        "collection_count": len(d.get("collections", [])),
         "contentItems": d.get("contentItems", []),
         "contentQueue": d.get("contentQueue", []),
         "news": d.get("news", []),
@@ -54,7 +53,6 @@ def _ctx(page: str, **extra) -> dict:
         "researchGroups": d.get("researchGroups", []),
         "achievements": d.get("achievements", []),
         "teacherOptions": d.get("teacherOptions", []),
-        "demoAccounts": d.get("demoAccounts", []),
         "pointsPerLevel": d.get("pointsPerLevel", 500),
         "maxLevel": d.get("maxLevel", 20),
     }
@@ -67,15 +65,6 @@ def _item(cid: str) -> dict:
         if str(item.get("id")) == str(cid):
             return item
     abort(404)
-
-
-# -----------------------------------------------------------------------------
-# Endpoints de datos
-# -----------------------------------------------------------------------------
-@web_bp.get("/api/demo-data")
-@web_bp.get("/api/museo-data")
-def demo_data_endpoint():
-    return jsonify(dataset_actual())
 
 
 # -----------------------------------------------------------------------------

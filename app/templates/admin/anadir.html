@@ -223,6 +223,14 @@ window.__DATOS = {{ datos | tojson }};
 (function () {
   var TABS = ['timeline', 'premio', 'proyecto', 'hall', 'evento', 'noticias'];
   var TAB_LABEL = { timeline: 'Línea de Tiempo', premio: 'Premios y Reconocimientos', proyecto: 'Proyectos Destacados', hall: 'Hall de la Fama', evento: 'Eventos del Calendario', noticias: 'Noticias' };
+  var ENDPOINTS = {
+    timeline: '/api/admin/hitos',
+    premio: '/api/admin/premios',
+    proyecto: '/api/admin/proyectos',
+    hall: '/api/admin/hall',
+    evento: '/api/admin/eventos',
+    noticias: '/api/admin/noticias'
+  };
   var PLACEHOLDER = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop&auto=format';
   var PERSON_PLACEHOLDER = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format';
   var activeTab = 'timeline';
@@ -341,10 +349,7 @@ window.__DATOS = {{ datos | tojson }};
       if (!data.get(el.name) || !String(data.get(el.name)).trim()) missing.push(el.name);
     });
     if (missing.length) { showError('El campo "' + missing[0] + '" es obligatorio.'); return false; }
-    if (activeTab === 'timeline') {
-      if (!mediaFiles.length) { showError('Debes adjuntar al menos una evidencia multimedia.'); return false; }
-      if (!data.get('type')) { showError('El campo "Tipo" es obligatorio.'); return false; }
-    }
+    if (activeTab === 'timeline' && !data.get('type')) { showError('El campo "Tipo" es obligatorio.'); return false; }
     if (activeTab === 'proyecto' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
     if (activeTab === 'hall' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
     if (activeTab === 'evento' && !data.get('type')) { showError('El campo "Tipo" es obligatorio.'); return false; }
@@ -362,39 +367,128 @@ window.__DATOS = {{ datos | tojson }};
     }).join('');
   }
 
+  function tagsOf(value) {
+    return (value || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+  }
+
+  function payloadFor(tab, data) {
+    if (tab === 'timeline') {
+      return {
+        year: Number(data.get('year')),
+        type: data.get('type'),
+        title: (data.get('title') || '').trim(),
+        description: (data.get('description') || '').trim(),
+        media: mediaFiles.slice()
+      };
+    }
+    if (tab === 'premio') {
+      return {
+        year: Number(data.get('year')),
+        category: data.get('category') || 'premio',
+        title: (data.get('title') || '').trim(),
+        institution: (data.get('institution') || '').trim(),
+        description: (data.get('description') || '').trim(),
+        image: (data.get('image') || '').trim() || null
+      };
+    }
+    if (tab === 'proyecto') {
+      return {
+        title: (data.get('title') || '').trim(),
+        author: (data.get('author') || '').trim(),
+        date: data.get('date') || todayISO(),
+        category: data.get('category'),
+        description: (data.get('description') || '').trim(),
+        tags: tagsOf(data.get('tags')),
+        image: (data.get('image') || '').trim() || null,
+        featured: !!data.get('featured')
+      };
+    }
+    if (tab === 'hall') {
+      return {
+        name: (data.get('name') || '').trim(),
+        title: (data.get('title') || '').trim(),
+        year: Number(data.get('year')),
+        category: data.get('category'),
+        achievement: (data.get('achievement') || '').trim(),
+        bio: (data.get('bio') || '').trim() || null,
+        image: (data.get('image') || '').trim() || null,
+        badges: data.getAll('badges')
+      };
+    }
+    if (tab === 'evento') {
+      return {
+        title: (data.get('title') || '').trim(),
+        date: data.get('date'),
+        time: data.get('time'),
+        type: data.get('type'),
+        location: (data.get('location') || '').trim(),
+        description: (data.get('description') || '').trim() || null
+      };
+    }
+    return {
+      title: (data.get('title') || '').trim(),
+      category: data.get('category'),
+      date: data.get('date'),
+      excerpt: (data.get('excerpt') || '').trim(),
+      image: (data.get('image') || '').trim() || null
+    };
+  }
+
   function onPublish(e) {
     e.preventDefault();
     clearError();
     if (!validate()) return;
-    var data = fd();
-    if (activeTab === 'hall') {
-      data.set('name', data.get('name').trim());
-      data.set('title', data.get('title').trim());
-      data.set('year', Number(data.get('year')));
-      data.set('achievement', data.get('achievement').trim());
-      data.set('category', data.get('category'));
-      data.set('image', (data.get('image') || '').trim() || PERSON_PLACEHOLDER);
-      data.set('bio', (data.get('bio') || '').trim());
-      addPublished({ hall: { name: data.get('name'), title: data.get('title'), year: data.get('year'), achievement: data.get('achievement'), category: data.get('category'), image: data.get('image'), bio: data.get('bio') } });
-    } else {
-      seq += 1;
-      addPublished({ content: {
-        id: 'sess-' + seq,
-        title: data.get('title').trim(),
-        category: activeTab === 'noticias' ? 'historia' : categoryForPreview(),
-        author: (activeTab === 'proyecto' ? data.get('author') : data.get('institution') || data.get('name')) || 'Autor',
-        date: data.get('date') || data.get('year') || todayISO(),
-        description: (data.get('description') || data.get('excerpt') || '').trim(),
-        image: (data.get('image') || '').trim() || PLACEHOLDER,
-        tags: (data.get('tags') || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean),
-        featured: !!(data.get('featured'))
-      } });
+    if (!window.Museo || !Museo.isAuthenticated()) {
+      showError('Inicia sesión como administrador para publicar en el museo.');
+      return;
     }
-    toast(TAB_LABEL[activeTab] + ': registro publicado');
-    activePanel().reset();
-    mediaFiles = [];
-    renderMedia();
-    renderPreview();
+
+    var data = fd();
+    var payload = payloadFor(activeTab, data);
+    var button = document.querySelector('#anadir-form button[type="submit"]');
+    var original = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Publicando…';
+
+    Museo.apiJson(ENDPOINTS[activeTab], 'POST', payload, Museo.getToken())
+      .then(function () {
+        if (activeTab === 'hall') {
+          addPublished({ hall: {
+            name: payload.name,
+            title: payload.title,
+            year: payload.year,
+            achievement: payload.achievement,
+            category: payload.category,
+            image: payload.image || PERSON_PLACEHOLDER,
+            bio: payload.bio
+          } });
+        } else {
+          seq += 1;
+          addPublished({ content: {
+            id: 'sess-' + seq,
+            title: payload.title,
+            category: activeTab === 'noticias' ? 'historia' : (payload.category || categoryForPreview()),
+            author: payload.author || payload.institution || payload.name || 'Autor',
+            date: payload.date || payload.year || todayISO(),
+            description: payload.description || payload.excerpt || '',
+            image: payload.image || PLACEHOLDER,
+            tags: payload.tags || [],
+            featured: !!payload.featured
+          } });
+        }
+        toast(TAB_LABEL[activeTab] + ': registro publicado');
+        activePanel().reset();
+        mediaFiles = [];
+        renderMedia();
+        renderPreview();
+      })
+      .catch(function (err) {
+        showError(err.message || 'No fue posible publicar el registro.');
+      })
+      .finally(function () {
+        button.disabled = false;
+        button.innerHTML = original;
+      });
   }
 
   document.getElementById('anadir-nav').addEventListener('click', function (e) {
