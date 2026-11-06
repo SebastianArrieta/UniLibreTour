@@ -53,9 +53,10 @@ def create_app(config_name: str | None = None) -> Flask:
 
     register_blueprints(app)
 
-    if app.config.get("SEED_DEMO", True):
-        with app.app_context():
-            db.create_all()
+    with app.app_context():
+        db.create_all()
+        _migrar_columnas_faltantes()
+        if app.config.get("SEED_DEMO", True):
             from app.services.usuario import seed_usuarios
             from app.services.seed_demo import seed_desde_demo
 
@@ -65,8 +66,23 @@ def create_app(config_name: str | None = None) -> Flask:
             except Exception as exc:  # no bloquear el arranque; las vistas tienen fallback
                 db.session.rollback()
                 print(f"[seed] omitido (esquema desactualizado?): {exc}")
-    else:
-        with app.app_context():
-            db.create_all()
 
     return app
+
+
+def _migrar_columnas_faltantes() -> None:
+    """Parche idempotente de columnas nuevas (el proyecto no usa Alembic y
+    ``db.create_all()`` no altera tablas existentes)."""
+    from sqlalchemy import inspect, text
+
+    try:
+        inspector = inspect(db.engine)
+        if "cronologia_hitos" not in inspector.get_table_names():
+            return
+        columnas = {c["name"] for c in inspector.get_columns("cronologia_hitos")}
+        if "media" not in columnas:
+            with db.engine.begin() as conn:
+                conn.execute(text("ALTER TABLE cronologia_hitos ADD COLUMN media TEXT"))
+            print("[schema] columna cronologia_hitos.media agregada")
+    except Exception as exc:  # nunca bloquear el arranque por una migración
+        print(f"[schema] no se pudo verificar/agregar media: {exc}")
