@@ -53,3 +53,16 @@ class Premio(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+
+class PremioParticipante(db.Model):
+    __tablename__ = "premios_participantes"
+
+    premio_id: Mapped[int] = mapped_column(Integer, ForeignKey("premios.id"), primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios.id"), primary_key=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "premio_id": self.premio_id,
+            "usuario_id": self.usuario_id,
+        }
