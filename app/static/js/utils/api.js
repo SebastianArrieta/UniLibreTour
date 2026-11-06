@@ -49,7 +49,7 @@
             headers: headers,
         };
 
-        if (body && ['POST', 'PUT', 'PATCH'].includes(options.method)) {
+        if (body && ['POST', 'PUT'].includes(options.method)) {
             options.body = JSON.stringify(body);
         }
 

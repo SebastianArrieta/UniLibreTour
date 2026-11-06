@@ -41,7 +41,6 @@
         ROLE: 'museo-rol',
         FAVS: 'museo-favs',
         DATA: 'museo-datos-v2',
-        PERFIL: 'museo-perfil',
         TOKEN: 'museo-token',
         USUARIO: 'museo-usuario',
         PEND_TOKEN: 'museo-pending-token',
@@ -164,11 +163,9 @@
 
     function getUserPorRol() {
         return loadData().then(function (d) {
-            var emails = USER_EMAIL;
-            var u = (d.users || []).find(function (x) {
-                return x.email === emails[Museo.role] || x.email === USER_EMAIL[Museo.role];
+            return (d.users || []).find(function (x) {
+                return x.email === USER_EMAIL[Museo.role];
             });
-            return u;
         });
     }
 
@@ -246,7 +243,6 @@
         function limpiarYRedirigir() {
             lsRemove(KEYS.ROLE);
             lsRemove(KEYS.FAVS);
-            lsRemove(KEYS.PERFIL);
             lsRemove(KEYS.TOKEN);
             lsRemove(KEYS.USUARIO);
             lsRemove(KEYS.PEND_TOKEN);
@@ -609,7 +605,7 @@
         completarInicioSesion: completarInicioSesion,
         registrarse: registrarse,
         crearContenido: crearContenido,
-        theme: getTheme(),
+        getTheme: getTheme,
         setTheme: setTheme,
         toggleTheme: toggleTheme,
         getFavs: getFavs,
