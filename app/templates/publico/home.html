@@ -16,7 +16,7 @@
 {% set decades = tl_ns.groups.keys() | list | sort %}
 {% set eventos_home = contentItems | selectattr('category', 'equalto', 'eventos') | list %}
 
-<section class="relative min-h-[82vh] flex items-center overflow-hidden">
+<section id="sec-hero" class="relative min-h-[82vh] flex items-center overflow-hidden scroll-mt-24">
     <div class="absolute inset-0 z-0">
         <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=1400&h=900&fit=crop&auto=format" alt="Campus universitario" class="w-full h-full object-cover opacity-20">
         <div class="hero-overlay absolute inset-0"></div>
@@ -97,7 +97,7 @@
     </div>
 </section>
 
-<section class="max-w-7xl mx-auto px-4 md:px-8 pt-16">
+<section id="sec-noticias" class="max-w-7xl mx-auto px-4 md:px-8 pt-16 scroll-mt-24">
     <div class="flex items-end justify-between mb-4 flex-wrap gap-3">
         <div>
             <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Mantente informado</div>
@@ -133,7 +133,7 @@
     </div>
 </section>
 
-<section id="colecciones" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
+<section id="sec-colecciones" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
     {{ section_header('Archivo', 'Colecciones', 'Seis colecciones temáticas que documentan la trayectoria del programa.') }}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for col in collections %}
@@ -157,7 +157,7 @@
 
 <hr class="section-divider max-w-7xl mx-auto" style="width:calc(100% - 4rem)">
 
-<section id="logros" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
+<section id="sec-logros" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
     {{ section_header('Premios', 'Logros Destacados', 'Reconocimientos que avalan la excelencia del programa.') }}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         {% for ach in achievements[:3] %}
@@ -178,7 +178,7 @@
 
 <hr class="section-divider max-w-7xl mx-auto" style="width:calc(100% - 4rem)">
 
-<section class="max-w-7xl mx-auto px-4 md:px-8 py-12">
+<section id="sec-comunidad" class="max-w-7xl mx-auto px-4 md:px-8 py-12 scroll-mt-24">
     {{ section_header('Comunidad', 'Investigación y Eventos', 'La actividad académica que mantiene vivo el programa.') }}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
@@ -227,7 +227,7 @@
 
 <hr class="section-divider max-w-7xl mx-auto" style="width:calc(100% - 4rem)">
 
-<section class="py-16">
+<section id="sec-cifras" class="py-16 scroll-mt-24">
     <div class="max-w-5xl mx-auto px-4 md:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {% for s in [{'label': 'Piezas en el Archivo', 'value': '1.353'}, {'label': 'Años de Historia', 'value': '50'}, {'label': 'Egresados Destacados', 'value': '2.400+'}, {'label': 'Proyectos Laureados', 'value': '84'}] %}
@@ -239,6 +239,43 @@
         </div>
     </div>
 </section>
+
+<!-- Barra Vertical de Orientación Minimalista (Quick-Nav Dock) -->
+<nav id="home-nav-dock" class="home-nav-dock hidden lg:flex" aria-label="Navegación rápida de secciones">
+    <div class="dock-spine">
+        <div id="dock-spine-fill" class="dock-spine-fill"></div>
+    </div>
+    <div id="dock-indicator" class="dock-indicator"></div>
+    <div class="dock-items">
+        {% set nav_sections = [
+            {'id': 'sec-hero', 'num': '01', 'cat': 'Inicio', 'title': 'Herencia Digital', 'desc': '50 Años · Archivo vivo y cronología rápida', 'icon': 'fa-solid fa-landmark'},
+            {'id': 'sec-noticias', 'num': '02', 'cat': 'Actualidad', 'title': 'Noticias del Programa', 'desc': 'Novedades, anuncios y boletines oficiales', 'icon': 'fa-solid fa-newspaper'},
+            {'id': 'sec-colecciones', 'num': '03', 'cat': 'Archivo', 'title': 'Colecciones', 'desc': '6 colecciones temáticas del museo', 'icon': 'fa-solid fa-layer-group'},
+            {'id': 'sec-logros', 'num': '04', 'cat': 'Reconocimiento', 'title': 'Logros Destacados', 'desc': 'Premios y distinciones de excelencia', 'icon': 'fa-solid fa-trophy'},
+            {'id': 'sec-comunidad', 'num': '05', 'cat': 'Comunidad', 'title': 'Investigación y Eventos', 'desc': 'Grupos, semilleros y calendario del programa', 'icon': 'fa-solid fa-flask'},
+            {'id': 'sec-cifras', 'num': '06', 'cat': 'Impacto', 'title': 'Medio Siglo en Cifras', 'desc': 'Métricas históricas y comunidad de egresados', 'icon': 'fa-solid fa-chart-simple'}
+        ] %}
+        {% for s in nav_sections %}
+        <div class="dock-item" data-target="{{ s.id }}">
+            <a href="#{{ s.id }}" class="dock-dot-btn" aria-label="Ir a {{ s.title }}">
+                <span class="dock-dot"></span>
+                <span class="dock-dot-halo"></span>
+            </a>
+            <!-- Micro-card preview que vuela hacia la izquierda -->
+            <a href="#{{ s.id }}" class="dock-preview-card" tabindex="-1">
+                <div class="dock-preview-top">
+                    <span class="dock-preview-cat">
+                        <i class="{{ s.icon }} mr-1"></i>{{ s.cat }}
+                    </span>
+                    <span class="dock-preview-num">{{ s.num }}</span>
+                </div>
+                <div class="dock-preview-title">{{ s.title }}</div>
+                <div class="dock-preview-desc">{{ s.desc }}</div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</nav>
 {% endblock %}
 
 {% block extra_js %}
@@ -327,6 +364,99 @@
         paint(true);
     }, 5000);
     paint();
+})();
+
+/* -------------------------------------------------------------
+   Quick-Nav Dock: Scrollspy continuo con preview flotante
+   ------------------------------------------------------------- */
+(function () {
+    var dock = document.getElementById('home-nav-dock');
+    if (!dock) return;
+
+    var items = Array.prototype.slice.call(dock.querySelectorAll('.dock-item'));
+    var indicator = document.getElementById('dock-indicator');
+    var spineFill = document.getElementById('dock-spine-fill');
+    var sectionMap = {};
+
+    items.forEach(function (it) {
+        var tid = it.getAttribute('data-target');
+        var el = document.getElementById(tid);
+        if (el) sectionMap[tid] = { item: it, el: el };
+    });
+
+    var targets = Object.keys(sectionMap).map(function (k) { return sectionMap[k].el; });
+    if (!targets.length) return;
+
+    var lastActiveId = '';
+
+    function setActive(targetId) {
+        if (targetId === lastActiveId) return;
+        lastActiveId = targetId;
+
+        items.forEach(function (it) {
+            var isCurrent = it.getAttribute('data-target') === targetId;
+            it.classList.toggle('active', isCurrent);
+            if (isCurrent && indicator) {
+                var itTop = it.offsetTop;
+                indicator.style.transform = 'translateY(' + itTop + 'px)';
+            }
+        });
+    }
+
+    function onScroll() {
+        var docH = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = docH > 0 ? Math.max(0, Math.min(1, window.pageYOffset / docH)) : 0;
+
+        // 1. Relleno luminoso continuo de la espina
+        if (spineFill) {
+            spineFill.style.height = (progress * 100).toFixed(1) + '%';
+        }
+
+        // 2. Detección de la sección actual según posición de scroll
+        var currentId = targets[0].id;
+        var winCenter = window.innerHeight * 0.42;
+        targets.forEach(function (el) {
+            var rect = el.getBoundingClientRect();
+            if (rect.top <= winCenter) {
+                currentId = el.id;
+            }
+        });
+        setActive(currentId);
+    }
+
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+        if (!ticking) {
+            window.requestAnimationFrame(function () {
+                onScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    // Clic con scroll suave y compensación del header
+    items.forEach(function (it) {
+        var links = it.querySelectorAll('a[href^="#"]');
+        links.forEach(function (a) {
+            a.addEventListener('click', function (e) {
+                var tid = it.getAttribute('data-target');
+                var targetEl = document.getElementById(tid);
+                if (targetEl) {
+                    e.preventDefault();
+                    var headerOffset = 76;
+                    var elPos = targetEl.getBoundingClientRect().top + window.pageYOffset;
+                    window.scrollTo({
+                        top: elPos - headerOffset,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    });
+
+    // Inicializar estado de scroll al cargar
+    onScroll();
 })();
 </script>
 {% endblock %}

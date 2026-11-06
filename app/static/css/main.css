@@ -953,35 +953,210 @@ label {
 }
 
 .theme-toggle {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.625rem;
-    border-radius: 9999px;
-    background: var(--surface-2);
-    border: 1px solid var(--border-strong);
-    transition: background 0.3s, border-color 0.3s;
-}
-.theme-toggle-track {
-    position: relative;
+    justify-content: center;
     width: 2.25rem;
-    height: 1.25rem;
+    height: 2.25rem;
+    padding: 0;
     border-radius: 9999px;
-    background: var(--surface-3);
-    transition: background 0.3s;
+    background: var(--card);
+    border: 1px solid var(--border-subtle);
+    color: var(--primary);
+    cursor: pointer;
+    transition: background 0.35s ease, color 0.35s ease, border-color 0.3s ease, transform 0.2s ease;
 }
-.theme-toggle-knob {
+.theme-toggle:hover {
+    border-color: var(--primary-border);
+    transform: scale(1.06);
+}
+.theme-toggle:active { transform: scale(0.94); }
+[data-theme='dark'] .theme-toggle { color: var(--foreground); }
+
+.theme-toggle-svg {
+    display: block;
+    width: 1.375rem;
+    height: 1.375rem;
+}
+
+/* Rayos del sol: se encogen y giran hasta desaparecer al pasar a oscuro */
+.theme-toggle-rays {
+    transform-origin: 12px 12px;
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    transition: transform 0.35s ease-in-out, opacity 0.3s ease;
+}
+[data-theme='dark'] .theme-toggle-rays {
+    transform: scale(0.3) rotate(-90deg);
+    opacity: 0;
+}
+
+/* Sombra que se desliza sobre el sol para formar el creciente de luna */
+.theme-toggle-shadow {
+    transform: translate(16px, -16px);
+    transition: transform 0.35s ease-in-out;
+}
+[data-theme='dark'] .theme-toggle-shadow { transform: translate(4.2px, -4.2px); }
+
+/* Cráteres de la luna */
+.theme-toggle-crater {
+    opacity: 0;
+    transition: opacity 0.25s ease 0.08s;
+}
+[data-theme='dark'] .theme-toggle-crater { opacity: 0.9; }
+
+/* ------------------------------------------------------------
+   Menú de cuenta (píldora "Mi espacio" + avatar + perfil/logout)
+   ------------------------------------------------------------ */
+.museo-dash-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--foreground);
+    background: var(--surface-2);
+    border: 1px solid var(--border-subtle);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.museo-dash-pill:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary-border);
+    color: var(--primary);
+}
+.museo-dash-pill i { font-size: 0.7rem; }
+.museo-dash-pill.is-active {
+    background: var(--primary-solid);
+    border-color: var(--primary-solid);
+    color: var(--primary-foreground);
+}
+.museo-dash-pill.is-active:hover { background: var(--primary-hover); color: var(--primary-foreground); }
+
+.museo-user-menu-wrap { position: relative; }
+.museo-user-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.55rem 0.25rem 0.25rem;
+    border-radius: 9999px;
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-border);
+    color: var(--foreground);
+    font-size: 0.75rem;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.museo-user-btn:hover {
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+    border-color: var(--primary);
+}
+.museo-user-avatar {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--primary-solid);
+    color: var(--primary-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.museo-user-avatar-lg { width: 2.4rem; height: 2.4rem; font-size: 0.72rem; }
+.museo-user-name {
+    max-width: 9.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.museo-user-caret {
+    font-size: 0.55rem;
+    opacity: 0.65;
+    transition: transform 0.2s ease;
+}
+.museo-user-btn[aria-expanded='true'] .museo-user-caret { transform: rotate(180deg); }
+
+.museo-user-menu {
     position: absolute;
-    top: 0.125rem;
-    left: 2px;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 9999px;
-    background: var(--gold);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 15rem;
+    padding: 0.4rem;
+    border-radius: 0.85rem;
+    background: var(--card);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 22px 55px -14px var(--shadow-color);
+    z-index: 60;
 }
-[data-theme='light'] .theme-toggle-knob { background: var(--foreground); }
+.museo-user-menu[hidden] { display: none; }
+.museo-user-menu-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.55rem 0.65rem;
+}
+.museo-user-menu-id { min-width: 0; }
+.museo-user-menu-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.museo-user-menu-role {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+}
+.museo-user-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.5rem;
+    border: 0;
+    background: none;
+    text-align: left;
+    font-size: 0.78rem;
+    color: var(--secondary-foreground);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.museo-user-item i { width: 1rem; text-align: center; opacity: 0.8; }
+.museo-user-item:hover,
+.museo-user-item:focus-visible {
+    background: var(--surface-2);
+    color: var(--foreground);
+    outline: none;
+}
+.museo-user-item-danger { color: var(--primary); }
+.museo-user-item-danger:hover,
+.museo-user-item-danger:focus-visible {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+.museo-user-menu-sep {
+    height: 1px;
+    margin: 0.35rem 0.4rem;
+    background: var(--border-subtle);
+}
+@media (max-width: 640px) {
+    .museo-user-name { display: none; }
+    .museo-user-btn { padding-right: 0.4rem; }
+    .museo-dash-label { display: none; }
+    .museo-dash-pill { padding: 0.5rem; }
+}
 
 .search-btn {
     display: flex;
@@ -1766,4 +1941,281 @@ label {
     font-size: 0.55rem;
     opacity: 0.4;
     flex-shrink: 0;
+}
+
+
+/* ============================================================
+   Home Quick-Nav Dock — Barra vertical minimalista con preview
+   ============================================================ */
+
+.home-nav-dock {
+    position: fixed;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 45;
+    flex-direction: row;
+    align-items: center;
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Columna vertical de puntos */
+.dock-spine {
+    position: absolute;
+    right: 13px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: var(--border);
+    border-radius: 9999px;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Línea de progreso continua al scrollear */
+.dock-spine-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(to bottom, var(--primary-border), var(--primary));
+    transition: height 0.12s linear;
+}
+
+.dock-indicator {
+    position: absolute;
+    right: 13px;
+    width: 2px;
+    height: 28px;
+    background: var(--primary);
+    border-radius: 9999px;
+    top: 14px;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+}
+
+.dock-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+    position: relative;
+    pointer-events: auto;
+}
+
+.dock-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Botón con el punto indicador y efecto hover magnético */
+.dock-dot-btn {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 9999px;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--border-strong);
+    border: 1px solid var(--border);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-dot-halo {
+    position: absolute;
+    inset: 3px;
+    border-radius: 9999px;
+    border: 2px solid var(--primary);
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Hover elástico sobre el punto */
+.dock-item:hover .dock-dot-btn {
+    transform: translateX(-3px) scale(1.15);
+}
+
+.dock-item:hover .dock-dot {
+    background: var(--primary);
+    transform: scale(1.6);
+    border-color: var(--primary);
+}
+
+.dock-item:hover .dock-dot-halo {
+    animation: dockRipple 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes dockRipple {
+    0%   { transform: scale(0.8); opacity: 0.9; }
+    50%  { transform: scale(1.8); opacity: 0.4; }
+    100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* Estado activo (Scrollspy en la sección actual) */
+.dock-item.active .dock-dot {
+    background: var(--primary-solid);
+    transform: scale(1.4);
+    border-color: var(--primary);
+}
+.dock-item.active .dock-dot-halo {
+    opacity: 0.75;
+    animation: dockActivePulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes dockActivePulse {
+    0%, 100% { transform: scale(1.25); opacity: 0.75; }
+    50%      { transform: scale(2.1); opacity: 0.15; }
+}
+
+/* Micro-tarjeta flotante de Preview con animación pop-in elástica */
+.dock-preview-card {
+    position: absolute;
+    right: 36px;
+    width: 228px;
+    padding: 11px 15px;
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    box-shadow: 0 16px 40px -10px var(--shadow-color);
+    text-decoration: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(14px) scale(0.92);
+    transition: opacity 0.28s ease,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                visibility 0.28s,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+    pointer-events: none;
+    text-align: left;
+}
+
+/* Triangulito conector hacia el dot */
+.dock-preview-card::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 9px;
+    height: 9px;
+    background: inherit;
+    border-right: 1px solid var(--border-strong);
+    border-top: 1px solid var(--border-strong);
+}
+
+/* Al pasar el cursor por el item, mostrar preview con efecto pop-in */
+.dock-item:hover .dock-preview-card {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
+    pointer-events: auto;
+    border-color: var(--primary-border);
+    box-shadow: 0 18px 42px -10px var(--shadow-color);
+}
+
+.dock-preview-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+.dock-preview-cat {
+    font-size: 9px;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: var(--brown);
+    display: inline-flex;
+    align-items: center;
+}
+.dock-preview-cat i {
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dock-item:hover .dock-preview-cat i {
+    transform: scale(1.3) rotate(-8deg);
+}
+
+.dock-preview-num {
+    font-size: 9px;
+    font-family: var(--font-mono, monospace);
+    color: var(--muted-foreground);
+    opacity: 0.6;
+}
+.dock-preview-title {
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: 13.5px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--foreground);
+    margin-bottom: 3px;
+    transition: color 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dock-item:hover .dock-preview-title {
+    color: var(--primary);
+    transform: translateX(3px);
+}
+
+.dock-preview-desc {
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+    transition: color 0.22s ease;
+}
+.dock-item:hover .dock-preview-desc {
+    color: var(--secondary-foreground);
+}
+
+.dock-preview-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.dock-preview-cat {
+    font-size: 9px;
+    font-family: var(--font-mono, monospace);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--brown);
+    display: inline-flex;
+    align-items: center;
+}
+.dock-preview-num {
+    font-size: 9px;
+    font-family: var(--font-mono, monospace);
+    color: var(--muted-foreground);
+    opacity: 0.6;
+}
+.dock-preview-title {
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--foreground);
+    margin-bottom: 2px;
+}
+.dock-preview-desc {
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--muted-foreground);
 }

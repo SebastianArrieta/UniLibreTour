@@ -10,12 +10,6 @@
                 </div>
             </a>
 
-            <!-- Acceso Directo al Panel / Espacio Privado del Rol (A la izquierda) -->
-            <div id="museo-role-nav" class="flex items-center flex-shrink-0"></div>
-
-            <!-- Separador vertical (solo se muestra cuando hay sesión activa) -->
-            <div id="museo-role-sep" class="hidden md:block w-px h-5 bg-white/10 mx-1" style="display:none"></div>
-
             <!-- Navegación Pública del Museo -->
             <nav class="hidden md:flex items-center gap-1">
                 <a href="{{ url_for('web.explorar') }}" class="nav-link {{ 'active' if current_page == 'explorar' }}">Explorar</a>
@@ -33,11 +27,23 @@
                 </svg>
             </a>
             <div id="museo-auth-area" class="flex items-center gap-2"></div>
-            <button type="button" class="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema" data-theme="dark">
-                <span class="text-sm leading-none select-none flex items-center justify-center" data-theme-icon><i class="fa-solid fa-sun"></i></span>
-                <div class="theme-toggle-track">
-                    <div class="theme-toggle-knob"></div>
-                </div>
+            <button type="button" class="theme-toggle" aria-label="Cambiar entre modo claro y oscuro" title="Cambiar tema" role="switch" aria-checked="false">
+                <svg class="theme-toggle-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
+                    <g class="theme-toggle-rays" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                        <path d="M12 1.6v2.9"/>
+                        <path d="M12 19.5v2.9"/>
+                        <path d="M1.6 12h2.9"/>
+                        <path d="M19.5 12h2.9"/>
+                        <path d="M4.7 4.7l2 2"/>
+                        <path d="M19.3 4.7l-2 2"/>
+                        <path d="M4.7 19.3l2-2"/>
+                        <path d="M19.3 19.3l-2-2"/>
+                    </g>
+                    <circle class="theme-toggle-moon" cx="12" cy="12" r="6" fill="currentColor"/>
+                    <circle class="theme-toggle-crater" cx="9.6" cy="14" r="1.25" fill="var(--card)"/>
+                    <circle class="theme-toggle-crater" cx="7.6" cy="12.4" r="0.8" fill="var(--card)"/>
+                    <circle class="theme-toggle-shadow" cx="12" cy="12" r="6" fill="var(--card)"/>
+                </svg>
             </button>
         </div>
     </div>
