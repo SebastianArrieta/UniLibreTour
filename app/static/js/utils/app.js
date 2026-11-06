@@ -243,24 +243,36 @@
         redirectForRole(role);
     }
     function logout() {
-        lsRemove(KEYS.ROLE);
-        lsRemove(KEYS.FAVS);
-        lsRemove(KEYS.PERFIL);
-        lsRemove(KEYS.TOKEN);
-        lsRemove(KEYS.USUARIO);
-        lsRemove(KEYS.PEND_TOKEN);
-        lsRemove(KEYS.PEND_USUARIO);
-        try {
-            localStorage.removeItem('museo-pending-role');
-            localStorage.removeItem('museo-pending-email');
-        } catch (e) { /* noop */ }
+        function limpiarYRedirigir() {
+            lsRemove(KEYS.ROLE);
+            lsRemove(KEYS.FAVS);
+            lsRemove(KEYS.PERFIL);
+            lsRemove(KEYS.TOKEN);
+            lsRemove(KEYS.USUARIO);
+            lsRemove(KEYS.PEND_TOKEN);
+            lsRemove(KEYS.PEND_USUARIO);
+            try {
+                localStorage.removeItem('museo-pending-role');
+                localStorage.removeItem('museo-pending-email');
+                localStorage.removeItem('museo-pending-devcode');
+            } catch (e) { /* noop */ }
 
-        if (window.UI && typeof UI.toast === 'function') {
-            UI.toast('Sesión cerrada con éxito. Redirigiendo...', 'info');
+            if (window.UI && typeof UI.toast === 'function') {
+                UI.toast('Sesión cerrada con éxito. Redirigiendo...', 'info');
+            }
+            setTimeout(function () {
+                window.location.href = '/';
+            }, 400);
         }
-        setTimeout(function () {
-            window.location.href = '/';
-        }, 400);
+
+        // Invalida también la cookie de sesión httpOnly en el servidor.
+        try {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+                .then(limpiarYRedirigir)
+                .catch(limpiarYRedirigir);
+        } catch (e) {
+            limpiarYRedirigir();
+        }
     }
 
     /* ---------- sesión real (JWT) ---------- */
@@ -293,26 +305,27 @@
     function getSesion() { return lsGet(KEYS.USUARIO); }
 
     /* Login: Valida credenciales contra el backend.
-       Si el usuario no tiene 2FA activado (por defecto en BD), guarda token en localStorage
-       y autoriza inmediatamente la sesión. */
-    function iniciarSesion(email, password, force2FA) {
+       Si la cuenta tiene 2FA activo, el servidor NO entrega sesión: devuelve un
+       token de desafío y el código debe verificarse en /api/auth/2fa/verify. */
+    function iniciarSesion(email, password) {
         return apiJson('/api/auth/login', 'POST', { email: email, password: password })
             .then(function (data) {
                 var usuario = data.usuario || {};
-                var token = data.access_token;
-                var requires2FA = !!(usuario.two_factor_enabled || force2FA);
 
-                if (requires2FA) {
-                    lsSet(KEYS.PEND_TOKEN, token);
+                if (data.requires_2fa) {
+                    lsSet(KEYS.PEND_TOKEN, data.pending_token);
                     lsSet(KEYS.PEND_USUARIO, usuario);
                     try {
                         localStorage.setItem('museo-pending-role', usuario.rol || 'estudiante');
                         localStorage.setItem('museo-pending-email', usuario.email || email);
+                        if (data.dev_code) {
+                            localStorage.setItem('museo-pending-devcode', data.dev_code);
+                        }
                     } catch (e) { /* noop */ }
                     return { requires2FA: true, usuario: usuario };
                 }
 
-                // Flujo directo: guarda token y usuario en localStorage
+                var token = data.access_token;
                 lsSet(KEYS.TOKEN, token);
                 lsSet(KEYS.USUARIO, usuario);
                 var rol = usuario.rol || 'visitante';
@@ -323,32 +336,33 @@
             });
     }
 
-    /* Paso 2 (2fa.html opcional): código OTP OK → sesión activa + redirect por rol. */
-    function completarInicioSesion() {
-        var tok = lsGet(KEYS.PEND_TOKEN);
-        var u = lsGet(KEYS.PEND_USUARIO);
-        if (!tok) { window.location.href = '/login'; return; }
-        lsSet(KEYS.TOKEN, tok);
-        lsSet(KEYS.USUARIO, u || null);
+    /* Paso 2 (2fa.html): el servidor ya validó el código y entregó la sesión. */
+    function completarInicioSesion(data) {
+        if (!data || !data.access_token) {
+            window.location.href = '/login';
+            return;
+        }
+        lsSet(KEYS.TOKEN, data.access_token);
+        lsSet(KEYS.USUARIO, data.usuario || null);
         lsRemove(KEYS.PEND_TOKEN);
         lsRemove(KEYS.PEND_USUARIO);
-        var rol = (u && u.rol) || getRole();
+        try {
+            localStorage.removeItem('museo-pending-role');
+            localStorage.removeItem('museo-pending-email');
+            localStorage.removeItem('museo-pending-devcode');
+        } catch (e) { /* noop */ }
+        var rol = (data.usuario && data.usuario.rol) || getRole();
         Museo.role = rol;
         setRole(rol);
         redirectForRole(rol);
     }
 
-    /* registro.html: alta real + sesión inmediata (sin 2FA). */
+    /* registro.html: el alta queda pendiente de aprobación, sin sesión. */
     function registrarse(nombre, email, password, rol) {
         return apiJson('/api/auth/register', 'POST', {
             nombre: nombre, email: email, password: password, rol: rol,
         }).then(function (data) {
-            lsSet(KEYS.TOKEN, data.access_token);
-            lsSet(KEYS.USUARIO, data.usuario);
-            Museo.role = data.usuario.rol;
-            setRole(data.usuario.rol);
-            redirectForRole(data.usuario.rol);
-            return data.usuario;
+            return data.usuario || data;
         });
     }
 

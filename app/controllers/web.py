@@ -11,6 +11,7 @@ from pathlib import Path
 
 from flask import Blueprint, abort, jsonify, render_template
 
+from app.middleware.auth import web_role_required
 from app.services import museo
 
 web_bp = Blueprint("web", __name__)
@@ -127,6 +128,7 @@ def ranking():
 
 
 @web_bp.get("/perfil")
+@web_role_required()
 def perfil():
     return render_template("publico/perfil.html", **_ctx("perfil"))
 
@@ -158,21 +160,25 @@ def registro():
 # Panel Estudiante
 # -----------------------------------------------------------------------------
 @web_bp.get("/estudiante")
+@web_role_required("estudiante", "admin")
 def estudiante():
     return render_template("estudiante/dashboard.html", **_ctx("est-dashboard"))
 
 
 @web_bp.get("/estudiante/aportes")
+@web_role_required("estudiante", "admin")
 def estudiante_aportes():
     return render_template("estudiante/aportes.html", **_ctx("est-aportes"))
 
 
 @web_bp.get("/estudiante/favoritos")
+@web_role_required("estudiante", "admin")
 def estudiante_favoritos():
     return render_template("estudiante/favoritos.html", **_ctx("est-favoritos"))
 
 
 @web_bp.get("/estudiante/contribuir")
+@web_role_required("estudiante", "admin")
 def estudiante_contribuir():
     return render_template("estudiante/contribuir.html", **_ctx("est-contribuir"))
 
@@ -181,16 +187,19 @@ def estudiante_contribuir():
 # Panel Docente
 # -----------------------------------------------------------------------------
 @web_bp.get("/docente")
+@web_role_required("docente", "admin")
 def docente():
     return render_template("docente/dashboard.html", **_ctx("doc-dashboard"))
 
 
 @web_bp.get("/docente/registrar-evidencia")
+@web_role_required("docente", "admin")
 def docente_evidencia():
     return render_template("docente/evidencia.html", **_ctx("doc-wizard"))
 
 
 @web_bp.get("/docente/notificaciones")
+@web_role_required("docente", "admin")
 def docente_notificaciones():
     return render_template("docente/notificaciones.html", **_ctx("doc-notificaciones"))
 
@@ -199,26 +208,31 @@ def docente_notificaciones():
 # Panel Administrador
 # -----------------------------------------------------------------------------
 @web_bp.get("/admin")
+@web_role_required("admin")
 def admin():
     return render_template("admin/dashboard.html", **_ctx("admin-dashboard"))
 
 
 @web_bp.get("/admin/anadir")
+@web_role_required("admin")
 def admin_anadir():
     return render_template("admin/anadir.html", **_ctx("admin-anadir"))
 
 
 @web_bp.get("/admin/usuarios")
+@web_role_required("admin")
 def admin_usuarios():
     return render_template("admin/usuarios.html", **_ctx("admin-usuarios"))
 
 
 @web_bp.get("/admin/cola")
+@web_role_required("admin")
 def admin_cola():
     return render_template("admin/cola.html", **_ctx("admin-cola"))
 
 
 @web_bp.get("/admin/validacion/<iid>")
+@web_role_required("admin")
 def admin_validacion(iid):
     item = next((i for i in dataset_actual().get("contentQueue", []) if str(i.get("id")) == str(iid)), None)
     if item is None:
@@ -227,6 +241,7 @@ def admin_validacion(iid):
 
 
 @web_bp.get("/admin/confirmacion/<iid>")
+@web_role_required("admin")
 def admin_confirmacion(iid):
     item = next((i for i in dataset_actual().get("contentItems", []) if str(i.get("id")) == str(iid)), None)
     if item is None:
@@ -235,10 +250,12 @@ def admin_confirmacion(iid):
 
 
 @web_bp.get("/admin/registros")
+@web_role_required("admin")
 def admin_registros():
     return render_template("admin/registros.html", **_ctx("admin-registros"))
 
 
 @web_bp.get("/admin/hall-registro")
+@web_role_required("admin")
 def admin_hall_registro():
     return render_template("admin/hall_registro.html", **_ctx("admin-hall-registro"))
