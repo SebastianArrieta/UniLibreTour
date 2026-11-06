@@ -92,9 +92,18 @@
                 <span class="footer-info-item">
                     <i class="fa-solid fa-shield-halved fa-fw"></i> Sistema de Gestión Cultural
                 </span>
-                <a class="footer-link" href="{{ url_for('web.login') }}">
+                <a id="footer-acceso" class="footer-link" href="{{ url_for('web.login') }}">
                     <i class="fa-solid fa-right-to-bracket fa-fw"></i> Acceso colaboradores
                 </a>
+                <script>
+                /* Con sesión iniciada no hace falta "Acceso colaboradores": se oculta. */
+                (function () {
+                    try {
+                        var r = localStorage.getItem('museo-rol');
+                        if (r && r !== 'visitante') document.getElementById('footer-acceso').style.display = 'none';
+                    } catch (e) { /* noop */ }
+                })();
+                </script>
             </div>
         </div>
 
