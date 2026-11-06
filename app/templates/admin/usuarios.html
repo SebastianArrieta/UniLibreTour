@@ -1,5 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Usuarios — UniLibreTour{% endblock %}
+{% block extra_head %}
+<style>
+  .role-badge-admin { color: #d32f2f; background: rgba(211,47,47,0.12); border: 1px solid rgba(211,47,47,0.25); }
+  .role-badge-docente { color: #3b82f6; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); }
+  .role-badge-estudiante { color: #a855f7; background: rgba(168,85,247,0.12); border: 1px solid rgba(168,85,247,0.25); }
+  .role-badge-egresado { color: #22c55e; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25); }
+  .role-badge-visitante { color: #94a3b8; background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.25); }
+
+  .status-badge-activo { color: #22c55e; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); }
+  .status-badge-pendiente { color: #f97316; background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25); }
+  .status-badge-inactivo { color: #94a3b8; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); }
+</style>
+{% endblock %}
 {% block content %}
   {% set sb_links = [
     {'page': 'admin-dashboard', 'label': 'Dashboard', 'icon': 'fa-solid fa-table-cells-large', 'href': url_for('web.admin')},
@@ -16,7 +29,7 @@
         {% from 'components/macros.html' import section_header %}
         {{ section_header('Gestión', 'Usuarios', users | length ~ ' usuarios registrados en la plataforma') }}
 
-        <div class="flex gap-3 mb-6 flex-wrap">
+        <div class="flex gap-3 mb-6 flex-wrap items-center">
           <input id="user-search" type="text" placeholder="Buscar por nombre o correo…"
                  class="museum-input flex-1 px-4 py-2.5 rounded text-sm" style="min-width:192px">
           <select id="user-role" class="museum-input px-3 py-2.5 rounded text-sm">
@@ -25,6 +38,58 @@
             <option value="{{ r }}" style="background:var(--card)">{{ r[0] | upper }}{{ r[1:] }}</option>
             {% endfor %}
           </select>
+          <button id="btn-open-modal" type="button" class="btn-primary px-4 py-2.5 rounded text-sm font-semibold flex items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> <span>+ Nuevo Usuario</span>
+          </button>
+        </div>
+
+        <!-- Modal Crear Usuario (Conectado a la API / Base de Datos) -->
+        <div id="modal-nuevo-usuario" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" style="background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);">
+          <div class="museum-card w-full max-w-md rounded-xl p-6 relative shadow-2xl border" style="border-color:rgba(211,47,47,0.3)">
+            <div class="flex items-center justify-between mb-4 border-b pb-3" style="border-color:rgba(255,255,255,0.08)">
+              <h3 class="font-serif text-lg font-bold flex items-center gap-2" style="color:var(--foreground)">
+                <i class="fa-solid fa-user-plus" style="color:#d32f2f"></i> Registrar Usuario
+              </h3>
+              <button type="button" id="btn-close-modal" class="text-sm px-2 py-1 rounded hover:opacity-80" style="color:var(--muted-foreground)">
+                <i class="fa-solid fa-xmark text-lg"></i>
+              </button>
+            </div>
+
+            <form id="userForm" class="flex flex-col gap-4">
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Nombre completo</label>
+                <input id="nombre" type="text" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" placeholder="Ej: Carlos Santana" required>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Correo institucional</label>
+                <input id="email" type="email" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" placeholder="usuario@unilibre.edu.co" required>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Contraseña</label>
+                <input id="password" type="password" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" placeholder="Mínimo 6 caracteres" required>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Rol del usuario</label>
+                <select id="rol" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" required>
+                  <option value="estudiante" style="background:var(--card)">Estudiante</option>
+                  <option value="docente" style="background:var(--card)">Docente</option>
+                  <option value="egresado" style="background:var(--card)">Egresado</option>
+                  <option value="admin" style="background:var(--card)">Administrador</option>
+                  <option value="visitante" style="background:var(--card)">Visitante</option>
+                </select>
+              </div>
+
+              <div id="userform-error" class="text-xs px-3 py-2 rounded hidden" style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+
+              <div class="flex justify-end gap-2.5 mt-2">
+                <button type="button" id="btn-cancel-modal" class="btn-outline-primary px-4 py-2 rounded text-xs">Cancelar</button>
+                <button type="submit" id="btn-submit-user" class="btn-primary px-5 py-2 rounded text-xs font-semibold">Guardar en Base de Datos</button>
+              </div>
+            </form>
+          </div>
         </div>
 
         <div class="museum-card rounded overflow-hidden">
@@ -44,10 +109,6 @@
               </thead>
               <tbody id="users-tbody">
                 {% for u in users %}
-                {% set roleColors = {'admin': '#d32f2f', 'docente': '#3b82f6', 'estudiante': '#a855f7', 'visitante': 'var(--muted-foreground)', 'egresado': '#22c55e'} %}
-                {% set rc = roleColors.get(u.role, 'var(--muted-foreground)') %}
-                {% set sc = '#22c55e' if u.status == 'activo' else ('#f97316' if u.status == 'pendiente' else 'var(--muted-foreground)') %}
-                {% set sbg = 'rgba(34,197,94,0.1)' if u.status == 'activo' else ('rgba(249,115,22,0.1)' if u.status == 'pendiente' else 'rgba(255,255,255,0.04)') %}
                 <tr data-name="{{ u.name | lower }} {{ u.email | lower }}" data-role="{{ u.role }}" class="transition-colors hover:opacity-80">
                   <td>
                     <div class="flex items-center gap-2.5">
@@ -60,10 +121,10 @@
                     </div>
                   </td>
                   <td>
-                    <span class="text-xs px-2 py-0.5 rounded font-mono capitalize" style="background:{{ rc }}12;color:{{ rc }}">{{ u.role }}</span>
+                    <span class="text-xs px-2.5 py-1 rounded font-mono capitalize role-badge-{{ u.role }}">{{ u.role }}</span>
                   </td>
                   <td>
-                    <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:{{ sbg }};color:{{ sc }}">{{ u.status }}</span>
+                    <span class="text-xs px-2.5 py-1 rounded font-mono capitalize status-badge-{{ u.status }}">{{ u.status }}</span>
                   </td>
                   <td class="text-xs font-mono" style="color:var(--muted-foreground)">{{ u.joinDate }}</td>
                   <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ u.contributions }}</td>
@@ -127,4 +188,5 @@
   role.addEventListener('change', apply);
 })();
 </script>
+<script src="{{ url_for('static', filename='js/pages/usuarios.js') }}"></script>
 {% endblock %}

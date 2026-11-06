@@ -22,6 +22,35 @@
 
     {% include 'components/footer.html' %}
 
+    <!-- Modal Global de Confirmación de Cierre de Sesión -->
+    <div id="modal-confirm-logout" class="hidden"
+         style="position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;z-index:999999 !important;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)">
+        <div class="museum-card w-full max-w-sm rounded-xl p-6 relative text-center"
+             style="border:1px solid rgba(211,47,47,0.45);background:var(--card, #161614) !important;box-shadow:0 25px 60px -10px rgba(0,0,0,0.95)">
+            <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                 style="background:rgba(211,47,47,0.12);border:2px solid rgba(211,47,47,0.35)">
+                <i class="fa-solid fa-arrow-right-from-bracket text-xl" style="color:#d32f2f"></i>
+            </div>
+            <h3 class="font-serif text-lg font-bold mb-1.5" style="color:var(--foreground, #ffffff)">¿Cerrar sesión?</h3>
+            <p class="text-xs mb-6 leading-relaxed" style="color:var(--muted-foreground, #a1a1aa)">
+                Se cerrará tu sesión activa de manera segura y deberás identificarte de nuevo para acceder a tus recursos.
+            </p>
+            <div class="flex items-center justify-center gap-3">
+                <button type="button" id="btn-cancel-logout"
+                        class="flex-1 py-2.5 px-4 rounded-lg text-xs font-medium transition-all"
+                        style="background:rgba(255,255,255,0.06);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.15)">
+                    Permanecer
+                </button>
+                <button type="button" id="btn-confirm-logout"
+                        class="flex-1 py-2.5 px-4 rounded-lg text-xs font-semibold btn-primary flex items-center justify-center gap-1.5 shadow-lg">
+                    <i class="fa-solid fa-power-off text-xs"></i>
+                    <span>Cerrar sesión</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/utils/api.js') }}"></script>
     <script src="{{ url_for('static', filename='js/utils/ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/utils/app.js') }}"></script>
     {% block extra_js %}{% endblock %}

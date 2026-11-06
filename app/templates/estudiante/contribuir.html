@@ -212,7 +212,9 @@
       return;
     }
     var item = previewItem();
+    var origNext = btnNext.innerHTML;
     btnNext.disabled = true;
+    btnNext.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Guardando aporte...';
     Museo.crearContenido({
       title: item.title,
       category: item.category,
@@ -224,11 +226,12 @@
     }).then(function () {
       wizardRoot.style.display = 'none';
       wizardOk.style.display = '';
-      toast('¡Contribución enviada! Estado: En Revisión');
+      toast('¡Contribución enviada y registrada en la base de datos! Estado: En Revisión', 'success');
     }).catch(function (err) {
       toast(err.message || 'No fue posible enviar la contribución', 'err');
     }).finally(function () {
       btnNext.disabled = false;
+      btnNext.innerHTML = origNext;
     });
   });
 

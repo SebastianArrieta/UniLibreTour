@@ -61,10 +61,50 @@
     };
 
     var ROLE_DASH = {
-        estudiante: { label: 'Mi Espacio', href: '/estudiante' },
-        egresado: { label: 'Mi Espacio', href: '/egresado' },
-        docente: { label: 'Mi Espacio', href: '/docente' },
-        admin: { label: 'Panel Admin', href: '/admin' },
+        admin: {
+            label: 'Panel Admin',
+            href: '/admin',
+            icon: 'fa-solid fa-gauge-high',
+            badge: 'ADMIN',
+            color: '#d32f2f',
+            bg: 'rgba(211,47,47,0.12)',
+            border: 'rgba(211,47,47,0.3)',
+            activeBg: 'rgba(211,47,47,0.22)',
+            activeBorder: '#d32f2f',
+        },
+        docente: {
+            label: 'Mi Espacio Docente',
+            href: '/docente',
+            icon: 'fa-solid fa-chalkboard-user',
+            badge: 'DOCENTE',
+            color: '#3b82f6',
+            bg: 'rgba(59,130,246,0.12)',
+            border: 'rgba(59,130,246,0.3)',
+            activeBg: 'rgba(59,130,246,0.22)',
+            activeBorder: '#3b82f6',
+        },
+        estudiante: {
+            label: 'Mi Espacio',
+            href: '/estudiante',
+            icon: 'fa-solid fa-graduation-cap',
+            badge: 'ESTUDIANTE',
+            color: '#a855f7',
+            bg: 'rgba(168,85,247,0.12)',
+            border: 'rgba(168,85,247,0.3)',
+            activeBg: 'rgba(168,85,247,0.22)',
+            activeBorder: '#a855f7',
+        },
+        egresado: {
+            label: 'Mi Espacio',
+            href: '/egresado',
+            icon: 'fa-solid fa-user-tie',
+            badge: 'EGRESADO',
+            color: '#22c55e',
+            bg: 'rgba(34,197,94,0.12)',
+            border: 'rgba(34,197,94,0.3)',
+            activeBg: 'rgba(34,197,94,0.22)',
+            activeBorder: '#22c55e',
+        },
     };
 
     var USER_EMAIL = {
@@ -210,11 +250,24 @@
         lsRemove(KEYS.USUARIO);
         lsRemove(KEYS.PEND_TOKEN);
         lsRemove(KEYS.PEND_USUARIO);
-        window.location.href = '/';
+        try {
+            localStorage.removeItem('museo-pending-role');
+            localStorage.removeItem('museo-pending-email');
+        } catch (e) { /* noop */ }
+
+        if (window.UI && typeof UI.toast === 'function') {
+            UI.toast('Sesión cerrada con éxito. Redirigiendo...', 'info');
+        }
+        setTimeout(function () {
+            window.location.href = '/';
+        }, 400);
     }
 
     /* ---------- sesión real (JWT) ---------- */
     function apiJson(url, method, body, token) {
+        if (window.API && typeof window.API.request === 'function') {
+            return window.API.request(url, method, body, token);
+        }
         var headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
         if (token) headers.Authorization = 'Bearer ' + token;
         return fetch(url, {
@@ -239,22 +292,38 @@
     function getToken() { return lsGet(KEYS.TOKEN); }
     function getSesion() { return lsGet(KEYS.USUARIO); }
 
-    /* Paso 1 (login.html): valida credenciales reales; guarda sesión pendiente
-       hasta superar el 2FA en /2fa. */
-    function iniciarSesion(email, password) {
+    /* Login: Valida credenciales contra el backend.
+       Si el usuario no tiene 2FA activado (por defecto en BD), guarda token en localStorage
+       y autoriza inmediatamente la sesión. */
+    function iniciarSesion(email, password, force2FA) {
         return apiJson('/api/auth/login', 'POST', { email: email, password: password })
             .then(function (data) {
-                lsSet(KEYS.PEND_TOKEN, data.access_token);
-                lsSet(KEYS.PEND_USUARIO, data.usuario);
-                try {
-                    localStorage.setItem('museo-pending-role', data.usuario.rol);
-                    localStorage.setItem('museo-pending-email', data.usuario.email);
-                } catch (e) { /* noop */ }
-                return data.usuario;
+                var usuario = data.usuario || {};
+                var token = data.access_token;
+                var requires2FA = !!(usuario.two_factor_enabled || force2FA);
+
+                if (requires2FA) {
+                    lsSet(KEYS.PEND_TOKEN, token);
+                    lsSet(KEYS.PEND_USUARIO, usuario);
+                    try {
+                        localStorage.setItem('museo-pending-role', usuario.rol || 'estudiante');
+                        localStorage.setItem('museo-pending-email', usuario.email || email);
+                    } catch (e) { /* noop */ }
+                    return { requires2FA: true, usuario: usuario };
+                }
+
+                // Flujo directo: guarda token y usuario en localStorage
+                lsSet(KEYS.TOKEN, token);
+                lsSet(KEYS.USUARIO, usuario);
+                var rol = usuario.rol || 'visitante';
+                Museo.role = rol;
+                setRole(rol);
+                var dest = ROLE_HOME[rol] || '/';
+                return { requires2FA: false, usuario: usuario, redirectUrl: dest };
             });
     }
 
-    /* Paso 2 (2fa.html): código OTP OK → sesión activa + redirect por rol. */
+    /* Paso 2 (2fa.html opcional): código OTP OK → sesión activa + redirect por rol. */
     function completarInicioSesion() {
         var tok = lsGet(KEYS.PEND_TOKEN);
         var u = lsGet(KEYS.PEND_USUARIO);
@@ -301,15 +370,29 @@
 
     function renderRoleNav() {
         var nav = document.getElementById('museo-role-nav');
+        var sep = document.getElementById('museo-role-sep');
         if (!nav) return;
         var role = Museo.role;
         var dash = ROLE_DASH[role];
         if (!dash) {
             nav.innerHTML = '';
+            if (sep) sep.style.display = 'none';
             return;
         }
         var active = pathActive(dash.href);
-        nav.innerHTML = '<a class="nav-link' + (active ? ' active' : '') + '" href="' + dash.href + '">' + esc(dash.label) + '</a>';
+        if (sep) sep.style.display = 'block';
+
+        nav.innerHTML =
+            '<a href="' + dash.href + '" class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ' +
+            (active ? 'shadow-md ring-1 ring-white/10' : 'hover:opacity-95') + '" ' +
+            'style="background:' + (active ? dash.activeBg : dash.bg) + ';' +
+            'color:' + (active ? '#ffffff' : dash.color) + ';' +
+            'border:1px solid ' + (active ? dash.activeBorder : dash.border) + ';" ' +
+            'title="Acceso directo a ' + esc(dash.label) + '">' +
+            '<i class="' + dash.icon + ' text-xs" style="color:' + (active ? '#ffffff' : dash.color) + '"></i>' +
+            '<span class="font-sans tracking-wide">' + esc(dash.label) + '</span>' +
+            (role === 'admin' ? '<span class="hidden lg:inline text-[9px] px-1.5 py-0.2 rounded font-mono uppercase font-bold" style="background:rgba(211,47,47,0.35);color:#ff8585">GESTIÓN</span>' : '') +
+            '</a>';
     }
 
     function renderAuth() {
@@ -320,16 +403,41 @@
             area.innerHTML = '<a href="/login" class="text-sm px-4 py-1.5 rounded btn-primary btn-float">Ingresar</a>';
             return;
         }
+
+        var logoutBtnHtml =
+            '<button type="button" data-action="logout" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-medium transition-all group" ' +
+            'style="background:rgba(211,47,47,0.08);color:#f87171;border:1px solid rgba(211,47,47,0.3)" title="Cerrar sesión">' +
+            '<i class="fa-solid fa-arrow-right-from-bracket text-xs transition-transform group-hover:translate-x-0.5"></i>' +
+            '<span class="hidden sm:inline">Cerrar sesión</span><span class="sm:hidden">Salir</span></button>';
+
         getUser().then(function (me) {
             var label = (me && me.name) || role;
+            var dash = ROLE_DASH[role] || { color: '#d32f2f' };
             area.innerHTML =
-                '<a href="/perfil" class="hidden sm:flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full font-mono transition-colors museo-profile-pill" ' +
+                '<a href="/perfil" class="hidden sm:flex items-center gap-2 text-xs px-2.5 py-1 rounded-full font-mono transition-colors museo-profile-pill" ' +
                 'style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)" title="Ver mi perfil">' +
-                '<span class="truncate max-w-[120px]">' + esc(label) + '</span></a>' +
-                '<button type="button" data-action="logout" class="text-xs px-3 py-1.5 rounded btn-outline-primary">Salir</button>';
+                '<i class="fa-solid fa-user-circle text-xs"></i><span class="truncate max-w-[120px]">' + esc(label) + '</span>' +
+                '<span class="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded" style="background:' + dash.color + '22;color:' + dash.color + '">' + esc(dash.badge || role) + '</span></a>' +
+                logoutBtnHtml;
         }).catch(function () {
-            area.innerHTML = '<button type="button" data-action="logout" class="text-xs px-3 py-1.5 rounded btn-outline-primary">Salir</button>';
+            area.innerHTML = logoutBtnHtml;
         });
+    }
+
+    function showLogoutModal() {
+        var m = document.getElementById('modal-confirm-logout');
+        if (m) {
+            m.classList.remove('hidden');
+            m.style.display = 'flex';
+        }
+    }
+
+    function hideLogoutModal() {
+        var m = document.getElementById('modal-confirm-logout');
+        if (m) {
+            m.classList.add('hidden');
+            m.style.display = 'none';
+        }
     }
 
     function bindAuthClicks() {
@@ -337,7 +445,39 @@
             var t = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
             if (t && t.getAttribute('data-action') === 'logout') {
                 e.preventDefault();
+                showLogoutModal();
+                return;
+            }
+
+            if (e.target && e.target.id === 'btn-cancel-logout') {
+                e.preventDefault();
+                hideLogoutModal();
+                return;
+            }
+
+            if (e.target && (e.target.id === 'btn-confirm-logout' || (e.target.closest && e.target.closest('#btn-confirm-logout')))) {
+                e.preventDefault();
+                var btn = document.getElementById('btn-confirm-logout');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saliendo...';
+                }
                 Museo.logout();
+                return;
+            }
+
+            var modal = document.getElementById('modal-confirm-logout');
+            if (modal && e.target === modal) {
+                hideLogoutModal();
+            }
+        });
+
+        // RNF: Accesibilidad - Tecla ESC para cerrar modales
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                hideLogoutModal();
+                var userModal = document.getElementById('modal-nuevo-usuario');
+                if (userModal) userModal.classList.add('hidden');
             }
         });
     }
