@@ -1000,6 +1000,17 @@ label {
 }
 .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
+/* Temblor sutil de la píldora activa del hero cuando cambia la década */
+@keyframes tlWiggle {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    18% { transform: rotate(-4deg) translateX(-1px); }
+    36% { transform: rotate(4deg) translateX(1px); }
+    54% { transform: rotate(-3deg) translateX(-1px); }
+    72% { transform: rotate(2.5deg) translateX(1px); }
+    88% { transform: rotate(-1.5deg) translateX(0); }
+}
+.tl-wiggle { animation: tlWiggle 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
 /* ------------------------------------------------------------
    13. Cronología "La Ruta"
    ------------------------------------------------------------ */
@@ -1055,6 +1066,7 @@ label {
     .empty-float { animation: none; }
     .animate-fadeInUp { animation: none; opacity: 1; }
     .animate-pulse { animation: none; }
+    .tl-wiggle { animation: none; }
 }
 
 /* ------------------------------------------------------------
