@@ -49,7 +49,7 @@
             headers: headers,
         };
 
-        if (body && ['POST', 'PUT', 'PATCH'].includes(options.method)) {
+        if (body && ['POST', 'PUT'].includes(options.method)) {
             options.body = JSON.stringify(body);
         }
 
@@ -58,8 +58,10 @@
             const json = await response.json().catch(() => ({}));
 
             if (!response.ok || json.ok === false) {
-                // RNF de Seguridad: Si el token expiró o es inválido (401), invalidar sesión
-                if (response.status === 401 && token) {
+                // RNF de Seguridad: Si el token expiró o es inválido (401), invalidar sesión.
+                // El 401 del desafío 2FA (código incorrecto) no es una sesión caducada.
+                var esDesafio2FA = String(url).indexOf('/api/auth/2fa/') === 0;
+                if (response.status === 401 && token && !esDesafio2FA) {
                     console.warn('[API Auth] Sesión caducada o inválida (401). Limpiando credenciales...');
                     localStorage.removeItem(TOKEN_KEY);
                     localStorage.removeItem('museo-usuario');

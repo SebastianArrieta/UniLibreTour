@@ -137,7 +137,12 @@ window.__DATOS = {{ datos | tojson }};
                 campos.pass.value,
                 campos.rol.value
             ).then(function () {
-                if (window.UI && UI.toast) UI.toast('¡Cuenta registrada exitosamente!', 'success');
+                if (window.UI && UI.toast) {
+                    UI.toast('Cuenta creada. Un administrador debe aprobarla antes de ingresar.', 'success');
+                }
+                setTimeout(function () {
+                    window.location.href = "{{ url_for('web.login') }}";
+                }, 1800);
             }).catch(function (err) {
                 showError(err.message || 'No fue posible crear la cuenta.');
             }).finally(function () {
