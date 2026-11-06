@@ -1,46 +1,177 @@
 {% extends "base.html" %}
-{% from 'components/macros.html' import content_card, section_header, page_nav %}
-{% block title %}Buscador — UniLibreTour{% endblock %}
+{% from 'components/macros.html' import content_card, page_nav %}
+{% block title %}Buscador del Museo — UniLibreTour{% endblock %}
+
 {% block content %}
 {% set visible = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
-{% set categorias = ['historia', 'investigacion', 'proyectos', 'eventos', 'logros', 'docentes', 'fotografías', 'videos', 'documentos'] %}
-{% set anios = ['2024', '2023', '2022', '2021', '2020', '2019'] %}
+{% set current_q = request.args.get('q', '') %}
+{% set current_cat = request.args.get('cat', '') %}
+
+{# Extraer lista única de autores #}
+{% set authors_ns = namespace(vals=[]) %}
+{% for it in visible %}
+  {% if it.author and it.author not in authors_ns.vals %}
+    {% set _ = authors_ns.vals.append(it.author) %}
+  {% endif %}
+{% endfor %}
+{% set all_authors = authors_ns.vals | sort %}
+
+{# Extraer lista única de años #}
+{% set years_ns = namespace(vals=[]) %}
+{% for it in visible %}
+  {% set yr = (it.date | string)[:4] %}
+  {% if yr and yr not in years_ns.vals and yr | length == 4 %}
+    {% set _ = years_ns.vals.append(yr) %}
+  {% endif %}
+{% endfor %}
+{% set years_list = years_ns.vals | sort(reverse=true) %}
 
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     {{ page_nav([('Inicio', url_for('web.home')), ('Buscador', '')], back_url=url_for('web.home'), back_label='Inicio') }}
-    {{ section_header('Búsqueda', 'Buscador', 'Encuentra proyectos, investigaciones y eventos del programa.') }}
 
-    <div class="museum-card rounded p-5 mb-8 flex flex-col md:flex-row gap-3">
-        <input type="text" id="bq" placeholder="Buscar por título, descripción o etiqueta…" class="museum-input flex-1 px-4 py-2.5 rounded text-sm">
-        <input type="text" id="ba" placeholder="Por persona (autor)…" class="museum-input flex-1 px-4 py-2.5 rounded text-sm md:max-w-[200px]">
-        <select id="bc" class="museum-input px-3 py-2.5 rounded text-sm md:w-44">
-            <option value="">Categoría</option>
-            {% for c in categorias %}
-            <option value="{{ c }}" style="background:var(--card)">{{ c | capitalize }}</option>
-            {% endfor %}
-        </select>
-        <select id="by" class="museum-input px-3 py-2.5 rounded text-sm md:w-32">
-            <option value="">Año</option>
-            {% for y in anios %}
-            <option value="{{ y }}" style="background:var(--card)">{{ y }}</option>
-            {% endfor %}
-        </select>
+    <!-- Encabezado con estilo Hero ligero -->
+    <div class="mb-8">
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i> Búsqueda en el archivo
+        </div>
+        <h1 class="font-serif text-3xl md:text-5xl font-black leading-tight mb-2" style="color:var(--foreground)">
+            Buscador del <span class="text-primary-gradient italic">Museo</span>
+        </h1>
+        <p class="text-sm md:text-base max-w-2xl" style="color:var(--muted-foreground)">
+            Encuentra proyectos de grado, investigaciones, distinciones académicas, docentes y registros históricos del programa.
+        </p>
     </div>
 
-    <div class="flex flex-wrap items-center gap-2 mb-6">
-        <span class="text-sm font-mono mr-2" style="color:var(--muted-foreground)"><span id="bcount">{{ visible | length }}</span> resultado{{ '' if (visible | length) == 1 else 's' }}</span>
-        <span id="bchips" class="flex flex-wrap items-center gap-2"></span>
+    <!-- Barra de búsqueda principal estilo Spotlight -->
+    <div class="search-hero-box mb-6">
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-leading-icon" aria-hidden="true"></i>
+            <input type="text"
+                   id="bq"
+                   value="{{ current_q }}"
+                   placeholder="Escribe para buscar proyectos, tesis, autores, etiquetas…"
+                   autocomplete="off"
+                   class="search-main-input"
+                   aria-label="Término de búsqueda">
+            <button type="button" id="btn-clear-search" class="search-clear-btn" aria-label="Limpiar búsqueda" title="Limpiar (Esc)">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="search-kbd-badge hidden md:flex" title="Atajo de teclado">Esc</div>
+        </div>
     </div>
 
-    <div id="bgrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <!-- Pastillas horizontales de categorías (Quick category pills) -->
+    <div class="search-pills-row mb-6">
+        <div class="search-pills-scroll" role="tablist" aria-label="Filtrar por categoría">
+            {% set cat_pills = [
+                ('', 'fa-solid fa-layer-group', 'Todo'),
+                ('proyectos', 'fa-solid fa-graduation-cap', 'Proyectos'),
+                ('investigacion', 'fa-solid fa-microscope', 'Investigación'),
+                ('eventos', 'fa-solid fa-calendar-days', 'Eventos'),
+                ('logros', 'fa-solid fa-trophy', 'Logros'),
+                ('historia', 'fa-solid fa-landmark', 'Historia'),
+                ('docentes', 'fa-solid fa-chalkboard-user', 'Docentes')
+            ] %}
+            {% for cid, cicon, clabel in cat_pills %}
+            <button type="button"
+                    data-cat-pill="{{ cid }}"
+                    class="search-pill{% if current_cat == cid or (not current_cat and cid == '') %} active{% endif %}"
+                    role="tab">
+                <i class="{{ cicon }}"></i>
+                <span>{{ clabel }}</span>
+                {% if cid == '' %}
+                <span class="search-pill-count">{{ visible | length }}</span>
+                {% else %}
+                <span class="search-pill-count">{{ (visible | selectattr('category', 'equalto', cid) | list | length) }}</span>
+                {% endif %}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Barra de filtros secundarios: Año, Autor, Orden + Sugerencias -->
+    <div class="search-toolbar mb-6">
+        <div class="search-toolbar-left">
+            <!-- Selector de Año -->
+            <div class="search-filter-select-wrap">
+                <i class="fa-regular fa-calendar filter-select-icon"></i>
+                <select id="by" class="search-filter-select" aria-label="Filtrar por año">
+                    <option value="">Todos los años</option>
+                    {% for y in years_list %}
+                    <option value="{{ y }}">{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Selector de Autor -->
+            <div class="search-filter-select-wrap">
+                <i class="fa-regular fa-user filter-select-icon"></i>
+                <select id="ba" class="search-filter-select" aria-label="Filtrar por autor">
+                    <option value="">Cualquier autor</option>
+                    {% for a in all_authors %}
+                    <option value="{{ a }}">{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Selector de Orden -->
+            <div class="search-filter-select-wrap">
+                <i class="fa-solid fa-arrow-down-wide-short filter-select-icon"></i>
+                <select id="bsort" class="search-filter-select" aria-label="Ordenar resultados">
+                    <option value="recent">Más recientes</option>
+                    <option value="oldest">Más antiguos</option>
+                    <option value="title">Título (A-Z)</option>
+                </select>
+            </div>
+
+            <!-- Botón limpiar todos los filtros -->
+            <button type="button" id="btn-reset-filters" class="search-reset-btn" style="display:none" aria-label="Limpiar filtros">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Limpiar filtros</span>
+            </button>
+        </div>
+
+        <!-- Sugerencias populares de etiquetas -->
+        <div class="search-tags-row">
+            <span class="search-tags-label">Sugerencias:</span>
+            {% set sugerencias = ['Inteligencia Artificial', 'Ciberseguridad', 'Acreditación', 'Sistemas', 'Semillero', 'Robótica'] %}
+            {% for s in sugerencias %}
+            <button type="button" data-tag-search="{{ s }}" class="search-tag-chip">
+                #{{ s }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Barra de estado de resultados -->
+    <div class="search-results-bar mb-6">
+        <div class="flex items-center gap-3">
+            <span id="bcount-badge" class="search-count-badge">
+                <strong id="bcount">{{ visible | length }}</strong> resultados
+            </span>
+            <div id="bchips" class="flex flex-wrap items-center gap-2"></div>
+        </div>
+    </div>
+
+    <!-- Grid de resultados -->
+    <div id="bgrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for item in visible %}
         {{ content_card(item) }}
         {% endfor %}
     </div>
 
-    <div id="bvacio" class="hidden text-center py-20 flex flex-col items-center gap-2">
-        <i class="fa-solid fa-magnifying-glass text-4xl opacity-20" style="color:var(--muted-foreground)"></i>
-        <p style="color:var(--muted-foreground)">No se encontraron resultados. Intenta con otros términos.</p>
+    <!-- Estado vacío si no hay resultados -->
+    <div id="bvacio" class="search-empty-state" style="display:none">
+        <div class="search-empty-icon-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <h3 class="font-serif text-xl font-bold mb-1" style="color:var(--foreground)">No encontramos coincidencias</h3>
+        <p class="text-sm max-w-md mx-auto mb-6" style="color:var(--muted-foreground)">
+            Intenta buscar con palabras más generales, revisa la ortografía o elimina algunos filtros aplicados.
+        </p>
+        <button type="button" id="btn-vacio-reset" class="btn-primary px-5 py-2.5 rounded text-xs font-semibold">
+            <i class="fa-solid fa-rotate-left mr-1.5"></i> Restablecer búsqueda
+        </button>
     </div>
 </div>
 {% endblock %}
@@ -52,18 +183,26 @@
     var DATOS = window.__DATOS || {};
     var q = document.getElementById('bq');
     var a = document.getElementById('ba');
-    var c = document.getElementById('bc');
     var y = document.getElementById('by');
+    var s = document.getElementById('bsort');
     var grid = document.getElementById('bgrid');
     var vacio = document.getElementById('bvacio');
     var countEl = document.getElementById('bcount');
     var chips = document.getElementById('bchips');
+    var clearBtn = document.getElementById('btn-clear-search');
+    var resetBtn = document.getElementById('btn-reset-filters');
+    var vacioResetBtn = document.getElementById('btn-vacio-reset');
+    var catPills = Array.prototype.slice.call(document.querySelectorAll('[data-cat-pill]'));
+    var tagChips = Array.prototype.slice.call(document.querySelectorAll('[data-tag-search]'));
+
     var all = DATOS.contentItems || [];
+    var activeCat = {{ (request.args.get('cat') or '') | tojson }};
+
     if (!q || !grid) return;
 
-    function esc(s) {
-        if (s === null || s === undefined) return '';
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function esc(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function searchHits(query) {
@@ -78,45 +217,179 @@
         return hits;
     }
 
+    function updateClearBtn() {
+        if (clearBtn) {
+            clearBtn.style.display = q.value.trim().length > 0 ? 'inline-flex' : 'none';
+        }
+    }
+
     function apply() {
         var query = q.value.trim().toLowerCase();
-        var author = a.value.trim().toLowerCase();
-        var cat = c.value;
-        var year = y.value;
+        var author = a ? a.value.trim().toLowerCase() : '';
+        var year = y ? y.value : '';
+        var sortVal = s ? s.value : 'recent';
+
+        updateClearBtn();
+
+        // 1. Filtrado de lista
         var list;
         if (query) {
             list = searchHits(query).filter(function (h) { return !h.extra; }).map(function (h) { return h.item; });
         } else {
             list = all.slice();
         }
-        list = list.filter(function (it) { return it.status === 'publicado' || it.status === 'institucional'; })
+
+        list = list.filter(function (it) { return it && (it.status === 'publicado' || it.status === 'institucional'); })
             .filter(function (it) { return !author || ((it.author || '').toLowerCase().indexOf(author) !== -1); })
-            .filter(function (it) { return !cat || it.category === cat; })
+            .filter(function (it) { return !activeCat || it.category === activeCat; })
             .filter(function (it) { return !year || String(it.date || '').indexOf(year) === 0; });
 
-        countEl.textContent = list.length;
-        if (!list.length) {
-            grid.innerHTML = '';
-            vacio.classList.remove('hidden');
-        } else {
-            vacio.classList.add('hidden');
-            grid.innerHTML = list.map(function (it) { return UI.contentCard(it); }).join('');
+        // 2. Ordenamiento
+        if (sortVal === 'recent') {
+            list.sort(function (e1, e2) { return String(e2.date || '').localeCompare(String(e1.date || '')); });
+        } else if (sortVal === 'oldest') {
+            list.sort(function (e1, e2) { return String(e1.date || '').localeCompare(String(e2.date || '')); });
+        } else if (sortVal === 'title') {
+            list.sort(function (e1, e2) { return String(e1.title || '').localeCompare(String(e2.title || '')); });
         }
 
+        // 3. Renderizado de resultados
+        if (countEl) countEl.textContent = list.length;
+
+        if (!list.length) {
+            grid.innerHTML = '';
+            if (vacio) vacio.style.display = 'flex';
+        } else {
+            if (vacio) vacio.style.display = 'none';
+            if (window.UI && UI.contentCard) {
+                grid.innerHTML = list.map(function (it) { return UI.contentCard(it); }).join('');
+            }
+        }
+
+        // 4. Pastillas de filtros activos
         var h = '';
-        if (query) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Búsqueda: ' + esc(q.value.trim()) + '</span>';
-        if (author) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Persona: ' + esc(a.value.trim()) + '</span>';
-        if (cat) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Categoría: ' + esc(cat) + '</span>';
-        if (year) h += '<span class="text-xs px-2 py-1 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">Año: ' + esc(year) + '</span>';
-        chips.innerHTML = h;
+        var hasActiveFilters = false;
+
+        if (query) {
+            hasActiveFilters = true;
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+                 '<span>"' + esc(q.value.trim()) + '"</span>' +
+                 '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="q" style="background:none;border:none;color:inherit">×</button></span>';
+        }
+        if (activeCat) {
+            hasActiveFilters = true;
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+                 '<span>' + esc(activeCat) + '</span>' +
+                 '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="cat" style="background:none;border:none;color:inherit">×</button></span>';
+        }
+        if (year) {
+            hasActiveFilters = true;
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+                 '<span>Año: ' + esc(year) + '</span>' +
+                 '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="year" style="background:none;border:none;color:inherit">×</button></span>';
+        }
+        if (author) {
+            hasActiveFilters = true;
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+                 '<span>Autor: ' + esc(a.value.trim()) + '</span>' +
+                 '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="author" style="background:none;border:none;color:inherit">×</button></span>';
+        }
+
+        if (chips) chips.innerHTML = h;
+
+        // Mostrar u ocultar botón de limpiar filtros
+        if (resetBtn) {
+            resetBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
+        }
+
+        // Delegar eliminación de chips individuales
+        if (chips) {
+            var removeBtns = chips.querySelectorAll('[data-remove]');
+            removeBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var type = btn.getAttribute('data-remove');
+                    if (type === 'q') q.value = '';
+                    if (type === 'cat') {
+                        activeCat = '';
+                        updateCatPills();
+                    }
+                    if (type === 'year' && y) y.value = '';
+                    if (type === 'author' && a) a.value = '';
+                    apply();
+                });
+            });
+        }
     }
 
-    var fields = [q, a, c, y];
-    ['input', 'change'].forEach(function (ev) {
-        fields.forEach(function (el) { el.addEventListener(ev, apply); });
+    function updateCatPills() {
+        catPills.forEach(function (pill) {
+            var cVal = pill.getAttribute('data-cat-pill');
+            pill.classList.toggle('active', cVal === activeCat);
+        });
+    }
+
+    function resetAll() {
+        q.value = '';
+        activeCat = '';
+        if (a) a.value = '';
+        if (y) y.value = '';
+        if (s) s.value = 'recent';
+        updateCatPills();
+        apply();
+        q.focus();
+    }
+
+    // Eventos de Categoría (Pills)
+    catPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            activeCat = pill.getAttribute('data-cat-pill');
+            updateCatPills();
+            apply();
+        });
     });
 
+    // Eventos de sugerencias de tags
+    tagChips.forEach(function (tag) {
+        tag.addEventListener('click', function () {
+            var term = tag.getAttribute('data-tag-search');
+            q.value = term;
+            apply();
+            q.focus();
+        });
+    });
+
+    // Eventos de input y selects
+    q.addEventListener('input', apply);
+    if (a) a.addEventListener('change', apply);
+    if (y) y.addEventListener('change', apply);
+    if (s) s.addEventListener('change', apply);
+
+    // Botón limpiar texto
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function () {
+            q.value = '';
+            apply();
+            q.focus();
+        });
+    }
+
+    // Tecla Escape para limpiar
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.activeElement === q && q.value.trim()) {
+            q.value = '';
+            apply();
+        }
+    });
+
+    // Botones de reset
+    if (resetBtn) resetBtn.addEventListener('click', resetAll);
+    if (vacioResetBtn) vacioResetBtn.addEventListener('click', resetAll);
+
+    // Cargar datos del museo si están disponibles
     if (window.Museo) Museo.loadData().catch(function () {});
+
+    // Inicializar estado
+    updateCatPills();
     apply();
 })();
 </script>
