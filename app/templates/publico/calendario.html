@@ -17,9 +17,11 @@
                     <div class="flex items-center gap-1" role="group" aria-label="Cambiar mes">
                         <button type="button" id="cal-prev" class="cal-icon-btn" aria-label="Mes anterior">
                             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                            <span id="cal-prev-dot" class="cal-nav-dot" aria-hidden="true"></span>
                         </button>
                         <button type="button" id="cal-next" class="cal-icon-btn" aria-label="Mes siguiente">
                             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                            <span id="cal-next-dot" class="cal-nav-dot" aria-hidden="true"></span>
                         </button>
                     </div>
                     <div class="min-w-0">
@@ -30,6 +32,10 @@
                 <button type="button" id="cal-today" class="btn-outline-primary px-3 py-1.5 rounded text-xs font-medium">
                     <i class="fa-regular fa-calendar-check mr-1" aria-hidden="true"></i> Hoy
                 </button>
+            </div>
+
+            <div id="cal-jump" class="cal-jump" hidden>
+                <button type="button" id="cal-jump-btn" class="cal-jump-btn"></button>
             </div>
 
             <div class="cal-weekdays" aria-hidden="true">
@@ -94,6 +100,7 @@
         margin-bottom: 1rem;
     }
     .cal-icon-btn {
+        position: relative;
         width: 2.25rem;
         height: 2.25rem;
         display: inline-flex;
@@ -110,6 +117,41 @@
         border-color: var(--primary);
         color: var(--primary);
         background: var(--primary-soft);
+    }
+    .cal-nav-dot {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        width: 6px;
+        height: 6px;
+        border-radius: 9999px;
+        background: var(--primary);
+        box-shadow: 0 0 0 2px var(--surface-1);
+        display: none;
+    }
+    .cal-nav-dot.is-on { display: block; }
+    .cal-jump { margin: 0 0 0.9rem; }
+    .cal-jump-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 9999px;
+        border: 1px solid var(--primary-border);
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        line-height: 1;
+        transition: background 0.18s, border-color 0.18s;
+    }
+    .cal-jump-btn:hover {
+        background: color-mix(in srgb, var(--primary) 16%, transparent);
+        border-color: var(--primary);
+    }
+    .cal-cell:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 1px;
     }
     .cal-weekdays,
     .cal-grid {
@@ -241,7 +283,14 @@
     var dayLabelEl = document.getElementById('cal-day-label');
     var dayCountEl = document.getElementById('cal-day-count');
     var daysEl = document.getElementById('cal-days');
-    if (!grid) return;
+    var prevBtn = document.getElementById('cal-prev');
+    var nextBtn = document.getElementById('cal-next');
+    var prevDot = document.getElementById('cal-prev-dot');
+    var nextDot = document.getElementById('cal-next-dot');
+    var jumpEl = document.getElementById('cal-jump');
+    var jumpBtn = document.getElementById('cal-jump-btn');
+    if (!grid || !monthEl || !summaryEl || !dayLabelEl || !dayCountEl || !daysEl) return;
+    if (!prevBtn || !nextBtn || !prevDot || !nextDot || !jumpEl || !jumpBtn) return;
 
     function esc(s) {
         if (s === null || s === undefined) return '';
@@ -253,13 +302,35 @@
     function colorFor(type) {
         return 'var(--ev-' + String(type || '').replace(/[^a-z]/g, '') + ', var(--primary))';
     }
+    var TYPE_LABELS = { conferencia: 'Conferencia', taller: 'Taller', graduacion: 'Graduación', cultural: 'Cultural' };
+    function typeLabel(type) {
+        var key = String(type || '').replace(/[^a-z]/g, '').toLowerCase();
+        return TYPE_LABELS[key] || (type ? String(type) : 'Actividad');
+    }
+
     var byDate = {};
-    evs.forEach(function (ev) { (byDate[ev.date] = byDate[ev.date] || []).push(ev); });
+    evs.forEach(function (ev) {
+        if (!ev || !ev.date) return;
+        (byDate[ev.date] = byDate[ev.date] || []).push(ev);
+    });
+
+    var eventDates = Object.keys(byDate).filter(function (k) {
+        return /^\d{4}-\d{2}-\d{2}$/.test(k);
+    }).sort();
+
+    function monthKey(y, m) {
+        return y + '-' + String(m + 1).padStart(2, '0');
+    }
+    function hasEvents(y, m) {
+        var key = monthKey(y, m);
+        return eventDates.some(function (d) { return d.slice(0, 7) === key; });
+    }
 
     var now = new Date();
     var selected = iso(now);
     var view = { y: now.getFullYear(), m: now.getMonth() };
     var monthCache = [];
+    var jumpTarget = null;
 
     function renderDay() {
         var list = byDate[selected] || [];
@@ -277,20 +348,29 @@
 
         daysEl.innerHTML = '<div class="flex flex-col">' + list.map(function (ev) {
             var c = colorFor(ev.type);
+            var timeHtml = ev.time
+                ? '<span class="font-mono text-xs font-bold" style="color:var(--ev-color)">' + esc(ev.time) + '</span>'
+                : '';
+            var placeHtml = ev.location
+                ? '<div class="text-xs mt-1 flex items-center gap-1" style="color:var(--muted-foreground)">' +
+                  '<i class="fa-solid fa-location-dot text-[10px] opacity-70" aria-hidden="true"></i>' + esc(ev.location) + '</div>'
+                : '';
+            var descHtml = ev.description
+                ? '<p class="text-xs mt-1.5 leading-relaxed" style="color:var(--muted-foreground)">' + esc(ev.description) + '</p>'
+                : '';
             return '<article class="cal-event" style="--ev-color:' + c + '">' +
                 '<div class="flex items-center gap-2 mb-1 flex-wrap">' +
-                '<span class="font-mono text-xs font-bold" style="color:var(--ev-color)">' + esc(ev.time) + '</span>' +
-                '<span class="cal-ev-badge">' + esc(ev.type) + '</span>' +
+                timeHtml +
+                '<span class="cal-ev-badge">' + esc(typeLabel(ev.type)) + '</span>' +
                 '</div>' +
-                '<h3 class="text-sm font-serif font-semibold leading-snug" style="color:var(--foreground)">' + esc(ev.title) + '</h3>' +
-                '<div class="text-xs mt-1 flex items-center gap-1" style="color:var(--muted-foreground)">' +
-                '<i class="fa-solid fa-location-dot text-[10px] opacity-70" aria-hidden="true"></i>' + esc(ev.location) + '</div>' +
-                '<p class="text-xs mt-1.5 leading-relaxed" style="color:var(--muted-foreground)">' + esc(ev.description) + '</p>' +
+                '<h3 class="text-sm font-serif font-semibold leading-snug" style="color:var(--foreground)">' + esc(ev.title || 'Actividad') + '</h3>' +
+                placeHtml +
+                descHtml +
                 '</article>';
         }).join('') + '</div>';
     }
 
-    function render() {
+    function render(focusKey) {
         var daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
         var lead = (new Date(view.y, view.m, 1).getDay() + 6) % 7;
         var cells = [];
@@ -338,12 +418,58 @@
         Array.prototype.forEach.call(grid.querySelectorAll('[data-day]'), function (b) {
             b.addEventListener('click', function () {
                 selected = b.getAttribute('data-day');
-                render();
+                render(selected);
             });
         });
 
         bindKeyboard();
         renderDay();
+        updateNav();
+        updateJump();
+
+        if (focusKey) {
+            var target = grid.querySelector('[data-day="' + focusKey + '"]');
+            if (target) target.focus({ preventScroll: true });
+        }
+    }
+
+    function updateNav() {
+        var prev = new Date(view.y, view.m - 1, 1);
+        var next = new Date(view.y, view.m + 1, 1);
+        var prevHas = hasEvents(prev.getFullYear(), prev.getMonth());
+        var nextHas = hasEvents(next.getFullYear(), next.getMonth());
+
+        prevDot.classList.toggle('is-on', prevHas);
+        nextDot.classList.toggle('is-on', nextHas);
+        prevBtn.setAttribute('aria-label', 'Mes anterior' + (prevHas ? ' (con actividades)' : ''));
+        nextBtn.setAttribute('aria-label', 'Mes siguiente' + (nextHas ? ' (con actividades)' : ''));
+    }
+
+    function updateJump() {
+        var currentKey = monthKey(view.y, view.m);
+        jumpTarget = null;
+
+        if (!hasEvents(view.y, view.m) && eventDates.length) {
+            var later = eventDates.find(function (d) { return d.slice(0, 7) > currentKey; });
+            var earlier = null;
+            for (var i = eventDates.length - 1; i >= 0; i--) {
+                if (eventDates[i].slice(0, 7) < currentKey) { earlier = eventDates[i]; break; }
+            }
+            jumpTarget = later || earlier;
+        }
+
+        if (!jumpTarget) {
+            jumpEl.hidden = true;
+            return;
+        }
+
+        var avanza = jumpTarget.slice(0, 7) > currentKey;
+        var etiqueta = avanza ? 'Siguiente actividad' : 'Última actividad';
+        var d = new Date(jumpTarget + 'T12:00:00');
+        var fecha = d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+        jumpBtn.textContent = (avanza ? '→ ' : '← ') + etiqueta + ': ' + fecha;
+        jumpBtn.setAttribute('aria-label', etiqueta + ': ' + fecha + '. Ir a ese mes.');
+        jumpEl.hidden = false;
     }
 
     function bindKeyboard() {
@@ -375,6 +501,14 @@
         view = { y: now.getFullYear(), m: now.getMonth() };
         render();
     }
+
+    jumpBtn.addEventListener('click', function () {
+        if (!jumpTarget) return;
+        var d = new Date(jumpTarget + 'T12:00:00');
+        view = { y: d.getFullYear(), m: d.getMonth() };
+        selected = jumpTarget;
+        render(selected);
+    });
 
     document.getElementById('cal-prev').addEventListener('click', function () {
         var d = new Date(view.y, view.m - 1, 1);
