@@ -25,7 +25,7 @@
         <nav id="explorar-nav" class="relative flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
             {% for cid, icon, clabel, cnt in cats %}
             {% set is_active = (cat == cid) or (not cat and cid == '') %}
-            <a href="{{ url_for('web.explorar') }}{{ ('?cat=' ~ cid) if cid }}" data-filter="{{ cid }}"{% if is_active %} aria-current="page"{% endif %} class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap lg:whitespace-normal text-left w-auto lg:w-full {{ 'sb-active' if is_active else 'hover:translate-x-1' }}" style="color:{{ '#ffffff' if is_active else 'var(--secondary-foreground)' }}">
+            <a href="{{ url_for('web.explorar') }}{{ ('?cat=' ~ cid) if cid }}" data-filter="{{ cid }}"{% if is_active %} aria-current="page"{% endif %} class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap lg:whitespace-normal text-left w-auto lg:w-full {{ 'sb-active' if is_active else 'hover:translate-x-1' }}" style="color:{{ 'var(--primary-foreground)' if is_active else 'var(--secondary-foreground)' }}">
                 <span class="sb-chip {{ 'sb-chip-on' if is_active }}"><i class="{{ icon }} text-xs"></i></span>
                 <span class="flex-1 truncate">{{ clabel }}</span>
                 <span data-count class="text-xs font-mono flex-shrink-0" style="color:{{ 'rgba(255,255,255,0.85)' if is_active else 'var(--muted-foreground)' }}">{{ cnt }}</span>
@@ -42,7 +42,7 @@
                         <img src="{{ news_ns.item.image }}" alt="{{ news_ns.item.title }}" class="w-full h-full object-cover">
                         <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)"></div>
                         <div class="absolute flex items-center gap-3 flex-wrap" style="bottom:1rem;left:1.25rem;right:1.25rem">
-                            <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:#ffffff">{{ news_ns.item.category }}</span>
+                            <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:var(--primary-foreground)">{{ news_ns.item.category }}</span>
                             <span class="text-xs font-mono" style="color:rgba(255,255,255,0.75)">{{ news_ns.item.date | fmt_fecha }}</span>
                         </div>
                     </div>
@@ -64,7 +64,7 @@
                 <a href="{{ url_for('web.explorar') }}?cat=noticias&news={{ n.id }}" data-news-card class="museum-card rounded overflow-hidden text-left group fade-up-delayed flex flex-col">
                     <div class="relative h-40 overflow-hidden">
                         <img src="{{ n.image }}" alt="{{ n.title }}" class="w-full h-full object-cover opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105">
-                        <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:#ffffff">{{ n.category }}</span>
+                        <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:var(--primary-foreground)">{{ n.category }}</span>
                     </div>
                     <div class="p-4 flex flex-col flex-1">
                         <div class="text-xs font-mono mb-1" style="color:var(--muted-foreground)">{{ n.date | fmt_fecha }}</div>
@@ -150,7 +150,7 @@
         Array.prototype.forEach.call(nav.querySelectorAll('[data-filter]'), function (link) {
             var on = (link.getAttribute('data-filter') || '') === cat;
             link.classList.toggle('sb-active', on);
-            link.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
+            link.style.color = on ? 'var(--primary-foreground)' : 'var(--secondary-foreground)';
             var chip = link.querySelector('.sb-chip');
             if (chip) chip.classList.toggle('sb-chip-on', on);
             var cnt = link.querySelector('[data-count]');

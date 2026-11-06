@@ -28,7 +28,7 @@
       </div>
 
       <div class="flex gap-2 flex-wrap mb-6" id="aporte-filtros">
-        <button type="button" data-filter="todos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--primary-solid);color:#ffffff;border:1px solid var(--primary)">Todos <span class="font-mono opacity-70">{{ mis_aportes | length }}</span></button>
+        <button type="button" data-filter="todos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--primary-solid);color:var(--primary-foreground);border:1px solid var(--primary)">Todos <span class="font-mono opacity-70">{{ mis_aportes | length }}</span></button>
         <button type="button" data-filter="publicados" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Publicados <span class="font-mono opacity-70">{{ ap_pub | length }}</span></button>
         <button type="button" data-filter="pendientes" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Pendientes <span class="font-mono opacity-70">{{ ap_pend | length }}</span></button>
         <button type="button" data-filter="devueltos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Devueltos <span class="font-mono opacity-70">{{ ap_dev | length }}</span></button>
@@ -111,7 +111,7 @@
     chips.forEach(function (c) {
       var on = c.getAttribute('data-filter') === f;
       c.style.background = on ? 'var(--primary-solid)' : 'var(--muted)';
-      c.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
+      c.style.color = on ? 'var(--primary-foreground)' : 'var(--secondary-foreground)';
       c.style.border = on ? '1px solid var(--primary)' : '1px solid var(--border)';
     });
     cards.forEach(function (card) {

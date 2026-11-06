@@ -80,7 +80,7 @@
 
         return '<a href="' + href + '" class="group block" data-card-id="' + esc(itemId) + '">' +
             '<article class="museum-card content-card rounded overflow-hidden cursor-pointer flex flex-col h-full">' +
-            '<div class="relative overflow-hidden h-44 bg-gray-900">' +
+            '<div class="relative overflow-hidden h-44 bg-gray-900 on-photo">' +
             '<img src="' + esc(item.image || '') + '" alt="' + esc(item.title || '') + '" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">' +
             '<div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%)"></div>' + status +
             '</div>' +
@@ -173,7 +173,7 @@
         var checked = !!cfg.checked;
         return '<label class="flex items-start gap-3 cursor-pointer group">' +
             '<button type="button" class="w-5 h-5 rounded flex-shrink-0 mt-0.5 flex items-center justify-center transition-all" role="checkbox" aria-checked="' + (checked ? 'true' : 'false') + '" aria-label="' + esc(cfg.label || '') + '" data-checkbox="' + esc(cfg.name || '') + '" data-value="' + esc(cfg.value || '') + '" style="background:' + (checked ? 'var(--primary)' : 'var(--surface-1)') + ';border:1px solid ' + (checked ? 'var(--primary)' : 'var(--border-subtle)') + '">' +
-            (checked ? '<i class="fa-solid fa-check text-xs text-black font-bold" aria-hidden="true"></i>' : '') + '</button>' +
+            (checked ? '<i class="fa-solid fa-check text-xs font-bold" style="color:var(--primary-foreground)" aria-hidden="true"></i>' : '') + '</button>' +
             '<span class="text-sm" style="color:var(--secondary-foreground)">' + esc(cfg.label) + '</span></label>';
     }
 

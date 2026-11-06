@@ -52,9 +52,9 @@
     </div>
 
     <div class="flex flex-wrap gap-2 mb-8">
-        <a href="{{ url_for('web.hall_fama') }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if not cat_f %}background:var(--primary-solid);color:var(--background);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">Todos</a>
+        <a href="{{ url_for('web.hall_fama') }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if not cat_f %}background:var(--primary-solid);color:var(--primary-foreground);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">Todos</a>
         {% for c in cats_ns.vals %}
-        <a href="{{ url_for('web.hall_fama') }}?cat={{ c | urlencode }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if cat_f == c %}background:var(--primary-solid);color:var(--background);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">{{ c }}</a>
+        <a href="{{ url_for('web.hall_fama') }}?cat={{ c | urlencode }}" class="px-3 py-1.5 rounded text-sm inline-flex items-center justify-center" style="{% if cat_f == c %}background:var(--primary-solid);color:var(--primary-foreground);border:1px solid var(--primary){% else %}background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border){% endif %}">{{ c }}</a>
         {% endfor %}
     </div>
 
@@ -65,7 +65,7 @@
                 <img src="{{ m.image }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-105">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>
                 <div class="absolute bottom-0 left-0 right-0 p-4">
-                    <div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:#ffffff">{{ m.name }}</div>
+                    <div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--on-photo-fg)">{{ m.name }}</div>
                     <div class="text-xs" style="color:var(--medal-gold-on-photo)">{{ m.title }}</div>
                 </div>
                 <div class="absolute top-3 right-3 font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.7);color:var(--medal-gold);border:1px solid var(--gold-border)">{{ m.year }}</div>

@@ -31,7 +31,7 @@
           {% for f in filtros %}
           {% set n = contentQueue | selectattr('status', 'equalto', f.value) | list | length if f.value else contentQueue | length %}
           <button type="button" data-filter="{{ f.value }}" class="{{ 'fil-aktivo px-3 py-1.5 rounded text-sm' if loop.first else 'px-3 py-1.5 rounded text-sm' }}"
-                  style="{{ 'background:var(--primary-solid);color:var(--background);border:1px solid var(--primary)' if loop.first else 'background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border)' }}">
+                  style="{{ 'background:var(--primary-solid);color:var(--primary-foreground);border:1px solid var(--primary)' if loop.first else 'background:var(--surface-1);color:var(--secondary-foreground);border:1px solid var(--border)' }}">
             {{ f.label }} ({{ n }})
           </button>
           {% endfor %}

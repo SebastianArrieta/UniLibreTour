@@ -101,14 +101,17 @@ Botones: `.btn-primary` (rojo, la acción principal) y `.btn-outline-primary` (s
 
 ## 5. Excepciones y casos especiales
 
-- **Fotografías.** El degradado negro sobre una foto (`rgba(0,0,0,…)`) no cambia con el tema. Por eso, el texto encima va siempre en blanco (`#ffffff`) y el dorado en `--medal-gold-on-photo`. Para insignias o estados encima de una foto, envuelve el elemento en `class="on-photo"`, que fuerza colores legibles en ambos temas.
+- **Fotografías.** El degradado negro sobre una foto (`rgba(0,0,0,…)`) no cambia con el tema. Por eso, el texto encima va siempre en `var(--on-photo-fg)` (blanco en ambos temas) y el dorado en `--medal-gold-on-photo`. Para insignias o estados encima de una foto, envuelve el elemento en `class="on-photo"`, que fuerza colores legibles en ambos temas.
 - **Rellenos sólidos.** Encima de `--primary-solid` el texto va en blanco (`--primary-foreground`).
 - **Tintes translúcidos de un color variable** (por ejemplo, el color viene de un diccionario Jinja). Usa `color-mix(in srgb, <color> 10%, transparent)`. **Nunca** concatenes un alfa al color (`{{ color }}1a`): con tokens `var(--x)` deja de funcionar.
 - **Degradados.** Un degradado con un acento sólido (`linear-gradient(var(--primary), …)`) pesa mucho. Usa las variantes `-soft`/`-border` o `color-mix`.
 
 ## 6. Checklist antes de subir cambios visuales
 
-- [ ] No hay hex ni `rgba()` nuevos en `app/templates` ni `app/static/js` (salvo las excepciones).
+- [ ] No hay hex ni `rgba()` nuevos en `app/templates` ni `app/static/js` (salvo las excepciones). Verificación rápida:
+  ```bash
+  rg -n "#[0-9a-fA-F]{3,8}|rgba?\(" app/templates app/static/js | rg -v "on-photo|medal-gold|ruta-wave-head|<svg|%23"
+  ```
 - [ ] Hay un solo botón rojo principal por vista.
 - [ ] Los estados llevan icono + texto.
 - [ ] Revisado en **tema oscuro y claro**.
