@@ -29,11 +29,11 @@
                     <input id="login-password" type="password" placeholder="••••••••"
                            class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
                 </div>
-                <div id="login-error" class="text-xs px-3 py-2 rounded" style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+                <div id="login-error" class="text-xs px-3 py-2 rounded" style="display:none;background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"></div>
                 <button type="submit" class="btn-primary w-full py-3 rounded font-semibold">Ingresar</button>
             </form>
             <div class="mt-4 text-center">
-                <a href="{{ url_for('web.registro') }}" class="text-sm hover:underline" style="color:#d32f2f">¿No tienes cuenta? Regístrate</a>
+                <a href="{{ url_for('web.registro') }}" class="text-sm hover:underline" style="color:var(--primary)">¿No tienes cuenta? Regístrate</a>
             </div>
         </div>
     </div>

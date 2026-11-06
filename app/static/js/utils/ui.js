@@ -22,10 +22,10 @@
     'use strict';
 
     var STATUS_CONFIG = {
-        publicado:   { label: 'Publicado',     color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-        pendiente:   { label: 'En Revisión',   color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
-        institucional: { label: 'Institucional', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-        devuelto:    { label: 'Devuelto',      color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+        publicado:     { label: 'Publicado',     icon: 'fa-check' },
+        pendiente:     { label: 'En Revisión',   icon: 'fa-clock' },
+        institucional: { label: 'Institucional', icon: 'fa-building-columns' },
+        devuelto:      { label: 'Devuelto',      icon: 'fa-arrow-rotate-left' },
     };
 
     var CATEGORY_LABELS = {
@@ -52,14 +52,15 @@
     }
 
     function statusBadge(status) {
-        var c = STATUS_CONFIG[status] || STATUS_CONFIG.pendiente;
-        return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono font-medium" style="color:' + c.color + ';background:' + c.bg + ';border:1px solid ' + c.color + '30">' +
-            '<span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:' + c.color + '"></span>' + c.label + '</span>';
+        var key = STATUS_CONFIG[status] ? status : 'pendiente';
+        var c = STATUS_CONFIG[key];
+        return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono font-medium status-' + key + '">' +
+            '<i class="fa-solid ' + c.icon + '" style="font-size:10px" aria-hidden="true"></i>' + c.label + '</span>';
     }
 
     function categoryBadge(category) {
         var label = CATEGORY_LABELS[category] || category || '';
-        return '<span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">' + esc(label) + '</span>';
+        return '<span class="text-xs px-2 py-0.5 rounded font-mono" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">' + esc(label) + '</span>';
     }
 
     function tagList(tags) {
@@ -90,7 +91,7 @@
             '<h3 class="font-serif text-base font-semibold leading-snug line-clamp-2">' + esc(item.title) + '</h3>' +
             '<p class="text-sm leading-relaxed line-clamp-2 flex-1" style="color:var(--muted-foreground)">' + esc(item.description) + '</p>' +
             '<div class="flex items-center gap-1.5 mt-1">' +
-            '<div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs" style="background:var(--primary-soft);color:var(--primary)">' + esc((item.author || '?').charAt(0)) + '</div>' +
+            '<div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs" style="background:var(--brown-soft);color:var(--brown)">' + esc((item.author || '?').charAt(0)) + '</div>' +
             '<span class="text-xs truncate" style="color:var(--muted-foreground)">' + esc(item.author) + '</span>' +
             '</div>' +
             '<div class="flex items-center gap-1 text-xs font-medium opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" style="color:var(--primary)">Ver detalle <span aria-hidden="true">→</span></div>' +
@@ -118,7 +119,7 @@
 
     function statCard(cfg) {
         cfg = cfg || {};
-        var color = cfg.color || 'var(--primary)';
+        var color = cfg.color || 'var(--foreground)';
         var value = cfg.value === undefined || cfg.value === null ? '—' : Number(cfg.value).toLocaleString('es-CO');
         var sub = cfg.sub ? '<div class="text-xs mt-1" style="color:var(--muted-foreground)">' + esc(cfg.sub) + '</div>' : '';
         return '<div class="museum-card rounded p-5">' +
@@ -152,7 +153,7 @@
             var num = i + 1;
             var isCompleted = currentStep > num;
             var isActive = currentStep >= num;
-            var circleBg = isCompleted ? '#22c55e' : isActive ? 'var(--primary)' : 'var(--surface-2)';
+            var circleBg = isCompleted ? 'var(--gold)' : isActive ? 'var(--primary-solid)' : 'var(--surface-2)';
             var circleColor = isActive ? 'var(--primary-foreground)' : 'var(--muted-foreground)';
             var circleBorder = isActive ? 'none' : '1px solid var(--border-subtle)';
             out += '<div class="flex items-center gap-2 flex-1">' +
@@ -160,7 +161,7 @@
                 (isCompleted ? '<i class="fa-solid fa-check text-xs"></i>' : num) + '</div>' +
                 '<span class="text-xs hidden md:inline truncate" style="color:' + (isActive ? 'var(--secondary-foreground)' : 'var(--muted-foreground)') + '">' + esc(label) + '</span>';
             if (num < steps.length) {
-                out += '<div class="h-px flex-1 mx-2" style="background:' + (isCompleted ? '#22c55e' : isActive ? 'var(--primary)' : 'var(--border-subtle)') + '"></div>';
+                out += '<div class="h-px flex-1 mx-2" style="background:' + (isCompleted ? 'var(--gold)' : isActive ? 'var(--primary-border)' : 'var(--border-subtle)') + '"></div>';
             }
             out += '</div>';
         });

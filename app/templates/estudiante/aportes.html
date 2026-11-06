@@ -20,7 +20,7 @@
       {{ page_nav([('Mi Panel', url_for('web.estudiante')), ('Mis Aportes', '')], back_url=url_for('web.estudiante'), back_label='Mi Panel') }}
       <div class="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Mis contribuciones</div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Mis contribuciones</div>
           <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Mis Aportes</h2>
           <p class="mt-2 text-base" style="color:var(--muted-foreground)">{{ mis_aportes | length }} aportes · {{ ap_pub | length }} publicados · {{ ap_pend | length + ap_dev | length }} en proceso</p>
         </div>
@@ -28,7 +28,7 @@
       </div>
 
       <div class="flex gap-2 flex-wrap mb-6" id="aporte-filtros">
-        <button type="button" data-filter="todos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:#d32f2f;color:#ffffff;border:1px solid #d32f2f">Todos <span class="font-mono opacity-70">{{ mis_aportes | length }}</span></button>
+        <button type="button" data-filter="todos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--primary-solid);color:#ffffff;border:1px solid var(--primary)">Todos <span class="font-mono opacity-70">{{ mis_aportes | length }}</span></button>
         <button type="button" data-filter="publicados" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Publicados <span class="font-mono opacity-70">{{ ap_pub | length }}</span></button>
         <button type="button" data-filter="pendientes" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Pendientes <span class="font-mono opacity-70">{{ ap_pend | length }}</span></button>
         <button type="button" data-filter="devueltos" class="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:-translate-y-0.5" style="background:var(--muted);color:var(--secondary-foreground);border:1px solid var(--border)">Devueltos <span class="font-mono opacity-70">{{ ap_dev | length }}</span></button>
@@ -51,12 +51,12 @@
             {% if item.tags and item.tags | length > 0 %}
             <div class="flex gap-1.5 flex-wrap">
               {% for t in item.tags %}
-              <span class="text-[10px] px-1.5 py-0.5 rounded" style="background:rgba(211,47,47,0.06);color:var(--secondary-foreground);border:1px solid var(--border)">#{{ t }}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded" style="background:var(--surface-2);color:var(--secondary-foreground);border:1px solid var(--border)">#{{ t }}</span>
               {% endfor %}
             </div>
             {% endif %}
             {% if item.reviewNote %}
-            <div class="text-xs px-3 py-2 rounded mt-2" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.25)">
+            <div class="text-xs px-3 py-2 rounded mt-2" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">
               <strong>Nota del revisor:</strong> {{ item.reviewNote }}
             </div>
             {% endif %}
@@ -65,7 +65,7 @@
             <button type="button" class="fav-toggle w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
               <span data-fav-icon><i class="fa-regular fa-heart"></i></span>
             </button>
-            <span class="opacity-30 transition-all flex-shrink-0" data-arrow style="color:#d32f2f">→</span>
+            <span class="opacity-30 transition-all flex-shrink-0" data-arrow style="color:var(--primary)">→</span>
           </div>
         </div>
         {% endfor %}
@@ -110,9 +110,9 @@
     var visible = 0;
     chips.forEach(function (c) {
       var on = c.getAttribute('data-filter') === f;
-      c.style.background = on ? '#d32f2f' : 'var(--muted)';
+      c.style.background = on ? 'var(--primary-solid)' : 'var(--muted)';
       c.style.color = on ? '#ffffff' : 'var(--secondary-foreground)';
-      c.style.border = on ? '1px solid #d32f2f' : '1px solid var(--border)';
+      c.style.border = on ? '1px solid var(--primary)' : '1px solid var(--border)';
     });
     cards.forEach(function (card) {
       var on = fits(card.getAttribute('data-status'), f);

@@ -14,7 +14,7 @@
     <div class="min-w-0">
       {{ page_nav([('Mi Panel', url_for('web.estudiante')), ('Contribuir', '')], back_url=url_for('web.estudiante'), back_label='Mi Panel') }}
       <div class="mb-8">
-        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:#d32f2f">Nuevo aporte</div>
+        <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Nuevo aporte</div>
         <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Registrar Contribución</h2>
         <p class="mt-2 text-base" style="color:var(--muted-foreground)">Comparte proyectos, investigaciones o documentos con el museo.</p>
       </div>
@@ -85,22 +85,22 @@
               <div class="museum-card rounded p-6">
                 <div class="flex items-center justify-between mb-4">
                   <h3 class="font-serif text-xl font-bold" style="color:var(--foreground)">Vista Previa</h3>
-                  <span class="text-xs font-mono px-2 py-0.5 rounded-full" style="background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.25)">En Revisión</span>
+                  <span class="text-xs font-mono px-2 py-0.5 rounded-full" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">En Revisión</span>
                 </div>
                 <div class="max-w-sm" id="preview-card"></div>
-                <div class="mt-4 pt-4 flex flex-col gap-2 text-sm" style="border-top:1px solid rgba(255,255,255,0.05)">
+                <div class="mt-4 pt-4 flex flex-col gap-2 text-sm" style="border-top:1px solid var(--border-subtle)">
                   <div class="flex justify-between gap-4"><span style="color:var(--muted-foreground)">Año</span><span id="sum-year" style="color:var(--secondary-foreground)">—</span></div>
                   <div class="flex justify-between gap-4"><span style="color:var(--muted-foreground)">Docente Involucrado</span><span id="sum-teacher" style="color:var(--secondary-foreground)">—</span></div>
                   <div class="flex justify-between gap-4"><span style="color:var(--muted-foreground)">Etiquetas</span><span id="sum-tags" class="text-right" style="color:var(--secondary-foreground)">—</span></div>
                 </div>
               </div>
-              <div class="text-xs px-3 py-2 rounded" style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">
+              <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
                 Al confirmar, tu contribución quedará en estado <strong>En Revisión</strong> y un docente la validará antes de publicarla.
               </div>
             </div>
           </div>
 
-          <div class="flex gap-3 pt-4" style="border-top:1px solid rgba(255,255,255,0.05)">
+          <div class="flex gap-3 pt-4" style="border-top:1px solid var(--border-subtle)">
             <button type="button" id="btn-prev" class="btn-outline-primary px-6 py-2.5 rounded text-sm">← Anterior</button>
             <button type="submit" id="btn-next" class="btn-primary px-8 py-2.5 rounded font-semibold text-sm flex-1">Siguiente paso →</button>
           </div>
@@ -110,11 +110,11 @@
       <div id="wizard-ok" style="display:none">
         <div class="flex items-center justify-center min-h-[24rem]">
           <div class="text-center max-w-sm">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" style="background:rgba(34,197,94,0.1);border:2px solid rgba(34,197,94,0.3);color:#22c55e"><i class="fa-solid fa-check"></i></div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" style="background:var(--gold-soft);border:2px solid var(--gold-border);color:var(--gold)"><i class="fa-solid fa-check"></i></div>
             <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Contribución enviada!</h2>
             <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu contribución ha sido registrada y está en revisión. Un docente la validará antes de que un administrador la publique.</p>
             <div class="flex flex-col gap-2">
-              <div class="text-xs px-3 py-2 rounded" style="background:rgba(249,115,22,0.08);color:#fb923c;border:1px solid rgba(249,115,22,0.2)">Estado: <strong>En Revisión</strong> · Recibirás una notificación al ser procesada</div>
+              <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Estado: <strong>En Revisión</strong> · Recibirás una notificación al ser procesada</div>
               <a href="{{ url_for('web.estudiante') }}" class="btn-primary px-5 py-2.5 rounded text-sm mt-2">Volver a mi panel</a>
             </div>
           </div>

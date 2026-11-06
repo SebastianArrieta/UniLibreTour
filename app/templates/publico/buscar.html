@@ -272,25 +272,25 @@
 
         if (query) {
             hasActiveFilters = true;
-            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">' +
                  '<span>"' + esc(q.value.trim()) + '"</span>' +
                  '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="q" style="background:none;border:none;color:inherit">×</button></span>';
         }
         if (activeCat) {
             hasActiveFilters = true;
-            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">' +
                  '<span>' + esc(activeCat) + '</span>' +
                  '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="cat" style="background:none;border:none;color:inherit">×</button></span>';
         }
         if (year) {
             hasActiveFilters = true;
-            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">' +
                  '<span>Año: ' + esc(year) + '</span>' +
                  '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="year" style="background:none;border:none;color:inherit">×</button></span>';
         }
         if (author) {
             hasActiveFilters = true;
-            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.3)">' +
+            h += '<span class="text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5" style="background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)">' +
                  '<span>Autor: ' + esc(a.value.trim()) + '</span>' +
                  '<button type="button" class="remove-chip cursor-pointer opacity-70 hover:opacity-100" data-remove="author" style="background:none;border:none;color:inherit">×</button></span>';
         }

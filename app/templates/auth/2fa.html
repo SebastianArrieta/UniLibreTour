@@ -11,11 +11,11 @@
         </div>
         <div class="text-center mb-8">
             <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
-                 style="background:rgba(211,47,47,0.1);border:2px solid rgba(211,47,47,0.3)"><i class="fa-solid fa-shield-halved" style="color:#d32f2f"></i></div>
+                 style="background:var(--primary-soft);border:2px solid var(--border)"><i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i></div>
             <h1 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">Verificación en 2 pasos</h1>
             <p class="text-sm" style="color:var(--muted-foreground)">
                 Ingresa el código de 6 dígitos enviado a tu correo institucional<br>
-                <span id="2fa-mask" style="color:#d32f2f">u*****@unilibre.edu.co</span>
+                <span id="2fa-mask" style="color:var(--primary)">u*****@unilibre.edu.co</span>
             </p>
         </div>
 
@@ -31,10 +31,10 @@
                 </div>
 
                 <div id="otp-error" class="text-xs px-3 py-2 rounded text-center"
-                     style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+                     style="display:none;background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"></div>
 
                 <div id="2fa-devcode" class="text-xs px-3 py-2 rounded text-center font-mono"
-                     style="display:none;background:rgba(59,130,246,0.08);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)"></div>
+                     style="display:none;background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)"></div>
 
                 <button type="submit" class="btn-primary w-full py-3 rounded font-semibold">Verificar Identidad</button>
             </form>
@@ -43,7 +43,7 @@
                 <button id="otp-resend" type="button" class="text-xs hover:underline"
                         style="color:var(--muted-foreground)">¿No recibiste el código? Reenviar</button>
             </div>
-            <div id="otp-resent-msg" class="text-xs text-center mt-2" style="display:none;color:#22c55e"><i class="fa-solid fa-check"></i> Código reenviado a tu correo</div>
+            <div id="otp-resent-msg" class="text-xs text-center mt-2" style="display:none;color:var(--gold)"><i class="fa-solid fa-check"></i> Código reenviado a tu correo</div>
 
             
         </div>

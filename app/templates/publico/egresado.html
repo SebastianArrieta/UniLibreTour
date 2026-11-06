@@ -22,7 +22,7 @@
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
 @media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
-.fab-contribuir { position: fixed; right: 1.25rem; bottom: 5.75rem; z-index: 45; box-shadow: 0 6px 20px rgba(211, 47, 47, 0.45); }
+.fab-contribuir { position: fixed; right: 1.25rem; bottom: 5.75rem; z-index: 45; box-shadow: 0 6px 20px var(--shadow-color); }
 @media (min-width: 768px) { .fab-contribuir { bottom: 1.5rem; } }
 </style>
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
@@ -31,7 +31,7 @@
     <div class="min-w-0">
       <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:#d32f2f">Panel de Control</div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Panel de Control</div>
           <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Mi Espacio</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground)">Bienvenida, Catalina Restrepo · Egresada · Cohorte {{ grado }}</p>
         </div>
@@ -41,11 +41,11 @@
       <div class="museum-card rounded p-6 mb-8">
         <div class="flex flex-col md:flex-row items-start md:items-center gap-5">
           <div class="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-serif font-bold flex-shrink-0"
-               style="background:linear-gradient(135deg, rgba(211,47,47,0.25), rgba(211,47,47,0.05));border:2px solid rgba(211,47,47,0.4);color:#d32f2f">C</div>
+               style="background:var(--brown-soft);border:2px solid var(--brown-border);color:var(--brown)">C</div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap mb-1">
               <h2 class="font-serif text-2xl font-bold" style="color:var(--foreground)">Catalina Restrepo</h2>
-              <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.1);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)">Egresada</span>
+              <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Egresada</span>
             </div>
             <p class="text-sm font-medium mb-1" style="color:var(--secondary-foreground)">{{ cargo }}</p>
             <div class="flex flex-wrap gap-4 text-xs font-mono" style="color:var(--muted-foreground)">
@@ -58,7 +58,7 @@
           </div>
           <div class="text-left md:text-right flex-shrink-0">
             <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos totales</div>
-            <div class="font-serif text-3xl font-bold" style="color:#d32f2f">{{ '{:,.0f}'.format(pts) | replace(',', '.') }}</div>
+            <div class="font-serif text-3xl font-bold" style="color:var(--gold)">{{ '{:,.0f}'.format(pts) | replace(',', '.') }}</div>
             <div class="text-xs mt-1" style="color:var(--muted-foreground)">Nivel {{ nivel }} de {{ maxLevel }}</div>
           </div>
         </div>
@@ -67,17 +67,17 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div class="museum-card rounded p-5">
           <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Contribuciones</div>
-          <div class="font-serif text-3xl font-bold" style="color:#d32f2f">{{ contribs }}</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ contribs }}</div>
           <div class="text-xs mt-1" style="color:var(--muted-foreground)">al legado del programa</div>
         </div>
         <div class="museum-card rounded p-5">
           <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Favoritos</div>
-          <div class="font-serif text-3xl font-bold" style="color:#3b82f6"><span id="fav-count">7</span></div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)"><span id="fav-count">7</span></div>
           <div class="text-xs mt-1" style="color:var(--muted-foreground)">piezas guardadas</div>
         </div>
         <div class="museum-card rounded p-5">
           <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Insignias</div>
-          <div class="font-serif text-3xl font-bold" style="color:#a855f7">{{ egresado.badgeIds | length if egresado and egresado.badgeIds else 9 }}</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ egresado.badgeIds | length if egresado and egresado.badgeIds else 9 }}</div>
           <div class="text-xs mt-1" style="color:var(--muted-foreground)">nivel embajadora cultural</div>
         </div>
       </div>
@@ -87,20 +87,20 @@
           <div>
             <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Nivel actual</div>
             <div class="flex items-baseline gap-2">
-              <span class="font-serif text-5xl font-black" style="color:#d32f2f">{{ nivel }}</span>
+              <span class="font-serif text-5xl font-black" style="color:var(--gold)">{{ nivel }}</span>
               <span class="text-sm" style="color:var(--muted-foreground)">/ {{ maxLevel }}</span>
             </div>
           </div>
           <div class="text-right">
             <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos totales</div>
-            <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ '{:,.0f}'.format(pts) | replace(',', '.') }}</div>
+            <div class="font-serif text-3xl font-bold" style="color:var(--gold)">{{ '{:,.0f}'.format(pts) | replace(',', '.') }}</div>
             {% if nivel < maxLevel %}
             <div class="text-xs mt-1" style="color:var(--muted-foreground)">Faltan {{ '{:,.0f}'.format(falta) | replace(',', '.') }} para Nivel {{ nivel + 1 }}</div>
             {% endif %}
           </div>
         </div>
-        <div class="h-2.5 rounded-full" style="background:rgba(255,255,255,0.06)">
-          <div class="h-full rounded-full transition-all duration-700" style="width:{{ pct }}%;background:linear-gradient(to right, #d32f2f, #ff4d4d)"></div>
+        <div class="h-2.5 rounded-full" style="background:var(--surface-2)">
+          <div class="h-full rounded-full transition-all duration-700" style="width:{{ pct }}%;background:var(--gold)"></div>
         </div>
       </div>
 
@@ -120,8 +120,8 @@
           <div class="flex flex-col gap-3">
             {% for ev in anuncios %}
             <div class="flex gap-3 items-start">
-              <div class="w-12 flex-shrink-0 text-center rounded p-1.5" style="background:rgba(211,47,47,0.1);border:1px solid rgba(211,47,47,0.2)">
-                <div class="text-xs font-mono font-bold" style="color:#d32f2f">{{ ev.f }}</div>
+              <div class="w-12 flex-shrink-0 text-center rounded p-1.5" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
+                <div class="text-xs font-mono font-bold" style="color:var(--brown)">{{ ev.f }}</div>
                 <div class="text-xs" style="color:var(--muted-foreground)">{{ ev.d }}</div>
               </div>
               <div>

@@ -10,10 +10,10 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">
-            <div class="relative rounded overflow-hidden mb-6" style="aspect-ratio:16 / 9;background:#111827">
+            <div class="relative rounded overflow-hidden mb-6" style="aspect-ratio:16 / 9;background:var(--muted)">
                 <img src="{{ item.image }}" alt="{{ item.title }}" class="w-full h-full object-cover">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)"></div>
-                <div class="absolute" style="bottom:1rem;left:1rem">{{ status_badge(item.status) }}</div>
+                <div class="absolute on-photo" style="bottom:1rem;left:1rem">{{ status_badge(item.status) }}</div>
             </div>
 
             <div class="flex items-center gap-2 mb-3 flex-wrap">
@@ -26,7 +26,7 @@
             <div class="flex items-center gap-3 mb-6 flex-wrap">
                 {% if authorUser %}
                 <a href="{{ url_for('web.perfil') }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity text-left">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold flex-shrink-0" style="background:rgba(211,47,47,0.15);color:#d32f2f">{{ item.author[0] }}</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)">{{ item.author[0] }}</div>
                     <div>
                         <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ item.author }}</div>
                         <div class="text-xs" style="color:var(--muted-foreground)">Autor</div>
@@ -34,7 +34,7 @@
                 </a>
                 {% else %}
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold" style="background:rgba(211,47,47,0.15);color:#d32f2f">{{ item.author[0] }}</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold" style="background:var(--brown-soft);color:var(--brown)">{{ item.author[0] }}</div>
                     <div>
                         <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ item.author }}</div>
                         <div class="text-xs" style="color:var(--muted-foreground)">Autor</div>
@@ -45,7 +45,7 @@
                     <span data-fav-icon><i class="fa-regular fa-heart"></i></span>
                     <span>Guardar</span>
                 </button>
-                <button type="button" id="share-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm transition-colors" style="background:rgba(255,255,255,0.06);color:var(--secondary-foreground);border:1px solid rgba(255,255,255,0.1)"><i class="fa-solid fa-share-nodes text-xs"></i> Compartir</button>
+                <button type="button" id="share-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm transition-colors" style="background:var(--surface-2);color:var(--secondary-foreground);border:1px solid var(--border)"><i class="fa-solid fa-share-nodes text-xs"></i> Compartir</button>
             </div>
 
             <p class="text-base leading-relaxed mb-6" style="color:var(--secondary-foreground)">{{ item.description }}</p>
@@ -58,12 +58,12 @@
             <div class="mt-10">
                 <h3 class="font-serif text-xl font-semibold mb-5" style="color:var(--card-foreground)">Comentarios (2)</h3>
                 <div class="museum-card rounded p-4 mb-5 text-sm text-center" style="color:var(--muted-foreground)">
-                    <a href="{{ url_for('web.login') }}" class="hover:underline" style="color:#d32f2f">Inicia sesión</a> para dejar un comentario.
+                    <a href="{{ url_for('web.login') }}" class="hover:underline" style="color:var(--primary)">Inicia sesión</a> para dejar un comentario.
                 </div>
                 <div class="flex flex-col gap-4">
                     <div class="museum-card rounded p-4">
                         <div class="flex items-center gap-2 mb-2">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:rgba(211,47,47,0.15);color:#d32f2f">L</div>
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--brown-soft);color:var(--brown)">L</div>
                             <span class="text-sm font-medium" style="color:var(--card-foreground)">Prof. Luis Castro</span>
                             <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">2024-04-10</span>
                         </div>
@@ -71,7 +71,7 @@
                     </div>
                     <div class="museum-card rounded p-4">
                         <div class="flex items-center gap-2 mb-2">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:rgba(211,47,47,0.15);color:#d32f2f">A</div>
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--brown-soft);color:var(--brown)">A</div>
                             <span class="text-sm font-medium" style="color:var(--card-foreground)">Ana Bermúdez</span>
                             <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">2024-04-12</span>
                         </div>
@@ -85,24 +85,24 @@
             <div class="museum-card rounded p-5">
                 <h4 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Ficha Técnica</h4>
                 <div class="flex flex-col gap-3 text-sm">
-                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">
                         <span style="color:var(--muted-foreground)">Categoría</span>
                         <span style="color:var(--secondary-foreground)">{{ item.category }}</span>
                     </div>
-                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">
                         <span style="color:var(--muted-foreground)">Estado</span>
                         <span>{{ status_badge(item.status) }}</span>
                     </div>
-                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">
                         <span style="color:var(--muted-foreground)">Fecha</span>
                         <span style="color:var(--secondary-foreground)">{{ item.date }}</span>
                     </div>
-                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">
                         <span style="color:var(--muted-foreground)">Autor</span>
                         <span style="color:var(--secondary-foreground)">{{ item.author }}</span>
                     </div>
                     {% if item.involvedTeacher %}
-                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid rgba(255,255,255,0.05);padding-bottom:0.5rem">
+                    <div class="flex justify-between items-center gap-2" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">
                         <span style="color:var(--muted-foreground)">Docente Responsable</span>
                         <span style="color:var(--secondary-foreground)">{{ item.involvedTeacher }}</span>
                     </div>
@@ -113,15 +113,15 @@
             <div class="museum-card rounded p-5">
                 <h4 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Evidencias y Archivos</h4>
                 <div class="flex flex-col gap-3">
-                    <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)">
-                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:rgba(211,47,47,0.1);color:#d32f2f"><i class="fa-solid fa-file-pdf"></i></div>
+                    <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
+                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-file-pdf"></i></div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">documento_investigacion.pdf</div>
                             <div class="text-xs" style="color:var(--muted-foreground)">PDF · 2.4 MB</div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3 p-3 rounded" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)">
-                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:rgba(59,130,246,0.1);color:#3b82f6"><i class="fa-solid fa-image"></i></div>
+                    <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
+                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:var(--brown-soft);color:var(--secondary-foreground)"><i class="fa-solid fa-image"></i></div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">diagrama_arquitectura.png</div>
                             <div class="text-xs" style="color:var(--muted-foreground)">PNG · 850 KB</div>
@@ -147,7 +147,7 @@
             </div>
             {% endif %}
 
-            <div class="rounded p-5 text-center" style="background:rgba(211,47,47,0.06);border:1px solid rgba(211,47,47,0.2)">
+            <div class="rounded p-5 text-center" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
                 <p class="text-sm mb-3" style="color:var(--secondary-foreground)">¿Tienes una contribución para el museo?</p>
                 <a href="{{ url_for('web.registro') }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Registrarse</a>
             </div>
@@ -169,11 +169,11 @@
         share.addEventListener('click', function () {
             if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href);
             share.innerHTML = '<i class="fa-solid fa-check text-xs"></i> ¡Copiado!';
-            share.style.background = '#22c55e';
+            share.style.background = 'var(--gold)';
             share.style.color = '#ffffff';
             setTimeout(function () {
                 share.innerHTML = '<i class="fa-solid fa-share-nodes text-xs"></i> Compartir';
-                share.style.background = 'rgba(255,255,255,0.06)';
+                share.style.background = 'var(--surface-2)';
                 share.style.color = 'var(--secondary-foreground)';
             }, 2000);
         });

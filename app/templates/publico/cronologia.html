@@ -38,35 +38,35 @@
 
 /* Paleta semántica por tipo de hito */
 .ruta-type-fundacion {
-    --h-color: #d32f2f;
-    --h-glow: rgba(211, 47, 47, 0.45);
-    --h-soft: rgba(211, 47, 47, 0.12);
-    --h-border: rgba(211, 47, 47, 0.35);
+    --h-color: var(--primary);
+    --h-glow: var(--primary-border);
+    --h-soft: var(--primary-soft);
+    --h-border: var(--primary-border);
 }
 .ruta-type-logro {
-    --h-color: #22c55e;
-    --h-glow: rgba(34, 197, 94, 0.45);
-    --h-soft: rgba(34, 197, 94, 0.12);
-    --h-border: rgba(34, 197, 94, 0.35);
+    --h-color: var(--gold);
+    --h-glow: var(--gold-border);
+    --h-soft: var(--gold-soft);
+    --h-border: var(--gold-border);
 }
 .ruta-type-evento {
-    --h-color: #3b82f6;
-    --h-glow: rgba(59, 130, 246, 0.45);
-    --h-soft: rgba(59, 130, 246, 0.12);
-    --h-border: rgba(59, 130, 246, 0.35);
+    --h-color: var(--brown);
+    --h-glow: var(--brown-border);
+    --h-soft: var(--brown-soft);
+    --h-border: var(--brown-border);
 }
 .ruta-type-investigacion {
-    --h-color: #a855f7;
-    --h-glow: rgba(168, 85, 247, 0.45);
-    --h-soft: rgba(168, 85, 247, 0.12);
-    --h-border: rgba(168, 85, 247, 0.35);
+    --h-color: var(--secondary-foreground);
+    --h-glow: var(--border-strong);
+    --h-soft: var(--surface-2);
+    --h-border: var(--border-strong);
 }
 
 .node-pulse-halo {
     position: absolute;
     inset: -7px;
     border-radius: 9999px;
-    border: 2px solid var(--h-color, #d32f2f);
+    border: 2px solid var(--h-color, var(--primary));
     opacity: 0;
     pointer-events: none;
 }
@@ -85,16 +85,16 @@
     height: 12px;
     border-radius: 9999px;
     z-index: 10;
-    background: var(--h-color, #d32f2f);
-    box-shadow: 0 0 14px var(--h-color, #d32f2f);
+    background: var(--h-color, var(--primary));
+    box-shadow: 0 0 14px var(--h-color, var(--primary));
     transition: transform 0.3s;
 }
 .ruta-node-ring {
     position: absolute;
     inset: 0;
     border-radius: 9999px;
-    border: 2px solid var(--h-border, rgba(211, 47, 47, 0.35));
-    background: var(--card, #161614);
+    border: 2px solid var(--h-border, var(--primary-border));
+    background: var(--card);
 }
 
 /* Conectores luminosos horizontales entre tarjeta y nodo central */
@@ -108,7 +108,7 @@
     pointer-events: none;
     opacity: 0.45;
     transition: opacity 0.3s ease;
-    background: linear-gradient(to right, var(--h-glow, rgba(211, 47, 47, 0.45)), var(--h-color, #d32f2f));
+    background: linear-gradient(to right, var(--h-glow, var(--primary-border)), var(--h-color, var(--primary)));
 }
 .ruta-connector-right {
     position: absolute;
@@ -120,7 +120,7 @@
     pointer-events: none;
     opacity: 0.45;
     transition: opacity 0.3s ease;
-    background: linear-gradient(to left, var(--h-glow, rgba(211, 47, 47, 0.45)), var(--h-color, #d32f2f));
+    background: linear-gradient(to left, var(--h-glow, var(--primary-border)), var(--h-color, var(--primary)));
 }
 .ruta-row-active .ruta-connector-left,
 .ruta-row-active .ruta-connector-right {
@@ -135,9 +135,9 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 600;
-    background: var(--h-soft, rgba(211, 47, 47, 0.12));
-    color: var(--h-color, #d32f2f);
-    border: 1px solid var(--h-border, rgba(211, 47, 47, 0.35));
+    background: var(--h-soft, var(--primary-soft));
+    color: var(--h-color, var(--primary));
+    border: 1px solid var(--h-border, var(--primary-border));
 }
 
 /* Tarjeta interactiva compacta y pulida */
@@ -148,8 +148,8 @@
 }
 .ruta-item-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 16px 36px -10px rgba(211, 47, 47, 0.35);
-    border-color: rgba(211, 47, 47, 0.6) !important;
+    box-shadow: 0 16px 36px -10px var(--shadow-color);
+    border-color: var(--primary-border) !important;
 }
 
 /* Pastillas de década en el hero */
@@ -157,11 +157,11 @@
     transition: all 0.25s ease;
 }
 .decade-pill:hover, .decade-pill.active {
-    background: #d32f2f !important;
+    background: var(--primary-solid) !important;
     color: #ffffff !important;
-    box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4);
+    box-shadow: 0 4px 15px var(--shadow-color);
     transform: translateY(-2px);
-    border-color: #d32f2f !important;
+    border-color: var(--primary) !important;
 }
 
 /* Responsive rows — fix para override de .hidden global */
@@ -183,16 +183,16 @@
 {% endblock %}
 
 {% block content %}
-{% set type_colors = {'fundacion': '#d32f2f', 'logro': '#22c55e', 'evento': '#3b82f6', 'investigacion': '#a855f7'} %}
+{% set type_colors = {'fundacion': 'var(--primary)', 'logro': 'var(--gold)', 'evento': 'var(--brown)', 'investigacion': 'var(--secondary-foreground)'} %}
 {% set type_labels = {'fundacion': 'Fundación', 'logro': 'Logro', 'evento': 'Evento', 'investigacion': 'Investigación'} %}
 
 {% macro event_card(ev, label, href, anim_class) %}
 <a href="{{ href }}" class="group block w-full ruta-card-wrap {{ anim_class }}" style="max-width: 440px;">
 <article class="museum-card ruta-item-card rounded-xl p-5 md:p-6 w-full cursor-pointer group shadow-lg relative"
-         style="border: 1px solid rgba(255, 255, 255, 0.09); background: var(--card, #161614);">
+         style="border: 1px solid var(--border); background: var(--card);">
     
     <!-- Encabezado de la Tarjeta: Año y Categoría Compactos -->
-    <div class="flex items-center justify-between gap-3 mb-3 pb-2.5" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+    <div class="flex items-center justify-between gap-3 mb-3 pb-2.5" style="border-bottom: 1px solid var(--border-subtle);">
         <div class="flex items-center gap-2.5">
             <span class="font-serif text-2xl md:text-3xl font-black text-primary-gradient tracking-tight leading-none">
                 {{ ev.year if ev.year else '—' }}
@@ -211,9 +211,9 @@
         style="color: var(--foreground)">{{ ev.title }}</h3>
     <p class="text-xs md:text-sm leading-relaxed" style="color: var(--muted-foreground)">{{ ev.description }}</p>
 
-    <div class="mt-3.5 pt-2 flex items-center justify-between" style="border-top: 1px solid rgba(255,255,255,0.05);">
+    <div class="mt-3.5 pt-2 flex items-center justify-between" style="border-top: 1px solid var(--border-subtle);">
         <span class="inline-flex items-center gap-1.5 text-xs font-medium transition-transform duration-300 group-hover:translate-x-1.5"
-              style="color: #d32f2f">
+              style="color: var(--primary)">
             {{ 'Ver pieza relacionada →' if ev.itemId else 'Explorar colecciones →' }}
         </span>
     </div>
@@ -228,10 +228,10 @@
     {% set decades = [1970, 1980, 1990, 2000, 2010, 2020] %}
 
     <section class="relative min-h-[60vh] flex items-center justify-center overflow-hidden px-4">
-        <div class="absolute inset-0 opacity-[0.04]"
-             style="background-image:linear-gradient(rgba(211,47,47,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(211,47,47,0.5) 1px, transparent 1px);background-size:80px 80px"></div>
         <div class="absolute inset-0"
-             style="background:radial-gradient(circle at 50% 30%, rgba(211,47,47,0.16), transparent 60%)"></div>
+             style="background-image:linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);background-size:80px 80px"></div>
+        <div class="absolute inset-0"
+             style="background:radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%)"></div>
         <div class="relative z-10 text-center max-w-3xl animate-fadeInUp py-16">
             <a href="{{ url_for('web.home') }}"
                class="museo-back-btn inline-flex mb-6"
@@ -239,7 +239,7 @@
                 <i class="fa-solid fa-arrow-left-long"></i>
                 <span>Volver al inicio</span>
             </a>
-            <div class="text-xs font-mono uppercase tracking-widest mb-2.5" style="color:#d32f2f">
+            <div class="text-xs font-mono uppercase tracking-widest mb-2.5" style="color:var(--brown)">
                 <i class="fa-solid fa-timeline mr-1"></i> Cronología Viva · {{ first_year }} — {{ last_year }}
             </div>
             <h1 class="font-serif text-5xl md:text-6xl font-black leading-none mb-5" style="color:var(--foreground)">
@@ -254,13 +254,13 @@
                 {% for dec in decades %}
                 <button type="button" data-jump-decade="{{ dec }}"
                         class="decade-pill px-3.5 py-1.5 rounded-full text-xs font-mono font-bold transition-all"
-                        style="background:rgba(211,47,47,0.08);color:var(--secondary-foreground);border:1px solid rgba(211,47,47,0.25)">
+                        style="background:var(--primary-soft);color:var(--secondary-foreground);border:1px solid var(--border)">
                     {{ dec }}s
                 </button>
                 {% endfor %}
             </div>
 
-            <div class="ruta-scroll-hint flex flex-col items-center gap-1" style="color:#d32f2f">
+            <div class="ruta-scroll-hint flex flex-col items-center gap-1" style="color:var(--brown)">
                 <span class="text-lg animate-bounce">↓</span>
                 <span class="text-[11px] font-mono uppercase tracking-widest">Desliza para avanzar</span>
             </div>
@@ -274,9 +274,9 @@
         <svg id="ruta-svg-canvas" class="absolute top-0 bottom-0 left-0 w-full h-full pointer-events-none" style="z-index:1;overflow:visible">
             <defs>
                 <linearGradient id="ruta-wave-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#ef4444" stop-opacity="0.95"/>
-                    <stop offset="50%" stop-color="#dc2626" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="#b91c1c" stop-opacity="0.95"/>
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.95"/>
+                    <stop offset="50%" stop-color="var(--primary)" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0.95"/>
                 </linearGradient>
                 <filter id="ruta-glow-fx" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
@@ -287,17 +287,17 @@
                 </filter>
             </defs>
             <!-- Línea de fondo punteada en onda sinusoidal -->
-            <path id="ruta-wave-track" d="" stroke="rgba(211,47,47,0.18)" stroke-width="2.5" stroke-dasharray="8 8" fill="none" />
+            <path id="ruta-wave-track" d="" stroke="var(--border-strong)" stroke-width="2.5" stroke-dasharray="8 8" fill="none" />
             <!-- Línea de onda activa iluminada -->
-            <path id="ruta-wave-glow" d="" stroke="#ff3333" stroke-width="6" stroke-opacity="0.3" fill="none" filter="url(#ruta-glow-fx)" stroke-linecap="round" />
+            <path id="ruta-wave-glow" d="" stroke="var(--primary)" stroke-width="6" stroke-opacity="0.3" fill="none" filter="url(#ruta-glow-fx)" stroke-linecap="round" />
             <path id="ruta-wave-fill" d="" stroke="url(#ruta-wave-grad)" stroke-width="3" fill="none" stroke-linecap="round" />
             <!-- Orbe de luz viajero -->
-            <circle id="ruta-wave-head" r="6" fill="#ffffff" stroke="#d32f2f" stroke-width="2.5" filter="url(#ruta-glow-fx)" style="opacity:0;transition:opacity .3s ease" />
+            <circle id="ruta-wave-head" r="6" fill="#ffffff" stroke="var(--primary)" stroke-width="2.5" filter="url(#ruta-glow-fx)" style="opacity:0;transition:opacity .3s ease" />
         </svg>
 
         {% for ev in timeline %}
         {% set left = loop.index0 % 2 == 0 %}
-        {% set color = type_colors.get(ev.type, '#d32f2f') %}
+        {% set color = type_colors.get(ev.type, 'var(--primary)') %}
         {% set label = type_labels.get(ev.type, 'Hito') %}
         {% set href = url_for('web.detalle', cid=ev.itemId) if ev.itemId else url_for('web.explorar') %}
 
@@ -349,10 +349,10 @@
 
     <section class="relative text-center py-20 px-4 overflow-hidden">
         <div class="absolute inset-0"
-             style="background:radial-gradient(circle at 50% 60%, rgba(211,47,47,0.14), transparent 65%)"></div>
+             style="background:radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 65%)"></div>
         <div class="relative z-10 animate-fadeInUp">
             <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Cierre de la ruta</div>
-            <div class="font-serif text-5xl md:text-7xl font-black text-primary-gradient leading-none mb-4">50 Años</div>
+            <div class="font-serif text-5xl md:text-7xl font-black text-gold leading-none mb-4">50 Años</div>
             <p class="text-xs md:text-sm max-w-lg mx-auto mb-8 leading-relaxed" style="color:var(--secondary-foreground)">
                 De 24 graduandos a una comunidad de miles de ingenieros. La ruta continúa con cada nueva generación.
             </p>
@@ -368,13 +368,13 @@
          class="ruta-row-desktop fixed right-6 z-40 transition-opacity duration-500"
          style="opacity:0;pointer-events:none;top:50%;transform:translateY(-50%);flex-direction:column;align-items:center;gap:10px">
         <span id="ruta-rail-year" class="font-mono text-xs font-bold tracking-widest mb-1"
-              style="writing-mode:vertical-rl;color:#d32f2f"></span>
+              style="writing-mode:vertical-rl;color:var(--primary)"></span>
         {% for ev in timeline %}
-        {% set color = type_colors.get(ev.type, '#d32f2f') %}
+        {% set color = type_colors.get(ev.type, 'var(--primary)') %}
         <span data-rail-index="{{ loop.index0 }}" data-color="{{ color }}"
               title="{{ ev.year }} · {{ ev.title }}"
               class="rounded-full transition-all duration-300 hover:scale-125 cursor-pointer"
-              style="width:6px;height:6px;background:rgba(211,47,47,0.28)"></span>
+              style="width:6px;height:6px;background:var(--primary-border)"></span>
         {% endfor %}
     </div>
 </div>
@@ -564,9 +564,9 @@
 
         railDots.forEach(function (rd, k) {
             var on = k === i;
-            var color = rd.getAttribute('data-color') || '#d32f2f';
+            var color = rd.getAttribute('data-color') || 'var(--primary)';
             rd.style.transform = on ? 'scale(1.7)' : 'scale(1)';
-            rd.style.background = on ? color : 'rgba(211,47,47,0.28)';
+            rd.style.background = on ? color : 'var(--border-strong)';
             rd.style.boxShadow = on ? '0 0 10px ' + color : 'none';
         });
 

@@ -56,13 +56,13 @@
                                class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
                     </div>
                     <div class="text-xs p-3 rounded"
-                         style="background:rgba(59,130,246,0.06);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)">
+                         style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
                         ℹ Tu cuenta quedará pendiente de aprobación por un administrador.
                     </div>
                 </div>
 
                 <div id="reg-error" class="text-xs px-3 py-2 rounded"
-                     style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
+                     style="display:none;background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"></div>
 
                 <div class="flex gap-2">
                     <button id="reg-prev" type="button" class="btn-outline-primary px-4 py-2.5 rounded text-sm flex-1" style="display:none">Anterior</button>
@@ -70,7 +70,7 @@
                 </div>
             </form>
             <div class="mt-4 text-center">
-                <a href="{{ url_for('web.login') }}" class="text-sm hover:underline" style="color:#d32f2f">¿Ya tienes cuenta? Inicia sesión</a>
+                <a href="{{ url_for('web.login') }}" class="text-sm hover:underline" style="color:var(--primary)">¿Ya tienes cuenta? Inicia sesión</a>
             </div>
         </div>
     </div>

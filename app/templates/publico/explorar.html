@@ -42,7 +42,7 @@
                         <img src="{{ news_ns.item.image }}" alt="{{ news_ns.item.title }}" class="w-full h-full object-cover">
                         <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)"></div>
                         <div class="absolute flex items-center gap-3 flex-wrap" style="bottom:1rem;left:1.25rem;right:1.25rem">
-                            <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ news_ns.item.category }}</span>
+                            <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:#ffffff">{{ news_ns.item.category }}</span>
                             <span class="text-xs font-mono" style="color:rgba(255,255,255,0.75)">{{ news_ns.item.date | fmt_fecha }}</span>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
             {% set initial_count = (news | length) if cat == 'noticias' else (visible | length) %}
             <div class="flex items-center gap-2 mb-5">
                 <h3 id="explorar-title" class="font-serif font-semibold text-lg" style="color:var(--foreground)">{{ labels.get(cat, 'Todo') }}</h3>
-                <span id="explorar-count" aria-live="polite" class="text-xs font-mono px-2 py-0.5 rounded" style="background:rgba(211,47,47,0.08);color:#d32f2f">{{ initial_count }} resultado{{ '' if initial_count == 1 else 's' }}</span>
+                <span id="explorar-count" aria-live="polite" class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--surface-2);color:var(--secondary-foreground)">{{ initial_count }} resultado{{ '' if initial_count == 1 else 's' }}</span>
             </div>
 
             <div id="explorar-news" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"{% if cat != 'noticias' %} data-hidden="true"{% endif %}>
@@ -64,7 +64,7 @@
                 <a href="{{ url_for('web.explorar') }}?cat=noticias&news={{ n.id }}" data-news-card class="museum-card rounded overflow-hidden text-left group fade-up-delayed flex flex-col">
                     <div class="relative h-40 overflow-hidden">
                         <img src="{{ n.image }}" alt="{{ n.title }}" class="w-full h-full object-cover opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105">
-                        <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:rgba(211,47,47,0.85);color:#ffffff">{{ n.category }}</span>
+                        <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:#ffffff">{{ n.category }}</span>
                     </div>
                     <div class="p-4 flex flex-col flex-1">
                         <div class="text-xs font-mono mb-1" style="color:var(--muted-foreground)">{{ n.date | fmt_fecha }}</div>

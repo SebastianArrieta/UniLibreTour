@@ -60,11 +60,11 @@
 
     /* Mismo estilo (rojo) para todos los roles; solo cambian etiqueta, ruta e icono. */
     var DASH_STYLE = {
-        color: '#d32f2f',
-        bg: 'rgba(211,47,47,0.12)',
-        border: 'rgba(211,47,47,0.3)',
-        activeBg: 'rgba(211,47,47,0.22)',
-        activeBorder: '#d32f2f',
+        color: 'var(--primary)',
+        bg: 'var(--primary-soft)',
+        border: 'var(--primary-border)',
+        activeBg: 'var(--primary-solid)',
+        activeBorder: 'var(--primary-solid)',
     };
     function dashEntry(label, href, icon) {
         return {
@@ -555,7 +555,7 @@
             btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
             btn.classList.toggle('is-fav', Museo.isFav(id));
             var initIcon = btn.querySelector('[data-fav-icon]');
-            if (initIcon) initIcon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:#d32f2f"></i>' : '<i class="fa-regular fa-heart"></i>';
+            if (initIcon) initIcon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>' : '<i class="fa-regular fa-heart"></i>';
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -563,7 +563,7 @@
                 btn.classList.toggle('is-fav', Museo.isFav(id));
                 btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
                 var icon = btn.querySelector('[data-fav-icon]');
-                if (icon) icon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:#d32f2f"></i>' : '<i class="fa-regular fa-heart"></i>';
+                if (icon) icon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>' : '<i class="fa-regular fa-heart"></i>';
                 if (typeof onChanged === 'function') onChanged(Museo.countFavs());
             });
         });
@@ -608,7 +608,20 @@
     }
 
     /* ---------- init ---------- */
+    /* Imágenes rotas (URL caída): se ocultan para que se vea el fondo neutro
+       del contenedor en vez del icono roto y el texto alternativo. */
+    function ocultarImagenRota(img) { img.style.visibility = 'hidden'; }
+    function vigilarImagenes() {
+        document.addEventListener('error', function (e) {
+            if (e.target && e.target.tagName === 'IMG') ocultarImagenRota(e.target);
+        }, true);
+        Array.prototype.forEach.call(document.images, function (img) {
+            if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) ocultarImagenRota(img);
+        });
+    }
+
     function init() {
+        vigilarImagenes();
         setTheme(getTheme());
         renderAuth();
         bindAuthClicks();
