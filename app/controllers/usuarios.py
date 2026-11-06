@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
 
@@ -21,13 +22,25 @@ create_schema = UsuarioCreateSchema()
 update_schema = UsuarioUpdateSchema()
 
 
+def _es_admin() -> bool:
+    return get_jwt().get("rol") == "admin"
+
+
+def _es_propio(usuario_id: int) -> bool:
+    return get_jwt_identity() == str(usuario_id)
+
+
 @usuarios_bp.get("")
+@role_required("admin")
 def listar():
     return json_ok(usuarios_schema.dump(listar_usuarios()))
 
 
 @usuarios_bp.get("/<int:usuario_id>")
+@jwt_required()
 def obtener(usuario_id: int):
+    if not (_es_admin() or _es_propio(usuario_id)):
+        return json_error("No tienes permiso", 403)
     usuario = obtener_usuario(usuario_id)
     if not usuario:
         return json_error("Usuario no encontrado", 404)
@@ -35,6 +48,7 @@ def obtener(usuario_id: int):
 
 
 @usuarios_bp.post("")
+@role_required("admin")
 def crear():
     try:
         data = create_schema.load(request.get_json(silent=True) or {})
@@ -48,13 +62,21 @@ def crear():
 
 
 @usuarios_bp.put("/<int:usuario_id>")
+@jwt_required()
 def actualizar(usuario_id: int):
+    if not (_es_admin() or _es_propio(usuario_id)):
+        return json_error("No tienes permiso", 403)
+
     usuario = obtener_usuario(usuario_id)
     if not usuario:
         return json_error("Usuario no encontrado", 404)
 
     try:
         data = update_schema.load(request.get_json(silent=True) or {})
+        if not _es_admin():
+            # Un usuario solo puede editar su propio nombre; email y rol son
+            # campos administrativos.
+            data = {campo: valor for campo, valor in data.items() if campo == "nombre"}
         usuario = actualizar_usuario(usuario, data)
         return json_ok(usuario_schema.dump(usuario))
     except ValidationError as err:

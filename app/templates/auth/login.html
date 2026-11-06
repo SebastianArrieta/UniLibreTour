@@ -72,8 +72,13 @@
                     if (window.UI && UI.toast) {
                         UI.toast('¡Sesión iniciada con éxito!', 'success');
                     }
+                    var nextUrl = null;
+                    try {
+                        nextUrl = new URLSearchParams(window.location.search).get('next');
+                    } catch (e) { /* noop */ }
+                    var safeNext = nextUrl && nextUrl.charAt(0) === '/' && nextUrl.charAt(1) !== '/' ? nextUrl : null;
                     setTimeout(function () {
-                        window.location.href = (res && res.redirectUrl) || '/';
+                        window.location.href = safeNext || (res && res.redirectUrl) || '/';
                     }, 400);
                 }
             })

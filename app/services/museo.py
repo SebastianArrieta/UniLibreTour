@@ -36,15 +36,6 @@ _KPI_ESTATICOS = {
     ],
 }
 
-# Cuentas que se muestran en la pantalla de login (credenciales sembradas en BD)
-_DEMO_ACCOUNTS = [
-    {"email": "estudiante@unilibre.edu.co", "password": "123456", "role": "estudiante", "label": "Estudiante"},
-    {"email": "docente@unilibre.edu.co", "password": "123456", "role": "docente", "label": "Docente"},
-    {"email": "admin@unilibre.edu.co", "password": "123456", "role": "admin", "label": "Admin"},
-    {"email": "egresado@unilibre.edu.co", "password": "123456", "role": "egresado", "label": "Egresado"},
-]
-
-
 def colecciones() -> list[dict]:
     out = []
     for c in Coleccion.query.order_by(Coleccion.id.asc()).all():
@@ -222,10 +213,6 @@ def opciones_docentes() -> list[dict]:
     return [{"name": d.nombre, "email": d.email} for d in q]
 
 
-def cuentas_demo() -> list[dict]:
-    return [dict(a) for a in _DEMO_ACCOUNTS]
-
-
 def dataset() -> dict:
     """Dataset completo con el mismo contrato que demo-data.json."""
     return {
@@ -242,7 +229,6 @@ def dataset() -> dict:
         "researchGroups": grupos_investigacion(),
         "achievements": logros(),
         "teacherOptions": opciones_docentes(),
-        "demoAccounts": cuentas_demo(),
         "pointsPerLevel": POINTS_PER_LEVEL,
         "maxLevel": MAX_LEVEL,
     }

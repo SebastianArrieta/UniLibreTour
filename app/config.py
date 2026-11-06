@@ -14,11 +14,32 @@ def _database_uri() -> str:
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", os.getenv("SESSION_SECRET", "dev-secret"))
-    JWT_TOKEN_LOCATION = ["headers"]
+
+    # El token viaja en el header (peticiones de la API) y en una cookie
+    # httpOnly (navegación a vistas protegidas renderizadas en el servidor).
+    JWT_TOKEN_LOCATION = ["headers", "cookies"]
+    JWT_ACCESS_COOKIE_NAME = "museo_session"
+    JWT_ACCESS_COOKIE_PATH = "/"
+    JWT_COOKIE_HTTPONLY = True
+    JWT_COOKIE_SAMESITE = "Lax"
+    JWT_COOKIE_SECURE = os.getenv("JWT_COOKIE_SECURE", "0") == "1"
+    # Las mutaciones de la API usan Bearer; la cookie solo interviene en
+    # navegación GET. Con CSRF activo, una petición maliciosa cross-site que
+    # viaje solo con cookie es rechazada (el frontend usa el header Bearer).
+    JWT_COOKIE_CSRF_PROTECT = True
+
     SQLALCHEMY_DATABASE_URI = _database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hora
+
+    # Sembrar datos demo (cuentas con contraseña conocida). Desactivado por
+    # defecto en producción; activar explícitamente con SEED_DEMO=1.
+    SEED_DEMO = os.getenv("SEED_DEMO", "1") == "1"
+
+    # Sin servidor de correo configurado: en desarrollo se devuelve el código
+    # 2FA en la respuesta para poder probar el flujo. Apagarlo en producción.
+    OTP_DEV_ECHO = os.getenv("OTP_DEV_ECHO", "1") == "1"
 
 
 class DevelopmentConfig(Config):
@@ -27,6 +48,8 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    # No sembrar credenciales de demostración en producción salvo petición explícita.
+    SEED_DEMO = os.getenv("SEED_DEMO", "0") == "1"
 
 
 class TestingConfig(Config):

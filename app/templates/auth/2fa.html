@@ -27,6 +27,9 @@
                 <div id="otp-error" class="text-xs px-3 py-2 rounded text-center"
                      style="display:none;background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)"></div>
 
+                <div id="2fa-devcode" class="text-xs px-3 py-2 rounded text-center font-mono"
+                     style="display:none;background:rgba(59,130,246,0.08);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)"></div>
+
                 <button type="submit" class="btn-primary w-full py-3 rounded font-semibold">Verificar Identidad</button>
             </form>
 
@@ -52,17 +55,53 @@ window.__DATOS = {{ datos | tojson }};
 </script>
 <script>
 (function () {
-    var pendingRole = 'estudiante';
+    var PENDING_KEY = 'museo-pending-token';
+    var DEVCODE_KEY = 'museo-pending-devcode';
+
+    function getPending() {
+        try {
+            var raw = localStorage.getItem(PENDING_KEY);
+            if (!raw) return null;
+            try { return JSON.parse(raw); } catch (e) { return raw; }
+        } catch (e) { return null; }
+    }
+    function setPending(token) {
+        try { localStorage.setItem(PENDING_KEY, JSON.stringify(token)); } catch (e) { /* noop */ }
+    }
+    function clearPending() {
+        try {
+            localStorage.removeItem(PENDING_KEY);
+            localStorage.removeItem(DEVCODE_KEY);
+        } catch (e) { /* noop */ }
+    }
+    function setDevcode(code) {
+        try { localStorage.setItem(DEVCODE_KEY, code); } catch (e) { /* noop */ }
+    }
+
+    var pendingToken = getPending();
+    if (!pendingToken) {
+        window.location.href = '/login';
+        return;
+    }
+
     var pendingEmail = 'estudiante@unilibre.edu.co';
     try {
-        pendingRole = localStorage.getItem('museo-pending-role') || 'estudiante';
-        pendingEmail = localStorage.getItem('museo-pending-email') || 'estudiante@unilibre.edu.co';
+        pendingEmail = localStorage.getItem('museo-pending-email') || pendingEmail;
     } catch (err) {}
+
     var maskEl = document.getElementById('2fa-mask');
     if (maskEl) {
         var at = pendingEmail.indexOf('@');
         maskEl.textContent = at > 0 ? pendingEmail.charAt(0) + '*****' + pendingEmail.slice(at) : 'u*****@unilibre.edu.co';
     }
+
+    var devEl = document.getElementById('2fa-devcode');
+    function mostrarDevcode(code) {
+        if (!devEl || !code) return;
+        devEl.textContent = 'Código de desarrollo: ' + code;
+        devEl.style.display = 'block';
+    }
+    try { mostrarDevcode(localStorage.getItem(DEVCODE_KEY)); } catch (e) {}
 
     var inputs = Array.prototype.slice.call(document.querySelectorAll('.otp-input'));
     var errorEl = document.getElementById('otp-error');
@@ -78,17 +117,42 @@ window.__DATOS = {{ datos | tojson }};
         errorEl.style.display = 'block';
     }
 
+    function request(url, body) {
+        return window.API.request(url, 'POST', body, pendingToken);
+    }
+
     function verify() {
-        if (code() !== '123456') {
-            showError('Código de verificación incorrecto. Intenta de nuevo.');
-            return false;
-        }
-        if (window.Museo && Museo.completarInicioSesion) {
-            Museo.completarInicioSesion();
-        } else if (window.Museo) {
-            Museo.login(pendingRole);
-        }
-        return true;
+        var codigo = code();
+        if (codigo.length !== 6) return;
+
+        request('/api/auth/2fa/verify', { codigo: codigo })
+            .then(function (data) {
+                clearPending();
+                try {
+                    localStorage.removeItem('museo-pending-role');
+                    localStorage.removeItem('museo-pending-email');
+                } catch (e) { /* noop */ }
+                if (window.Museo && Museo.completarInicioSesion) {
+                    Museo.completarInicioSesion(data);
+                } else {
+                    window.location.href = '/login';
+                }
+            })
+            .catch(function (err) {
+                var info = (err && err.data) || {};
+                if (info.pending_token) {
+                    pendingToken = info.pending_token;
+                    setPending(pendingToken);
+                }
+                if (err && err.status === 429) {
+                    clearPending();
+                    window.location.href = '/login';
+                    return;
+                }
+                showError(err.message || 'Código de verificación incorrecto.');
+                inputs.forEach(function (i) { i.value = ''; });
+                if (inputs[0]) inputs[0].focus();
+            });
     }
 
     inputs.forEach(function (inp, i) {
@@ -115,6 +179,7 @@ window.__DATOS = {{ datos | tojson }};
             txt.split('').forEach(function (ch, j) { if (inputs[j]) inputs[j].value = ch; });
             var next = Math.min(txt.length, 5);
             (inputs[next] || inputs[5]).focus();
+            if (txt.length === 6) verify();
         });
     });
 
@@ -146,10 +211,25 @@ window.__DATOS = {{ datos | tojson }};
     }
     if (btn) {
         btn.addEventListener('click', function () {
-            if (msg) {
-                msg.style.display = 'block';
-                setTimeout(function () { msg.style.display = 'none'; }, 4000);
-            }
+            request('/api/auth/2fa/resend', {})
+                .then(function (data) {
+                    if (data && data.pending_token) {
+                        pendingToken = data.pending_token;
+                        setPending(pendingToken);
+                    }
+                    if (data && data.dev_code) {
+                        setDevcode(data.dev_code);
+                        mostrarDevcode(data.dev_code);
+                    }
+                    if (msg) {
+                        msg.style.display = 'block';
+                        setTimeout(function () { msg.style.display = 'none'; }, 4000);
+                    }
+                    startTimer();
+                })
+                .catch(function (err) {
+                    showError(err.message || 'No fue posible reenviar el código.');
+                });
             startTimer();
         });
         startTimer();
