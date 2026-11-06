@@ -63,9 +63,9 @@
     var DASH_STYLE = {
         color: 'var(--primary)',
         bg: 'var(--primary-soft)',
-        border: 'var(--border)',
-        activeBg: 'var(--primary)',
-        activeBorder: 'var(--primary)',
+        border: 'var(--primary-border)',
+        activeBg: 'var(--primary-solid)',
+        activeBorder: 'var(--primary-solid)',
     };
     function dashEntry(label, href, icon) {
         return {
@@ -376,7 +376,6 @@
             'title="Acceso directo a ' + esc(dash.label) + '">' +
             '<i class="' + dash.icon + ' text-xs" style="color:' + (active ? '#ffffff' : dash.color) + '"></i>' +
             '<span class="font-sans tracking-wide">' + esc(dash.label) + '</span>' +
-            (role === 'admin' ? '<span class="hidden lg:inline text-[9px] px-1.5 py-0.2 rounded font-mono uppercase font-bold" style="background:var(--primary-border);color:var(--primary)">GESTIÓN</span>' : '') +
             '</a>';
     }
 
@@ -549,7 +548,20 @@
     }
 
     /* ---------- init ---------- */
+    /* Imágenes rotas (URL caída): se ocultan para que se vea el fondo neutro
+       del contenedor en vez del icono roto y el texto alternativo. */
+    function ocultarImagenRota(img) { img.style.visibility = 'hidden'; }
+    function vigilarImagenes() {
+        document.addEventListener('error', function (e) {
+            if (e.target && e.target.tagName === 'IMG') ocultarImagenRota(e.target);
+        }, true);
+        Array.prototype.forEach.call(document.images, function (img) {
+            if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) ocultarImagenRota(img);
+        });
+    }
+
     function init() {
+        vigilarImagenes();
         setTheme(getTheme());
         renderRoleNav();
         renderAuth();

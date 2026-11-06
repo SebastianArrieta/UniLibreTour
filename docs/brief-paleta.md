@@ -99,10 +99,12 @@ Botones: `.btn-primary` (rojo, la acción principal) y `.btn-outline-primary` (s
 
 ---
 
-## 5. Excepciones permitidas
+## 5. Excepciones y casos especiales
 
-- Degradados oscuros sobre **fotografías** (`rgba(0,0,0,…)`) y texto blanco encima de ellas, para legibilidad.
-- Texto blanco sobre rellenos sólidos (`--primary-solid`).
+- **Fotografías.** El degradado negro sobre una foto (`rgba(0,0,0,…)`) no cambia con el tema. Por eso, el texto encima va siempre en blanco (`#ffffff`) y el dorado en `--medal-gold-on-photo`. Para insignias o estados encima de una foto, envuelve el elemento en `class="on-photo"`, que fuerza colores legibles en ambos temas.
+- **Rellenos sólidos.** Encima de `--primary-solid` el texto va en blanco (`--primary-foreground`).
+- **Tintes translúcidos de un color variable** (por ejemplo, el color viene de un diccionario Jinja). Usa `color-mix(in srgb, <color> 10%, transparent)`. **Nunca** concatenes un alfa al color (`{{ color }}1a`): con tokens `var(--x)` deja de funcionar.
+- **Degradados.** Un degradado con un acento sólido (`linear-gradient(var(--primary), …)`) pesa mucho. Usa las variantes `-soft`/`-border` o `color-mix`.
 
 ## 6. Checklist antes de subir cambios visuales
 

@@ -79,6 +79,9 @@
     --shadow-color: rgba(0, 0, 0, 0.35);
     --focus-ring: 0 0 0 3px rgba(236, 90, 78, 0.35);
 
+    /* Dorado para texto sobre fotos con degradado negro (igual en ambos temas) */
+    --medal-gold-on-photo: #f0c35a;
+
     /* Medallas */
     --medal-gold: #e6ad35;
     --medal-silver: #c9c0b4;
@@ -1509,6 +1512,15 @@ label {
 .icon-tile-brown   { color: var(--brown);   background: var(--brown-soft); }
 .icon-tile-neutral { color: var(--secondary-foreground); background: var(--surface-2); }
 
+/* Zonas sobre fotografías: el degradado negro no cambia con el tema, así que
+   los acentos usan siempre los valores claros del tema oscuro y un fondo sólido. */
+.on-photo {
+    --status-publicado-fg: #e6ad35;     --status-publicado-bg: rgba(30, 24, 12, 0.88);     --status-publicado-border: rgba(230, 173, 53, 0.5);
+    --status-pendiente-fg: #c4966a;     --status-pendiente-bg: rgba(30, 24, 18, 0.88);     --status-pendiente-border: rgba(196, 150, 106, 0.5);
+    --status-institucional-fg: #ebe3d8; --status-institucional-bg: rgba(20, 18, 16, 0.88); --status-institucional-border: rgba(242, 235, 225, 0.3);
+    --status-devuelto-fg: #f07a6f;      --status-devuelto-bg: rgba(36, 14, 12, 0.88);      --status-devuelto-border: rgba(236, 90, 78, 0.5);
+}
+
 /* Aviso informativo (antes en azul) */
 .note-box {
     background: var(--brown-soft);
@@ -1522,6 +1534,64 @@ label {
 .progress-fill  { background: var(--gold); }
 
 /* ------------------------------------------------------------
+   Utilidades que las plantillas usaban pero no existían
+   (sin ellas fallaban alturas de barras, rejillas y espaciados)
+   ------------------------------------------------------------ */
+.w-px { width: 1px; }
+.h-px { height: 1px; }
+.w-1\.5 { width: 0.375rem; }
+.h-1\.5 { height: 0.375rem; }
+.w-2 { width: 0.5rem; }
+.w-6 { width: 1.5rem; }
+.h-6 { height: 1.5rem; }
+.h-7 { height: 1.75rem; }
+.w-1\/2 { width: 50%; }
+.w-2\/3 { width: 66.666667%; }
+.w-3\/4 { width: 75%; }
+.min-w-\[15px\] { min-width: 15px; }
+.min-w-\[18px\] { min-width: 18px; }
+.min-h-\[85px\] { min-height: 85px; }
+.min-h-\[24rem\] { min-height: 24rem; }
+.max-w-\[120px\] { max-width: 120px; }
+.shrink-0 { flex-shrink: 0; }
+.p-1\.5 { padding: 0.375rem; }
+.px-0\.5 { padding-left: 0.125rem; padding-right: 0.125rem; }
+.px-1\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
+.px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+.px-3\.5 { padding-left: 0.875rem; padding-right: 0.875rem; }
+.py-0\.2 { padding-top: 0.05rem; padding-bottom: 0.05rem; }
+.pt-0\.5 { padding-top: 0.125rem; }
+.pb-2\.5 { padding-bottom: 0.625rem; }
+.pb-24 { padding-bottom: 6rem; }
+.pl-14 { padding-left: 3.5rem; }
+.pr-14 { padding-right: 3.5rem; }
+.mx-1 { margin-left: 0.25rem; margin-right: 0.25rem; }
+.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+.mb-0\.5 { margin-bottom: 0.125rem; }
+.mb-2\.5 { margin-bottom: 0.625rem; }
+.mt-3\.5 { margin-top: 0.875rem; }
+.bottom-1 { bottom: 0.25rem; }
+.rounded-t { border-top-left-radius: var(--radius); border-top-right-radius: var(--radius); }
+.border-b-2 { border-bottom-width: 2px; border-bottom-style: solid; }
+.tracking-tight { letter-spacing: -0.025em; }
+.opacity-40 { opacity: 0.4; }
+.cursor-default { cursor: default; }
+.scroll-mt-24 { scroll-margin-top: 6rem; }
+.shadow-md { box-shadow: 0 4px 10px var(--shadow-color); }
+.shadow-lg { box-shadow: 0 10px 24px var(--shadow-color); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px var(--shadow-color); }
+.-translate-x-1 { transform: translateX(-0.25rem); }
+.text-white { color: #ffffff; }
+.text-black { color: #000000; }
+.bg-gray-900 { background-color: var(--muted); }
+.bg-white\/10 { background-color: var(--surface-3); }
+.hover\:bg-white\/\[0\.02\]:hover { background-color: var(--surface-1); }
+.hover\:text-red-400:hover { color: var(--primary); }
+.focus\:outline-none:focus { outline: none; }
+.group:hover .group-hover\:translate-x-0\.5 { transform: translateX(0.125rem); }
+.group:hover .group-hover\:translate-x-1\.5 { transform: translateX(0.375rem); }
+
+/* ------------------------------------------------------------
    17. Responsive
    ------------------------------------------------------------ */
 @media (min-width: 640px) {
@@ -1531,6 +1601,7 @@ label {
     .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .sm\:h-\[400px\] { height: 400px; }
+    .sm\:inline { display: inline; }
 }
 
 @media (min-width: 768px) {
@@ -1557,6 +1628,15 @@ label {
     .md\:p-10 { padding: 2.5rem; }
     .md\:p-8 { padding: 2rem; }
     .md\:p-6 { padding: 1.5rem; }
+    .md\:p-5 { padding: 1.25rem; }
+    .md\:gap-4 { gap: 1rem; }
+    .md\:mb-0 { margin-bottom: 0; }
+    .md\:flex-row { flex-direction: row; }
+    .md\:items-center { align-items: center; }
+    .md\:text-right { text-align: right; }
+    .md\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .md\:text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .md\:text-5xl { font-size: 3rem; line-height: 1; }
 }
 
 @media (min-width: 1024px) {
@@ -1573,6 +1653,13 @@ label {
     .lg\:text-7xl { font-size: 4.5rem; line-height: 1; }
     .lg\:w-80 { width: 20rem; }
     .lg\:inline { display: inline; }
+    .lg\:col-span-2 { grid-column: span 2 / span 2; }
+    .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .lg\:grid-cols-\[230px_1fr\] { grid-template-columns: 230px 1fr; }
+    .lg\:gap-16 { gap: 4rem; }
+    .lg\:pb-0 { padding-bottom: 0; }
+    .lg\:whitespace-normal { white-space: normal; }
+    .lg\:overflow-x-visible { overflow-x: visible; }
 }
 
 @media (min-width: 1280px) {

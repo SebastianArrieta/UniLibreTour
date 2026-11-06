@@ -102,7 +102,7 @@
                       <span class="text-xs font-mono" style="color:var(--muted-foreground)">Por: {{ item.submittedBy }}</span>
                     </div>
                   </div>
-                  <a href="{{ url_for('web.admin_validacion', iid=item.id) }}" class="text-xs btn-primary px-3 py-1.5 rounded flex-shrink-0">Revisar →</a>
+                  <a href="{{ url_for('web.admin_validacion', iid=item.id) }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Revisar →</a>
                 </div>
                 {% endfor %}
               </div>

@@ -44,7 +44,7 @@
                     <div class="text-xs font-mono mt-1" style="color:var(--muted-foreground)">pts · Nivel {{ lvl }}</div>
                     <div class="flex items-center gap-2 mt-2">
                         <div class="h-1.5 rounded-full flex-1" style="background:var(--surface-3)">
-                            <div class="h-full rounded-full" style="width:{{ '%.0f'|format(prog) }}%;background:linear-gradient(to right,var(--primary-solid),var(--primary-solid))"></div>
+                            <div class="h-full rounded-full" style="width:{{ '%.0f'|format(prog) }}%;background:var(--gold)"></div>
                         </div>
                         <span class="text-[10px] font-mono" style="color:var(--muted-foreground)">{{ '%.0f'|format(prog) }}%</span>
                     </div>
@@ -115,7 +115,7 @@
                                     <div class="flex items-center gap-2">
                                         <div class="w-24">
                                             <div class="h-1.5 rounded-full" style="background:var(--surface-2)">
-                                                <div class="h-full rounded-full" style="width:{{ '%.0f'|format(prog) }}%;background:linear-gradient(to right,var(--primary-solid),var(--primary-solid))"></div>
+                                                <div class="h-full rounded-full" style="width:{{ '%.0f'|format(prog) }}%;background:var(--gold)"></div>
                                             </div>
                                         </div>
                                         <span class="text-[10px] font-mono whitespace-nowrap" style="color:var(--muted-foreground)">Faltan {{ '{:,}'.format(remain) }}</span>
@@ -188,7 +188,7 @@ window.__DATOS = {{ datos | tojson }};
             (lvl.level < lvl.maxLevel ? '<div class="text-xs mt-1" style="color:var(--muted-foreground)">Faltan ' + remain.toLocaleString('es-CO') + ' para Nivel ' + (lvl.level + 1) + '</div>' : '') +
             '</div></div>' +
             '<div class="h-2.5 rounded-full" style="background:var(--surface-2)">' +
-            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:linear-gradient(to right,var(--primary-solid),var(--primary-solid))"></div></div></div>' +
+            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:var(--gold)"></div></div></div>' +
             '<div class="museum-card rounded p-5 mb-8">' +
             '<div class="flex items-center justify-between mb-4"><h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Insignias</h3>' +
             '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--gold-soft);color:var(--gold)">' + earnedIds.length + ' / ' + badges.length + '</span></div>' +
