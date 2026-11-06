@@ -32,6 +32,7 @@ def crear_hito(data: dict, admin: Usuario) -> CronologiaHito:
         titulo=data["title"].strip(),
         descripcion=data["description"].strip(),
         tipo=data["type"],
+        media=json.dumps(data.get("media") or []),
         estado="publicado",
         creador_id=admin.id,
         **_publicado_por(admin),

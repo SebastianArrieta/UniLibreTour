@@ -215,7 +215,7 @@
                     </div>
                     <a href="{{ url_for('web.detalle', cid=ev.id) }}" class="flex-1 min-w-0 block">
                         <div class="text-sm font-serif font-semibold leading-tight group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ ev.title }}</div>
-                        <div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)"><i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>Auditorio Principal</div>
+                        <div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)"><i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>{{ ev.ubicacion or 'Auditorio Principal' }}</div>
                     </a>
                 </div>
                 {% endfor %}

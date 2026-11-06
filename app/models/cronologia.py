@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
@@ -21,6 +22,7 @@ class CronologiaHito(db.Model):
     titulo: Mapped[str] = mapped_column(String(200), nullable=False)
     descripcion: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tipo: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    media: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     contenido_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("contenidos.id"), nullable=True)
     estado: Mapped[str] = mapped_column(String(20), default="borrador", nullable=False)
     observaciones: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -44,6 +46,7 @@ class CronologiaHito(db.Model):
             "titulo": self.titulo,
             "descripcion": self.descripcion,
             "tipo": self.tipo,
+            "media": json.loads(self.media) if self.media else [],
             "contenido_id": self.contenido_id,
             "estado": self.estado,
             "observaciones": self.observaciones,

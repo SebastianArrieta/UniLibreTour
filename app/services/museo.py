@@ -21,20 +21,6 @@ MAX_LEVEL = 20
 ESTADOS_PUBLICADOS = ("publicado", "institucional")
 ESTADOS_COLA = ("pendiente", "devuelto")
 
-# KPIs que aún no tienen tabla de origen (visitas requiere módulo de analítica)
-_KPI_ESTATICOS = {
-    "visitors": 24780,
-    "newThisMonth": 47,
-    "monthlyVisits": [
-        {"month": "Ene", "visits": 1820},
-        {"month": "Feb", "visits": 2140},
-        {"month": "Mar", "visits": 1980},
-        {"month": "Abr", "visits": 2560},
-        {"month": "May", "visits": 3100},
-        {"month": "Jun", "visits": 2890},
-        {"month": "Jul", "visits": 3340},
-    ],
-}
 
 def colecciones() -> list[dict]:
     out = []
@@ -204,7 +190,6 @@ def kpis() -> dict:
         "published": publicados,
         "pending": pendientes,
         "activeUsers": activos,
-        **_KPI_ESTATICOS,
     }
 
 
