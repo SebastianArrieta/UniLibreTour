@@ -3,7 +3,10 @@
 Carga app/static/data/demo-data.json en la BD (colecciones, usuarios,
 semilleros, contenidos, cola de validación, línea del tiempo, eventos,
 hall de la fama, noticias y premios). Idempotente: si ya hay colecciones,
-omite la siembra. Las cuentas demo quedan con password = "123456".
+omite la siembra.
+
+Las cuentas de acceso demo provienen de app.services.cuentas (única fuente
+de verdad) y las contraseñas de los perfiles de contenido son de demostración.
 """
 
 from __future__ import annotations
@@ -23,9 +26,9 @@ from app.models.publicacion import HallFama, Noticia
 from app.models.semillero import Semillero
 from app.models.usuario import Usuario
 from app.services.auth import hash_password
+from app.services.cuentas import CUENTAS_DEMO, PASSWORD_DEMO
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "static" / "data" / "demo-data.json"
-PASSWORD_DEMO = "123456"
 
 
 def _cargar_json() -> dict:
@@ -101,7 +104,12 @@ def _sembrar_semilleros(datos: dict) -> dict[str, int]:
 
 def _sembrar_usuarios(datos: dict, insignias: dict[str, int], semilleros: dict[str, int]) -> dict[str, int]:
     ids = {}
+    emails_existentes = {u.email for u in Usuario.query.all()}
     for u in datos.get("users", []):
+        if u["email"] in emails_existentes:
+            # Ya existe (p. ej. creado por seed_usuarios o por otro worker).
+            ids[u["id"]] = Usuario.query.filter_by(email=u["email"]).first().id
+            continue
         usuario = Usuario(
             nombre=u["name"],
             email=u["email"],
@@ -214,19 +222,17 @@ def _asignar_lideres(datos: dict, semilleros: dict[str, int], usuarios_id: dict[
             db.session.get(Semillero, semilleros[g["id"]]).lider_id = lider_id
 
 
-def _sembrar_cuentas_demo(datos: dict) -> None:
-    """demoAccounts pueden referir emails no presentes en users (p. ej.
-    estudiante@/docente@). Se crean como usuarios reales con password demo
-    para que /api/auth/login funcione desde la fase 1."""
+def _sembrar_cuentas_demo() -> None:
+    """Crea las cuentas de acceso demo definidas en app.services.cuentas."""
     emails_existentes = {u.email for u in Usuario.query.all()}
-    for acc in datos.get("demoAccounts", []):
-        if acc["email"] in emails_existentes:
+    for cuenta in CUENTAS_DEMO:
+        if cuenta["email"] in emails_existentes:
             continue
         db.session.add(Usuario(
-            nombre=f"{acc.get('label', acc['role']).capitalize()} Demo",
-            email=acc["email"],
-            password_hash=hash_password(acc.get("password", PASSWORD_DEMO)),
-            rol=acc["role"],
+            nombre=f"{cuenta['etiqueta']} Demo",
+            email=cuenta["email"],
+            password_hash=hash_password(cuenta["password"]),
+            rol=cuenta["rol"],
             estado="activo",
         ))
 
@@ -243,7 +249,7 @@ def seed_desde_demo() -> bool:
         colecciones = _sembrar_colecciones(datos)
         semilleros = _sembrar_semilleros(datos)
         usuarios_id = _sembrar_usuarios(datos, insignias, semilleros)
-        _sembrar_cuentas_demo(datos)
+        _sembrar_cuentas_demo()
         _sembrar_noticias(datos)
         contenidos_map = _sembrar_contenidos(datos, colecciones, usuarios_id)
         _sembrar_cronologia(datos, contenidos_map)

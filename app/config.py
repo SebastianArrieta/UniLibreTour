@@ -33,6 +33,10 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hora
 
+    # Sembrar datos demo (cuentas con contraseña conocida). Desactivado por
+    # defecto en producción; activar explícitamente con SEED_DEMO=1.
+    SEED_DEMO = os.getenv("SEED_DEMO", "1") == "1"
+
     # Sin servidor de correo configurado: en desarrollo se devuelve el código
     # 2FA en la respuesta para poder probar el flujo. Apagarlo en producción.
     OTP_DEV_ECHO = os.getenv("OTP_DEV_ECHO", "1") == "1"
@@ -44,6 +48,8 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    # No sembrar credenciales de demostración en producción salvo petición explícita.
+    SEED_DEMO = os.getenv("SEED_DEMO", "0") == "1"
 
 
 class TestingConfig(Config):

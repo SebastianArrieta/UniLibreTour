@@ -55,7 +55,6 @@ def _ctx(page: str, **extra) -> dict:
         "researchGroups": d.get("researchGroups", []),
         "achievements": d.get("achievements", []),
         "teacherOptions": d.get("teacherOptions", []),
-        "demoAccounts": d.get("demoAccounts", []),
         "pointsPerLevel": d.get("pointsPerLevel", 500),
         "maxLevel": d.get("maxLevel", 20),
     }

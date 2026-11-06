@@ -821,32 +821,6 @@
       "email": "j.salcedo@unilibre.edu.co"
     }
   ],
-  "demoAccounts": [
-    {
-      "email": "estudiante@unilibre.edu.co",
-      "password": "123456",
-      "role": "estudiante",
-      "label": "Estudiante"
-    },
-    {
-      "email": "docente@unilibre.edu.co",
-      "password": "123456",
-      "role": "docente",
-      "label": "Docente"
-    },
-    {
-      "email": "admin@unilibre.edu.co",
-      "password": "123456",
-      "role": "admin",
-      "label": "Admin"
-    },
-    {
-      "email": "egresado@unilibre.edu.co",
-      "password": "123456",
-      "role": "egresado",
-      "label": "Egresado"
-    }
-  ],
   "pointsPerLevel": 500,
   "maxLevel": 20
 }
