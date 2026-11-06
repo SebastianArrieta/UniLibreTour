@@ -23,8 +23,7 @@
      Museo.redirectForRole(role)
 
    Header dinámico (apunta al HTML del partial header.html):
-     #museo-role-nav   -> enlace "Mi Espacio"/"Panel Admin" por rol
-     #museo-auth-area  -> botón "Ingresar" | (pill perfil + "Salir")
+     #museo-auth-area  -> "Ingresar" | (píldora "Mi espacio" + menú de cuenta)
 
    Puntos y niveles (igual a data.ts):
      Museo.levelInfo(points)   -> { level, pointsIntoLevel, progressPct, ... }
@@ -188,11 +187,9 @@
     function syncThemeToggleUI(theme) {
         var btn = document.querySelector('.theme-toggle');
         if (!btn) return;
-        var knob = btn.querySelector('.theme-toggle-knob');
-        var icon = btn.querySelector('[data-theme-icon]');
-        if (knob) knob.style.transform = theme === 'dark' ? 'translateX(16px)' : 'translateX(0)';
-        if (icon) icon.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun" style="font-size:11px;color:#facc15"></i>' : '<i class="fa-solid fa-moon" style="font-size:11px;color:#818cf8"></i>';
-        btn.setAttribute('data-theme', theme);
+        var oscuro = theme === 'dark';
+        btn.setAttribute('aria-checked', oscuro ? 'true' : 'false');
+        btn.title = oscuro ? 'Modo oscuro — cambiar a claro' : 'Modo claro — cambiar a oscuro';
     }
 
     /* ---------- rol ---------- */
@@ -204,7 +201,6 @@
     }
     function setRole(role) {
         try { localStorage.setItem(KEYS.ROLE, role || 'visitante'); } catch (e) { /* noop */ }
-        renderRoleNav();
         renderAuth();
     }
     function redirectForRole(role) {
@@ -353,31 +349,44 @@
         return p === href || p.indexOf(href + '/') === 0;
     }
 
-    function renderRoleNav() {
-        var nav = document.getElementById('museo-role-nav');
-        var sep = document.getElementById('museo-role-sep');
-        if (!nav) return;
-        var role = Museo.role;
-        var dash = ROLE_DASH[role];
-        if (!dash) {
-            nav.innerHTML = '';
-            if (sep) sep.style.display = 'none';
+    var ROLE_LABEL = {
+        admin: 'Administrador',
+        docente: 'Docente',
+        estudiante: 'Estudiante',
+        egresado: 'Egresado',
+        visitante: 'Visitante',
+    };
+
+    function iniciales(nombre) {
+        var partes = String(nombre || '').trim().split(/\s+/).filter(Boolean);
+        if (!partes.length) return '?';
+        if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+        return (partes[0].charAt(0) + partes[partes.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function closeUserMenu(devolverFoco) {
+        var menu = document.getElementById('museo-user-menu');
+        var btn = document.querySelector('[data-action="user-menu"]');
+        if (!menu || menu.hasAttribute('hidden')) return;
+        menu.setAttribute('hidden', '');
+        if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+            if (devolverFoco) btn.focus();
+        }
+    }
+
+    function toggleUserMenu() {
+        var menu = document.getElementById('museo-user-menu');
+        var btn = document.querySelector('[data-action="user-menu"]');
+        if (!menu || !btn) return;
+        if (!menu.hasAttribute('hidden')) {
+            closeUserMenu(true);
             return;
         }
-        var active = pathActive(dash.href);
-        if (sep) sep.style.display = 'block';
-
-        nav.innerHTML =
-            '<a href="' + dash.href + '" class="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ' +
-            (active ? 'shadow-md ring-1 ring-white/10' : 'hover:opacity-95') + '" ' +
-            'style="background:' + (active ? dash.activeBg : dash.bg) + ';' +
-            'color:' + (active ? '#ffffff' : dash.color) + ';' +
-            'border:1px solid ' + (active ? dash.activeBorder : dash.border) + ';" ' +
-            'title="Acceso directo a ' + esc(dash.label) + '">' +
-            '<i class="' + dash.icon + ' text-xs" style="color:' + (active ? '#ffffff' : dash.color) + '"></i>' +
-            '<span class="font-sans tracking-wide">' + esc(dash.label) + '</span>' +
-            (role === 'admin' ? '<span class="hidden lg:inline text-[9px] px-1.5 py-0.2 rounded font-mono uppercase font-bold" style="background:rgba(211,47,47,0.35);color:#ff8585">GESTIÓN</span>' : '') +
-            '</a>';
+        menu.removeAttribute('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+        var primero = menu.querySelector('[role="menuitem"]');
+        if (primero) primero.focus();
     }
 
     function renderAuth() {
@@ -389,23 +398,48 @@
             return;
         }
 
-        var logoutBtnHtml =
-            '<button type="button" data-action="logout" class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded font-medium transition-all group" ' +
-            'style="background:rgba(211,47,47,0.08);color:#f87171;border:1px solid rgba(211,47,47,0.3)" title="Cerrar sesión">' +
-            '<i class="fa-solid fa-arrow-right-from-bracket text-xs transition-transform group-hover:translate-x-0.5"></i>' +
-            '<span class="hidden sm:inline">Cerrar sesión</span><span class="sm:hidden">Salir</span></button>';
+        function pintarMenu(me) {
+            var nombre = (me && me.name) || role;
+            var rolLabel = ROLE_LABEL[role] || role;
+            var ini = iniciales(nombre);
+            var dash = ROLE_DASH[role];
+            var dashPill = '';
+            if (dash) {
+                var activo = pathActive(dash.href);
+                dashPill =
+                    '<a href="' + esc(dash.href) + '" class="museo-dash-pill' + (activo ? ' is-active' : '') + '"' +
+                    (activo ? ' aria-current="page"' : '') +
+                    ' title="' + esc(dash.label) + '">' +
+                    '<i class="' + dash.icon + '" aria-hidden="true"></i>' +
+                    '<span class="museo-dash-label">' + esc(dash.label) + '</span>' +
+                    '</a>';
+            }
 
-        getUser().then(function (me) {
-            var label = (me && me.name) || role;
-            area.innerHTML =
-                '<a href="/perfil" class="hidden sm:flex items-center gap-2 text-xs px-2.5 py-1 rounded-full font-mono transition-colors museo-profile-pill" ' +
-                'style="background:rgba(211,47,47,0.12);color:#d32f2f;border:1px solid rgba(211,47,47,0.25)" title="Ver mi perfil">' +
-                '<i class="fa-solid fa-user-circle text-xs"></i><span class="truncate max-w-[120px]">' + esc(label) + '</span>' +
-                '</a>' +
-                logoutBtnHtml;
-        }).catch(function () {
-            area.innerHTML = logoutBtnHtml;
-        });
+            area.innerHTML = dashPill +
+                '<div class="museo-user-menu-wrap">' +
+                    '<button type="button" class="museo-user-btn" data-action="user-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="museo-user-menu" title="Abrir menú de cuenta">' +
+                        '<span class="museo-user-avatar" aria-hidden="true">' + esc(ini) + '</span>' +
+                        '<span class="museo-user-name">' + esc(nombre) + '</span>' +
+                        '<i class="fa-solid fa-chevron-down museo-user-caret" aria-hidden="true"></i>' +
+                    '</button>' +
+                    '<div id="museo-user-menu" class="museo-user-menu" role="menu" aria-label="Cuenta" hidden>' +
+                        '<div class="museo-user-menu-head">' +
+                            '<span class="museo-user-avatar museo-user-avatar-lg" aria-hidden="true">' + esc(ini) + '</span>' +
+                            '<div class="museo-user-menu-id">' +
+                                '<div class="museo-user-menu-name">' + esc(nombre) + '</div>' +
+                                '<div class="museo-user-menu-role">' + esc(rolLabel) + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<a role="menuitem" href="/perfil" class="museo-user-item">' +
+                            '<i class="fa-regular fa-user" aria-hidden="true"></i><span>Mi perfil</span></a>' +
+                        '<div class="museo-user-menu-sep" role="separator"></div>' +
+                        '<button type="button" role="menuitem" data-action="logout" class="museo-user-item museo-user-item-danger">' +
+                            '<i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i><span>Cerrar sesión</span></button>' +
+                    '</div>' +
+                '</div>';
+        }
+
+        getUser().then(pintarMenu).catch(function () { pintarMenu(null); });
     }
 
     function showLogoutModal() {
@@ -433,8 +467,19 @@
     function bindAuthClicks() {
         document.addEventListener('click', function (e) {
             var t = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
+
+            if (t && t.getAttribute('data-action') === 'user-menu') {
+                e.preventDefault();
+                toggleUserMenu();
+                return;
+            }
+
+            var dentroDelMenu = e.target && e.target.closest ? e.target.closest('.museo-user-menu-wrap') : null;
+            if (!dentroDelMenu) closeUserMenu(false);
+
             if (t && t.getAttribute('data-action') === 'logout') {
                 e.preventDefault();
+                closeUserMenu(false);
                 showLogoutModal();
                 return;
             }
@@ -462,13 +507,27 @@
             }
         });
 
-        // RNF: Accesibilidad - Tecla ESC para cerrar modales
+        // RNF: Accesibilidad - Tecla ESC para cerrar menús y modales
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeUserMenu(true);
                 hideLogoutModal();
                 var userModal = document.getElementById('modal-nuevo-usuario');
                 if (userModal) userModal.classList.add('hidden');
+                return;
             }
+
+            var menu = document.getElementById('museo-user-menu');
+            if (!menu || menu.hasAttribute('hidden')) return;
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+            var items = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitem"]'));
+            if (!items.length) return;
+            e.preventDefault();
+            var actual = items.indexOf(document.activeElement);
+            var siguiente = e.key === 'ArrowDown'
+                ? (actual + 1) % items.length
+                : (actual - 1 + items.length) % items.length;
+            items[siguiente].focus();
         });
     }
 
@@ -551,7 +610,6 @@
     /* ---------- init ---------- */
     function init() {
         setTheme(getTheme());
-        renderRoleNav();
         renderAuth();
         bindAuthClicks();
 
