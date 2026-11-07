@@ -15,6 +15,7 @@ from app.models.contenido import Contenido
 from app.models.usuario import Usuario
 from app.schemas.contenido import ContenidoCreateSchema
 from app.services import contenido as contenido_svc
+from app.services import interaccion as interaccion_svc
 from app.services import museo
 from app.utils.response import json_error, json_ok
 
@@ -93,3 +94,39 @@ def revisar_docente(contenido_id: int):
         "estado": resultado.estado,
         "observaciones": resultado.observaciones,
     })
+
+
+# -----------------------------------------------------------------------------
+# Comentarios (reales, ligados a la pieza y al usuario)
+# -----------------------------------------------------------------------------
+@museo_bp.get("/contenidos/<int:contenido_id>/comentarios")
+def listar_comentarios(contenido_id: int):
+    return jsonify(interaccion_svc.comentarios_de(contenido_id))
+
+
+@museo_bp.post("/contenidos/<int:contenido_id>/comentarios")
+@jwt_required()
+def crear_comentario(contenido_id: int):
+    usuario = db.session.get(Usuario, int(get_jwt_identity()))
+    if not usuario:
+        return json_error("Usuario no encontrado", 404)
+    if db.session.get(Contenido, contenido_id) is None:
+        return json_error("Contenido no encontrado", 404)
+
+    data = request.get_json(silent=True) or {}
+    try:
+        forma = interaccion_svc.crear_comentario(usuario, contenido_id, data.get("texto"))
+    except ValueError as err:
+        return json_error(str(err), 400)
+    return json_ok(forma, 201)
+
+
+@museo_bp.delete("/comentarios/<int:comentario_id>")
+@jwt_required()
+def eliminar_comentario(comentario_id: int):
+    usuario = db.session.get(Usuario, int(get_jwt_identity()))
+    if not usuario:
+        return json_error("Usuario no encontrado", 404)
+    if not interaccion_svc.eliminar_comentario(usuario, comentario_id):
+        return json_error("No puedes eliminar este comentario", 403)
+    return json_ok({"mensaje": "Comentario eliminado"})

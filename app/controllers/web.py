@@ -10,13 +10,14 @@ from functools import lru_cache
 from pathlib import Path
 
 from flask import Blueprint, abort, redirect, render_template, url_for
-from flask_jwt_extended import get_jwt, get_jwt_identity
+from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 
 from app.extensions import db
 from app.middleware.auth import web_role_required
 from app.models.contenido import Contenido
 from app.models.usuario import Usuario
 from app.services import contenido as contenido_svc
+from app.services import interaccion as interaccion_svc
 from app.services import museo
 from app.services import notificacion as notificacion_svc
 
@@ -82,6 +83,15 @@ def _usuario_actual() -> Usuario | None:
     return db.session.get(Usuario, int(identidad))
 
 
+def _usuario_sesion_opcional() -> Usuario | None:
+    """Cookie válida → usuario; sin sesión → None (para vistas públicas)."""
+    try:
+        verify_jwt_in_request(optional=True, locations=["cookies"])
+        return _usuario_actual()
+    except Exception:
+        return None
+
+
 # -----------------------------------------------------------------------------
 # Vistas Públicas
 # -----------------------------------------------------------------------------
@@ -102,7 +112,16 @@ def buscar():
 
 @web_bp.get("/detalle/<cid>")
 def detalle(cid):
-    return render_template("publico/detalle.html", **_ctx("detalle", item=_item(cid)))
+    item = _item(cid)
+    usuario = _usuario_sesion_opcional()
+    try:
+        comentarios = interaccion_svc.comentarios_de(int(item["id"]))
+    except (TypeError, ValueError):
+        comentarios = []
+    return render_template(
+        "publico/detalle.html",
+        **_ctx("detalle", item=item, comentarios=comentarios, usuario=usuario),
+    )
 
 
 @web_bp.get("/hall-fama")

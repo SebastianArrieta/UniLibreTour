@@ -55,28 +55,51 @@
 
             {{ tag_list(item.tags) }}
 
-            <div class="mt-10">
-                <h3 class="font-serif text-xl font-semibold mb-5" style="color:var(--card-foreground)">Comentarios (2)</h3>
+            {% set rol_labels = {'estudiante': 'Estudiante', 'docente': 'Docente', 'egresado': 'Egresado', 'admin': 'Admin', 'visitante': 'Visitante'} %}
+            <div class="mt-10" id="comments-section"
+                 data-content-id="{{ item.id }}"
+                 data-user-id="{{ usuario.id if usuario else '' }}"
+                 data-is-admin="{{ '1' if usuario and usuario.rol == 'admin' else '0' }}">
+                <h3 class="font-serif text-xl font-semibold mb-5" style="color:var(--card-foreground)">Comentarios (<span id="comments-count">{{ comentarios | length }}</span>)</h3>
+
+                {% if usuario %}
+                <form id="comment-form" class="museum-card rounded p-4 mb-5 flex flex-col gap-3">
+                    <label for="comment-text" class="text-xs font-medium" style="color:var(--secondary-foreground)">Deja tu reseña como {{ usuario.nombre }}</label>
+                    <textarea id="comment-text" rows="3" maxlength="1000" class="museum-input w-full px-3 py-2 rounded text-sm"
+                              placeholder="¿Qué te pareció este contenido? Comparte tu opinión…" required></textarea>
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <span id="comment-error" class="text-xs" style="color:var(--primary);display:none"></span>
+                        <button type="submit" class="btn-primary px-4 py-2 rounded text-sm font-semibold ml-auto">Publicar comentario</button>
+                    </div>
+                </form>
+                {% else %}
                 <div class="museum-card rounded p-4 mb-5 text-sm text-center" style="color:var(--muted-foreground)">
-                    <a href="{{ url_for('web.login') }}" class="hover:underline" style="color:var(--primary)">Inicia sesión</a> para dejar un comentario.
+                    <a href="{{ url_for('web.login', next='/detalle/' ~ item.id) }}" class="hover:underline" style="color:var(--primary)">Inicia sesión</a> para dejar un comentario.
                 </div>
-                <div class="flex flex-col gap-4">
-                    <div class="museum-card rounded p-4">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--brown-soft);color:var(--brown)">L</div>
-                            <span class="text-sm font-medium" style="color:var(--card-foreground)">Prof. Luis Castro</span>
-                            <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">2024-04-10</span>
-                        </div>
-                        <p class="text-sm" style="color:var(--secondary-foreground)">Trabajo excepcional. La metodología aplicada es un referente para futuros proyectos.</p>
+                {% endif %}
+
+                <div id="comments-list" class="flex flex-col gap-4">
+                    {% if comentarios | length == 0 %}
+                    <div id="comments-empty" class="museum-card rounded p-4 text-sm text-center" style="color:var(--muted-foreground)">
+                        Aún no hay comentarios. ¡Sé el primero en opinar!
                     </div>
-                    <div class="museum-card rounded p-4">
+                    {% endif %}
+                    {% for c in comentarios %}
+                    <div class="museum-card rounded p-4" data-comment-id="{{ c.id }}">
                         <div class="flex items-center gap-2 mb-2">
-                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--brown-soft);color:var(--brown)">A</div>
-                            <span class="text-sm font-medium" style="color:var(--card-foreground)">Ana Bermúdez</span>
-                            <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">2024-04-12</span>
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--brown-soft);color:var(--brown)">{{ c.usuario.nombre[0] | upper }}</div>
+                            <span class="text-sm font-medium" style="color:var(--card-foreground)">{{ c.usuario.nombre }}</span>
+                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded uppercase" style="background:var(--surface-2);color:var(--muted-foreground)">{{ rol_labels.get(c.usuario.rol, c.usuario.rol) }}</span>
+                            <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ c.created_at[:10] if c.created_at else '' }}</span>
+                            {% if usuario and (usuario.id == c.usuario.id or usuario.rol == 'admin') %}
+                            <button type="button" data-delete-comment="{{ c.id }}" class="text-xs hover:opacity-100 opacity-60" style="color:var(--primary)" title="Eliminar comentario" aria-label="Eliminar comentario">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            {% endif %}
                         </div>
-                        <p class="text-sm" style="color:var(--secondary-foreground)">Los resultados obtenidos superan expectativas. Felicitaciones al equipo.</p>
+                        <p class="text-sm" style="color:var(--secondary-foreground)">{{ c.texto }}</p>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -177,6 +200,107 @@
                 share.style.color = 'var(--secondary-foreground)';
             }, 2000);
         });
+    }
+
+    /* Comentarios reales */
+    var section = document.getElementById('comments-section');
+    if (section && window.API) {
+        var contentId = section.getAttribute('data-content-id');
+        var userId = parseInt(section.getAttribute('data-user-id') || '0', 10);
+        var isAdmin = section.getAttribute('data-is-admin') === '1';
+        var token = window.Museo && Museo.getToken ? Museo.getToken() : null;
+        var list = document.getElementById('comments-list');
+        var countEl = document.getElementById('comments-count');
+        var form = document.getElementById('comment-form');
+        var errorEl = document.getElementById('comment-error');
+        var rolLabels = { estudiante: 'Estudiante', docente: 'Docente', egresado: 'Egresado', admin: 'Admin', visitante: 'Visitante' };
+
+        function esc(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showError(msg) {
+            if (!errorEl) return;
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        }
+        function hideError() { if (errorEl) errorEl.style.display = 'none'; }
+
+        function updateCount(delta) {
+            if (!countEl) return;
+            var n = parseInt(countEl.textContent, 10) || 0;
+            countEl.textContent = Math.max(0, n + delta);
+        }
+
+        function commentNode(c) {
+            var wrap = document.createElement('div');
+            wrap.className = 'museum-card rounded p-4';
+            wrap.setAttribute('data-comment-id', c.id);
+            var fecha = c.created_at ? new Date(c.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            var puedeBorrar = isAdmin || (userId && c.usuario.id === userId);
+            wrap.innerHTML =
+                '<div class="flex items-center gap-2 mb-2">' +
+                '<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style="background:var(--brown-soft);color:var(--brown)">' + esc((c.usuario.nombre || '?').charAt(0).toUpperCase()) + '</div>' +
+                '<span class="text-sm font-medium" style="color:var(--card-foreground)">' + esc(c.usuario.nombre) + '</span>' +
+                '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded uppercase" style="background:var(--surface-2);color:var(--muted-foreground)">' + esc(rolLabels[c.usuario.rol] || c.usuario.rol) + '</span>' +
+                '<span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">' + esc(fecha) + '</span>' +
+                (puedeBorrar ? '<button type="button" data-delete-comment="' + c.id + '" class="text-xs hover:opacity-100 opacity-60" style="color:var(--primary)" title="Eliminar comentario" aria-label="Eliminar comentario"><i class="fa-solid fa-trash-can"></i></button>' : '') +
+                '</div>' +
+                '<p class="text-sm" style="color:var(--secondary-foreground)">' + esc(c.texto) + '</p>';
+            return wrap;
+        }
+
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var ta = document.getElementById('comment-text');
+                var texto = (ta.value || '').trim();
+                if (texto.length < 2) { showError('Escribe un comentario un poco más largo.'); ta.focus(); return; }
+                var btn = form.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                API.request('/api/museo/contenidos/' + contentId + '/comentarios', 'POST', { texto: texto }, token)
+                    .then(function (c) {
+                        var empty = document.getElementById('comments-empty');
+                        if (empty) empty.remove();
+                        list.appendChild(commentNode(c));
+                        updateCount(1);
+                        ta.value = '';
+                        hideError();
+                    })
+                    .catch(function (err) {
+                        showError(err && err.message ? err.message : 'No se pudo publicar el comentario.');
+                    })
+                    .finally(function () { btn.disabled = false; });
+            });
+        }
+
+        if (list) {
+            list.addEventListener('click', function (e) {
+                var btn = e.target && e.target.closest ? e.target.closest('[data-delete-comment]') : null;
+                if (!btn) return;
+                var id = btn.getAttribute('data-delete-comment');
+                if (!window.confirm('¿Eliminar este comentario?')) return;
+                API.delete('/api/museo/comentarios/' + id, token)
+                    .then(function () {
+                        var card = btn.closest('[data-comment-id]');
+                        if (card) card.remove();
+                        updateCount(-1);
+                        if (!list.querySelector('[data-comment-id]')) {
+                            var empty = document.createElement('div');
+                            empty.id = 'comments-empty';
+                            empty.className = 'museum-card rounded p-4 text-sm text-center';
+                            empty.style.color = 'var(--muted-foreground)';
+                            empty.textContent = 'Aún no hay comentarios. ¡Sé el primero en opinar!';
+                            list.appendChild(empty);
+                        }
+                    })
+                    .catch(function (err) {
+                        window.alert(err && err.message ? err.message : 'No se pudo eliminar el comentario.');
+                    });
+            });
+        }
     }
 })();
 </script>
