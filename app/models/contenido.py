@@ -68,6 +68,7 @@ class Contenido(db.Model):
     validado_por: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("usuarios.id"), nullable=True)
     fecha_validacion: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     creador_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("usuarios.id"), nullable=True)
+    docente_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("usuarios.id"), nullable=True)
     coleccion_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("colecciones.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
@@ -78,6 +79,7 @@ class Contenido(db.Model):
     coleccion: Mapped[Optional["Coleccion"]] = relationship("Coleccion", back_populates="contenidos")
     creador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[creador_id], back_populates=None)
     validador: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[validado_por], back_populates=None)
+    docente_revisor: Mapped[Optional["Usuario"]] = relationship("Usuario", foreign_keys=[docente_id], back_populates=None)
     etiquetas: Mapped[list["Etiqueta"]] = relationship("Etiqueta", secondary="contenido_etiquetas")
 
     def to_dict(self) -> dict:
@@ -94,6 +96,7 @@ class Contenido(db.Model):
             "validado_por": self.validado_por,
             "fecha_validacion": self.fecha_validacion.isoformat() if self.fecha_validacion else None,
             "creador_id": self.creador_id,
+            "docente_id": self.docente_id,
             "coleccion_id": self.coleccion_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

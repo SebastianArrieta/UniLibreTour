@@ -77,12 +77,18 @@ def _migrar_columnas_faltantes() -> None:
 
     try:
         inspector = inspect(db.engine)
-        if "cronologia_hitos" not in inspector.get_table_names():
-            return
-        columnas = {c["name"] for c in inspector.get_columns("cronologia_hitos")}
-        if "media" not in columnas:
-            with db.engine.begin() as conn:
-                conn.execute(text("ALTER TABLE cronologia_hitos ADD COLUMN media TEXT"))
-            print("[schema] columna cronologia_hitos.media agregada")
+        if "cronologia_hitos" in inspector.get_table_names():
+            columnas = {c["name"] for c in inspector.get_columns("cronologia_hitos")}
+            if "media" not in columnas:
+                with db.engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE cronologia_hitos ADD COLUMN media TEXT"))
+                print("[schema] columna cronologia_hitos.media agregada")
+
+        if "contenidos" in inspector.get_table_names():
+            columnas = {c["name"] for c in inspector.get_columns("contenidos")}
+            if "docente_id" not in columnas:
+                with db.engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE contenidos ADD COLUMN docente_id INT NULL"))
+                print("[schema] columna contenidos.docente_id agregada")
     except Exception as exc:  # nunca bloquear el arranque por una migración
-        print(f"[schema] no se pudo verificar/agregar media: {exc}")
+        print(f"[schema] no se pudo verificar/agregar columnas nuevas: {exc}")

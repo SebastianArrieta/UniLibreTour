@@ -2,22 +2,16 @@
 {% block title %}Mi Espacio — Docente{% endblock %}
 {% block content %}
 {% from 'components/sidebar.html' import sidebar_for %}
-{% from 'components/macros.html' import empty_state, status_badge, category_badge %}
+{% from 'components/macros.html' import empty_state, status_badge %}
 
-{% set casas = users | selectattr('email', 'equalto', 'h.casas@unilibre.edu.co') | first %}
-{% set cola = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
-{% set involucrados = contentItems | selectattr('involvedTeacher', 'in', ['Dr. Hernando Casas', 'Hernando Casas']) | list %}
-{% set involved_pending = involucrados | selectattr('status', 'equalto', 'pendiente') | list %}
-{% set notifs = [
-  {'type':'aprobado','message':'Tu contribución "Sistema de Predicción..." fue aprobada','time':'Hace 2h','icon':'fa-solid fa-check','color':'var(--gold)'},
-  {'type':'pendiente','message':'Tienes 1 pieza pendiente de revisión','time':'Hace 5h','icon':'fa-solid fa-clock','color':'var(--brown)'},
-  {'type':'sistema','message':'Convocatoria de investigación 2025-1 abierta','time':'Ayer','icon':'fa-solid fa-info','color':'var(--secondary-foreground)'},
-] %}
-<style>
-.page-wrap { padding-bottom: 5.5rem; }
-@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
-</style>
-<div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
+{% set tipos_notif = {
+  'revision': ('fa-solid fa-clipboard-check', 'var(--brown)'),
+  'validacion': ('fa-solid fa-stamp', 'var(--gold)'),
+  'aprobado': ('fa-solid fa-check', 'var(--gold)'),
+  'devuelto': ('fa-solid fa-rotate-left', 'var(--primary)'),
+} %}
+
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
     {{ sidebar_for('docente', current_page) }}
     <div class="min-w-0">
@@ -25,117 +19,105 @@
         <div>
           <div class="flex items-center gap-2 mb-1">
             <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Docente</span>
-            <span class="text-xs font-mono" style="color:var(--muted-foreground)">Grupo GISI</span>
+            {% if docente_usuario and docente_usuario.cargo_actual %}
+            <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ docente_usuario.cargo_actual }}</span>
+            {% endif %}
           </div>
-          <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Buenos días, Dr. Casas</h1>
-          <p class="text-sm mt-1" style="color:var(--muted-foreground)">Cat. Investigador Asociado · {{ cola | length }} contribuciones pendientes de revisión</p>
+          <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">
+            Hola, {{ docente_usuario.nombre if docente_usuario else 'docente' }}
+          </h1>
+          <p class="text-sm mt-1" style="color:var(--muted-foreground)">
+            {{ revision_items | length }} aporte{{ '' if (revision_items | length) == 1 else 's' }} esperando tu revisión.
+          </p>
         </div>
-        <a href="{{ url_for('web.docente_evidencia') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold flex items-center gap-2">
-          <span class="text-lg leading-none">+</span> Registrar Evidencia
+        <a href="{{ url_for('web.docente_revision') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-check"></i> Revisar aportes
         </a>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default">
+        <div class="museum-card rounded p-5">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-file-pen"></i></div>
-            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Contribuciones</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Mis aportes</div>
           </div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ casas.contributions if casas and casas.contributions else 18 }}</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Total registradas</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ estadisticas.contribuciones }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Registrados</div>
         </div>
-        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default">
+        <div class="museum-card rounded p-5">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:var(--gold-soft);color:var(--gold)"><i class="fa-solid fa-check"></i></div>
-            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Publicadas</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Publicados</div>
           </div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">15</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ estadisticas.publicadas }}</div>
           <div class="text-xs mt-1" style="color:var(--muted-foreground)">En el archivo</div>
         </div>
-        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default">
+        <div class="museum-card rounded p-5">
           <div class="flex items-center gap-2 mb-2">
             <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-hourglass-half"></i></div>
-            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">En Revisión</div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Por revisar</div>
           </div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ cola | length }}</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Pendientes</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ revision_items | length }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Aportes de estudiantes</div>
         </div>
-        <div class="museum-card rounded p-5 transition-all duration-200 hover:scale-[1.02] cursor-default">
-          <div class="flex items-center gap-2 mb-2">
-            <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:var(--gold-soft);color:var(--gold)"><i class="fa-solid fa-graduation-cap"></i></div>
-            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Estudiantes</div>
-          </div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">34</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Proyectos activos</div>
+        <div class="museum-card rounded p-5">
+          <a href="{{ url_for('web.docente_notificaciones') }}" class="flex items-center gap-2 mb-2">
+            <div class="w-8 h-8 rounded flex items-center justify-center text-xs" style="background:var(--primary-soft);color:var(--primary)"><i class="fa-regular fa-bell"></i></div>
+            <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">Sin leer</div>
+          </a>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ notifs_sin_leer }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">Notificaciones</div>
         </div>
-      </div>
-
-      <div class="flex gap-0 border-b mb-6" style="border-color:var(--border)" id="doc-tabs">
-        <button type="button" data-tab="mio" class="py-3 px-4 border-b-2 text-sm font-medium transition-all duration-200 flex items-center gap-2" style="border-color:var(--primary);color:var(--primary);background:var(--primary-soft)"><i class="fa-solid fa-file-lines text-xs"></i> Mi Contenido</button>
-        <button type="button" data-tab="involucrado" class="py-3 px-4 border-b-2 text-sm font-medium flex items-center gap-2 transition-all duration-200" style="border-color:transparent;color:var(--muted-foreground);background:transparent">
-          <i class="fa-solid fa-users text-xs"></i> Me Involucran
-        </button>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <div id="tab-mio" class="flex flex-col gap-6">
-            <div class="museum-card rounded p-5">
-              <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-2">
-                  <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Cola de Contenido Pendiente</h3>
-                  <span class="text-xs font-mono px-2 py-0.5 rounded-full" style="background:var(--brown-soft);color:var(--brown)">{{ cola | length }}</span>
-                </div>
-                <a href="{{ url_for('web.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nueva</a>
+        <div class="flex flex-col gap-6">
+          <div class="museum-card rounded p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Aportes por revisar</h3>
+                <span class="text-xs font-mono px-2 py-0.5 rounded-full" style="background:var(--brown-soft);color:var(--brown)">{{ revision_items | length }}</span>
               </div>
-              <div class="flex flex-col gap-3">
-                {% if cola | length == 0 %}
-                  {{ empty_state('No hay contenido pendiente en la cola.', 'fa-solid fa-check') }}
-                {% endif %}
-                {% for item in cola %}
+              <a href="{{ url_for('web.docente_revision') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">Abrir panel →</a>
+            </div>
+            <div class="flex flex-col gap-3">
+              {% if revision_items | length == 0 %}
+                {{ empty_state('No tienes aportes pendientes de revisión.', 'fa-solid fa-check') }}
+              {% else %}
+                {% for item in revision_items[:5] %}
                 <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1)">
-                  <img src="{{ item.image }}" alt="{{ item.title }}" class="w-10 h-10 object-cover rounded flex-shrink-0" />
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
+                    <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.titulo }}</div>
                     <div class="flex items-center gap-2 mt-1">
-                      {{ status_badge(item.status) }}
-                      <span class="text-xs font-mono" style="color:var(--muted-foreground)">Por: {{ item.submittedBy }}</span>
+                      {{ status_badge(item.estado) }}
+                      <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ item.creador.nombre if item.creador else item.autor or '—' }}</span>
                     </div>
                   </div>
-                  <a href="{{ url_for('web.admin_validacion', iid=item.id) }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Revisar →</a>
+                  <a href="{{ url_for('web.docente_revision') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Revisar</a>
                 </div>
                 {% endfor %}
-              </div>
-            </div>
-
-            <div class="museum-card rounded p-5">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Necesitan tu Atención</h3>
-                <a href="{{ url_for('web.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nueva</a>
-              </div>
-              <div class="flex flex-col gap-3">
-                {% set mi_pend = casas and ((contentItems + contentQueue) | selectattr('author', 'equalto', casas.name) | list + (contentItems + contentQueue) | selectattr('submittedBy', 'equalto', casas.name) | list) | unique(attribute='id') | list | rejectattr('status', 'in', ['publicado', 'institucional']) | list %}
-                {% if (mi_pend | default([])) | length == 0 %}
-                  {{ empty_state('No tienes contribuciones pendientes de revisión.', 'fa-solid fa-check') }}
-                {% endif %}
-              </div>
+              {% endif %}
             </div>
           </div>
 
-          <div id="tab-involucrado" class="museum-card rounded p-5" style="display:none">
-            <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Proyectos donde te involucran</h3>
+          <div class="museum-card rounded p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Mis aportes</h3>
+              <a href="{{ url_for('web.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nuevo</a>
+            </div>
             <div class="flex flex-col gap-3">
-              {% if involucrados | length == 0 %}
-              <p class="text-sm" style="color:var(--muted-foreground)">No hay proyectos que te involucren aún.</p>
+              {% if mis_aportes | length == 0 %}
+                {{ empty_state('Aún no has registrado aportes.', 'fa-solid fa-file-circle-plus') }}
               {% else %}
-                {% for item in involucrados %}
-                <div class="flex items-center justify-between gap-3 p-3 rounded" style="background:var(--surface-1)">
+                {% for item in mis_aportes[:5] %}
+                <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1)">
                   <div class="flex-1 min-w-0">
-                    <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">{{ item.title }}</div>
-                    <div class="text-xs mt-1" style="color:var(--muted-foreground)">Enviado por: {{ item.author }}</div>
-                    <div class="mt-1">{{ status_badge(item.status) }}</div>
+                    <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.titulo }}</div>
+                    <div class="mt-1">{{ status_badge(item.estado) }}</div>
                   </div>
-                  <a href="{{ url_for('web.detalle', cid=item.id) }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Ver detalle</a>
+                  {% if item.estado in ('publicado', 'institucional') %}
+                  <a href="{{ url_for('web.detalle', cid=item.id) }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Ver</a>
+                  {% endif %}
                 </div>
                 {% endfor %}
               {% endif %}
@@ -143,52 +125,37 @@
           </div>
         </div>
 
-        <div class="museum-card rounded p-5">
+        <div class="museum-card rounded p-5 self-start">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <h3 class="font-serif font-semibold flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-regular fa-bell text-xs"></i> Notificaciones</h3>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:var(--primary-soft);color:var(--primary)">3</span>
+              {% if notifs_sin_leer %}<span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:var(--primary-soft);color:var(--primary)">{{ notifs_sin_leer }}</span>{% endif %}
             </div>
             <a href="{{ url_for('web.docente_notificaciones') }}" class="text-xs" style="color:var(--primary)">Ver todas</a>
           </div>
           <div class="flex flex-col gap-2">
-            {% for n in notifs %}
-            <div class="flex gap-3 items-start p-3 rounded transition-colors hover:bg-white/[0.02]" style="border-left:3px solid {{ n.color }}">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0" style="background:color-mix(in srgb, {{ n.color }} 10%, transparent);color:{{ n.color }}">
-                {% if 'fa-' in n.icon %}<i class="{{ n.icon }}"></i>{% else %}{{ n.icon }}{% endif %}
+            {% if notifs | length == 0 %}
+              <p class="text-sm" style="color:var(--muted-foreground)">No tienes notificaciones todavía.</p>
+            {% else %}
+              {% for n in notifs %}
+              {% set cfg = tipos_notif.get(n.tipo, ('fa-solid fa-bell', 'var(--secondary-foreground)')) %}
+              <div class="flex gap-3 items-start p-3 rounded" style="border-left:3px solid {{ cfg[1] }};{{ 'opacity:.6' if n.leido }}">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs flex-shrink-0" style="background:color-mix(in srgb, {{ cfg[1] }} 10%, transparent);color:{{ cfg[1] }}">
+                  <i class="{{ cfg[0] }}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm" style="color:var(--secondary-foreground)">{{ n.mensaje }}</p>
+                  <span class="text-xs font-mono" style="color:var(--muted-foreground)">
+                    {% if n.created_at %}{{ n.created_at.strftime('%d/%m · %H:%M') }}{% endif %}
+                  </span>
+                </div>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm" style="color:var(--secondary-foreground)">{{ n.message }}</p>
-                <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ n.time }}</span>
-              </div>
-            </div>
-            {% endfor %}
+              {% endfor %}
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
-{% block extra_js %}
-<script>
-(function () {
-  var tabs = document.querySelectorAll('#doc-tabs [data-tab]');
-  var mio = document.getElementById('tab-mio');
-  var invol = document.getElementById('tab-involucrado');
-  function activate(tab) {
-    tabs.forEach(function (t) {
-      var on = t.getAttribute('data-tab') === tab;
-      t.style.borderColor = on ? 'var(--primary)' : 'transparent';
-      t.style.color = on ? 'var(--primary)' : 'var(--muted-foreground)';
-      t.style.background = on ? 'var(--primary-soft)' : 'transparent';
-    });
-    mio.style.display = tab === 'mio' ? '' : 'none';
-    invol.style.display = tab === 'involucrado' ? '' : 'none';
-  }
-  tabs.forEach(function (t) {
-    t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
-  });
-})();
-</script>
 {% endblock %}

@@ -10,4 +10,5 @@ class ContenidoCreateSchema(Schema):
     date = fields.Str(load_default=None)
     image = fields.Str(load_default=None)
     author = fields.Str(load_default=None)
+    docenteId = fields.Int(load_default=None, allow_none=True)
     tags = fields.List(fields.Str(), load_default=list)

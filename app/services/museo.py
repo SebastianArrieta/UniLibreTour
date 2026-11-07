@@ -212,7 +212,7 @@ def kpis() -> dict:
 
 def opciones_docentes() -> list[dict]:
     q = Usuario.query.filter_by(rol="docente").order_by(Usuario.nombre.asc()).all()
-    return [{"name": d.nombre, "email": d.email} for d in q]
+    return [{"id": d.id, "name": d.nombre, "email": d.email} for d in q]
 
 
 def dataset() -> dict:

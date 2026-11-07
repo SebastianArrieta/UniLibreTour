@@ -52,10 +52,12 @@
 
 {% macro status_badge(status) %}
 {%- set cfg = {'publicado': ('Publicado', 'fa-check'), 'pendiente': ('En Revisión', 'fa-clock'),
+              'revision_docente': ('Revisión docente', 'fa-user-check'),
               'institucional': ('Institucional', 'fa-building-columns'), 'devuelto': ('Devuelto', 'fa-arrow-rotate-left')} -%}
 {%- set key = status if status in cfg else 'pendiente' -%}
+{%- set css_key = 'pendiente' if key == 'revision_docente' else key -%}
 {%- set label, icon = cfg[key] -%}
-<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono font-medium status-{{ key }}">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono font-medium status-{{ css_key }}">
     <i class="fa-solid {{ icon }}" style="font-size:10px" aria-hidden="true"></i>{{ label }}
 </span>
 {% endmacro %}

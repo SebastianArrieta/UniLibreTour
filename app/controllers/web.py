@@ -10,10 +10,15 @@ from functools import lru_cache
 from pathlib import Path
 
 from flask import Blueprint, abort, redirect, render_template, url_for
-from flask_jwt_extended import get_jwt
+from flask_jwt_extended import get_jwt, get_jwt_identity
 
+from app.extensions import db
 from app.middleware.auth import web_role_required
+from app.models.contenido import Contenido
+from app.models.usuario import Usuario
+from app.services import contenido as contenido_svc
 from app.services import museo
+from app.services import notificacion as notificacion_svc
 
 web_bp = Blueprint("web", __name__)
 
@@ -67,6 +72,14 @@ def _item(cid: str) -> dict:
         if str(item.get("id")) == str(cid):
             return item
     abort(404)
+
+
+def _usuario_actual() -> Usuario | None:
+    """Usuario autenticado por la cookie de sesión (el guard ya validó el JWT)."""
+    identidad = get_jwt_identity()
+    if identidad is None:
+        return None
+    return db.session.get(Usuario, int(identidad))
 
 
 # -----------------------------------------------------------------------------
@@ -188,7 +201,44 @@ def estudiante_contribuir():
 @web_bp.get("/docente")
 @web_role_required("docente", "admin")
 def docente():
-    return render_template("docente/dashboard.html", **_ctx("doc-dashboard"))
+    usuario = _usuario_actual()
+    revision = contenido_svc.en_revision_para(usuario.id) if usuario and usuario.rol == "docente" else []
+    estadisticas = {
+        "contribuciones": Contenido.query.filter_by(creador_id=usuario.id).count() if usuario else 0,
+        "publicadas": Contenido.query.filter_by(creador_id=usuario.id, estado="publicado").count() if usuario else 0,
+    }
+    notifs = notificacion_svc.listar(usuario.id) if usuario else []
+    mis_aportes = (
+        Contenido.query.filter_by(creador_id=usuario.id).order_by(Contenido.id.desc()).all()
+        if usuario else []
+    )
+    return render_template(
+        "docente/dashboard.html",
+        docente_usuario=usuario,
+        revision_items=revision,
+        mis_aportes=mis_aportes,
+        estadisticas=estadisticas,
+        notifs=notifs[:5],
+        notifs_sin_leer=sum(1 for n in notifs if not n.leido),
+        **_ctx("doc-dashboard"),
+    )
+
+
+@web_bp.get("/docente/revision")
+@web_role_required("docente", "admin")
+def docente_revision():
+    usuario = _usuario_actual()
+    if usuario and usuario.rol == "admin":
+        items = (
+            Contenido.query.filter_by(estado=contenido_svc.ESTADO_REVISION_DOCENTE)
+            .order_by(Contenido.id.desc())
+            .all()
+        )
+    elif usuario:
+        items = contenido_svc.en_revision_para(usuario.id)
+    else:
+        items = []
+    return render_template("docente/revision.html", items=items, **_ctx("doc-revision"))
 
 
 @web_bp.get("/docente/registrar-evidencia")

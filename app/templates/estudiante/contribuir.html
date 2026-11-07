@@ -55,7 +55,7 @@
                 <select id="inp-teacher" class="museum-input w-full px-3 py-2.5 rounded text-sm" required>
                   <option value="" style="background:var(--card)">Seleccionar docente…</option>
                   {% for t in teacherOptions %}
-                  <option value="{{ t.name }}" style="background:var(--card)">{{ t.name }}</option>
+                  <option value="{{ t.id }}" style="background:var(--card)">{{ t.name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -95,7 +95,7 @@
                 </div>
               </div>
               <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
-                Al confirmar, tu contribución quedará en estado <strong>En Revisión</strong> y un docente la validará antes de publicarla.
+                Al confirmar, tu contribución irá primero a <strong>revisión de tu docente</strong>; con su visto bueno, un administrador la validará y publicará.
               </div>
             </div>
           </div>
@@ -112,9 +112,9 @@
           <div class="text-center max-w-sm">
             <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" style="background:var(--gold-soft);border:2px solid var(--gold-border);color:var(--gold)"><i class="fa-solid fa-check"></i></div>
             <h2 class="font-serif text-2xl font-bold mb-2" style="color:var(--foreground)">¡Contribución enviada!</h2>
-            <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu contribución ha sido registrada y está en revisión. Un docente la validará antes de que un administrador la publique.</p>
+            <p class="text-sm mb-6" style="color:var(--muted-foreground)">Tu contribución fue enviada a tu docente. Cuando la apruebe pasará a validación final del administrador.</p>
             <div class="flex flex-col gap-2">
-              <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Estado: <strong>En Revisión</strong> · Recibirás una notificación al ser procesada</div>
+              <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Estado: <strong>Revisión docente</strong> · Recibirás una notificación con el resultado</div>
               <a href="{{ url_for('web.estudiante') }}" class="btn-primary px-5 py-2.5 rounded text-sm mt-2">Volver a mi panel</a>
             </div>
           </div>
@@ -142,6 +142,11 @@
 
 
   function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  function teacherName() {
+    var el = document.getElementById('inp-teacher');
+    if (!el || !el.selectedOptions || !el.selectedOptions.length) return '—';
+    return el.selectedOptions[0].textContent.trim() || '—';
+  }
 
   function showStep(n) {
     step = n;
@@ -173,7 +178,7 @@
     var item = previewItem();
     previewCard.innerHTML = UI.contentCard(item, { showStatus: true });
     document.getElementById('sum-year').textContent = val('inp-year') || '—';
-    document.getElementById('sum-teacher').textContent = val('inp-teacher') || '—';
+    document.getElementById('sum-teacher').textContent = teacherName();
     document.getElementById('sum-tags').textContent = item.tags.length ? item.tags.map(function (t) { return '#' + t; }).join(', ') : '—';
   }
 
@@ -210,11 +215,12 @@
       date: item.date,
       image: item.image,
       author: val('inp-autor') || undefined,
+      docenteId: parseInt(val('inp-teacher'), 10) || undefined,
       tags: item.tags
     }).then(function () {
       wizardRoot.style.display = 'none';
       wizardOk.style.display = '';
-      toast('¡Contribución enviada y registrada en la base de datos! Estado: En Revisión', 'success');
+      toast('¡Contribución enviada! Tu docente la revisará.', 'success');
     }).catch(function (err) {
       toast(err.message || 'No fue posible enviar la contribución', 'err');
     }).finally(function () {

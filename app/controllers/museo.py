@@ -10,6 +10,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from marshmallow import ValidationError
 
 from app.extensions import db
+from app.middleware.auth import role_required
+from app.models.contenido import Contenido
 from app.models.usuario import Usuario
 from app.schemas.contenido import ContenidoCreateSchema
 from app.services import contenido as contenido_svc
@@ -67,3 +69,27 @@ def crear_contenido():
     pieza = contenido_svc.crear_contenido(data, usuario)
     forma = next((c for c in museo.contenidos() if c["id"] == str(pieza.id)), pieza.to_dict())
     return json_ok(forma, 201)
+
+
+@museo_bp.put("/contenidos/<int:contenido_id>/docente-revision")
+@role_required("docente", "admin")
+def revisar_docente(contenido_id: int):
+    """El docente asignado aprueba o devuelve un aporte en revisión."""
+    revisor = db.session.get(Usuario, int(get_jwt_identity()))
+    contenido = db.session.get(Contenido, contenido_id)
+    if not revisor or not contenido:
+        return json_error("Contenido no encontrado", 404)
+
+    data = request.get_json(silent=True) or {}
+    aprobar = bool(data.get("aprobar"))
+    nota = data.get("nota")
+
+    resultado = contenido_svc.decision_docente(contenido, revisor, aprobar, nota)
+    if resultado is None:
+        return json_error("No puedes revisar este aporte", 403)
+
+    return json_ok({
+        "id": resultado.id,
+        "estado": resultado.estado,
+        "observaciones": resultado.observaciones,
+    })

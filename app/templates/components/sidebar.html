@@ -57,6 +57,7 @@
 {% elif area == 'docente' %}
     {% set links = [
         {'page': 'doc-dashboard', 'label': 'Mi Dashboard', 'icon': 'fa-solid fa-gauge-high', 'href': url_for('web.docente')},
+        {'page': 'doc-revision', 'label': 'Revisar Aportes', 'icon': 'fa-solid fa-clipboard-check', 'href': url_for('web.docente_revision')},
         {'page': 'doc-wizard', 'label': 'Registrar Evidencia', 'icon': 'fa-solid fa-file-signature', 'href': url_for('web.docente_evidencia')},
         {'page': 'doc-notificaciones', 'label': 'Notificaciones', 'icon': 'fa-solid fa-bell', 'href': url_for('web.docente_notificaciones')},
     ] %}
