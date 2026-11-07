@@ -1,9 +1,6 @@
-from sqlalchemy.exc import IntegrityError
-
 from app.extensions import db
 from app.models.usuario import Usuario
 from app.services.auth import hash_password
-from app.services.cuentas import CUENTAS_DEMO
 
 
 def listar_usuarios() -> list[Usuario]:
@@ -41,26 +38,3 @@ def actualizar_usuario(usuario: Usuario, data: dict) -> Usuario:
 def eliminar_usuario(usuario: Usuario) -> None:
     db.session.delete(usuario)
     db.session.commit()
-
-
-def seed_usuarios() -> None:
-    """Crea las cuentas demo canónicas que ya no existan (idempotente por email)."""
-    existentes = {u.email for u in Usuario.query.all()}
-    nuevas = [
-        Usuario(
-            nombre=f"{cuenta['etiqueta']} Demo",
-            email=cuenta["email"],
-            password_hash=hash_password(cuenta["password"]),
-            rol=cuenta["rol"],
-        )
-        for cuenta in CUENTAS_DEMO
-        if cuenta["email"] not in existentes
-    ]
-    if not nuevas:
-        return
-
-    try:
-        db.session.add_all(nuevas)
-        db.session.commit()
-    except IntegrityError:
-        db.session.rollback()

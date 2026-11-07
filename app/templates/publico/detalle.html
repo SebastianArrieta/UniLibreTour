@@ -2,8 +2,7 @@
 {% from 'components/macros.html' import status_badge, category_badge, tag_list, page_nav %}
 {% block title %}{{ item.title }} — UniLibreTour{% endblock %}
 {% block content %}
-{% set authorUser = users | selectattr('name', 'equalto', item.author) | selectattr('role', 'ne', 'admin') | list | first %}
-{% set related = contentItems | selectattr('category', 'equalto', item.category) | selectattr('id', 'ne', item.id) | list %}
+{% set related = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | selectattr('category', 'equalto', item.category) | selectattr('id', 'ne', item.id) | list %}
 
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
     {{ page_nav([('Inicio', url_for('web.home')), ('Explorar', url_for('web.explorar')), (item.title, '')], back_url=url_for('web.explorar'), back_label='Explorar') }}
@@ -11,7 +10,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">
             <div class="relative rounded overflow-hidden mb-6" style="aspect-ratio:16 / 9;background:var(--muted)">
-                <img src="{{ item.image }}" alt="{{ item.title }}" class="w-full h-full object-cover">
+                <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-full h-full object-cover">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)"></div>
                 <div class="absolute on-photo" style="bottom:1rem;left:1rem">{{ status_badge(item.status) }}</div>
             </div>
@@ -24,15 +23,7 @@
             <h1 class="font-serif text-3xl md:text-4xl font-bold leading-tight mb-4" style="color:var(--foreground)">{{ item.title }}</h1>
 
             <div class="flex items-center gap-3 mb-6 flex-wrap">
-                {% if authorUser %}
-                <a href="{{ url_for('web.perfil') }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity text-left">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)">{{ item.author[0] }}</div>
-                    <div>
-                        <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ item.author }}</div>
-                        <div class="text-xs" style="color:var(--muted-foreground)">Autor</div>
-                    </div>
-                </a>
-                {% else %}
+                {% if item.author %}
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold" style="background:var(--brown-soft);color:var(--brown)">{{ item.author[0] }}</div>
                     <div>
@@ -49,9 +40,6 @@
             </div>
 
             <p class="text-base leading-relaxed mb-6" style="color:var(--secondary-foreground)">{{ item.description }}</p>
-            <p class="text-sm leading-relaxed mb-6" style="color:var(--muted-foreground)">
-                Este trabajo representa una contribución significativa al campo de la ingeniería de sistemas, demostrando la capacidad innovadora de los miembros del programa para abordar problemáticas reales con soluciones tecnológicas de alto impacto. La metodología empleada sigue los estándares internacionales de investigación aplicada.
-            </p>
 
             {{ tag_list(item.tags) }}
 
@@ -133,33 +121,13 @@
                 </div>
             </div>
 
-            <div class="museum-card rounded p-5">
-                <h4 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Evidencias y Archivos</h4>
-                <div class="flex flex-col gap-3">
-                    <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
-                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-file-pdf"></i></div>
-                        <div class="flex-1 min-w-0">
-                            <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">documento_investigacion.pdf</div>
-                            <div class="text-xs" style="color:var(--muted-foreground)">PDF · 2.4 MB</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
-                        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0 text-sm" style="background:var(--brown-soft);color:var(--secondary-foreground)"><i class="fa-solid fa-image"></i></div>
-                        <div class="flex-1 min-w-0">
-                            <div class="text-sm line-clamp-1" style="color:var(--card-foreground)">diagrama_arquitectura.png</div>
-                            <div class="text-xs" style="color:var(--muted-foreground)">PNG · 850 KB</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {% if related %}
             <div>
                 <h4 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Contenido Relacionado</h4>
                 <div class="flex flex-col gap-3">
                     {% for r in related[:3] %}
                     <a href="{{ url_for('web.detalle', cid=r.id) }}" class="museum-card rounded p-3 text-left flex gap-3 hover:border-primary/40">
-                        <img src="{{ r.image }}" alt="{{ r.title }}" class="w-14 h-14 object-cover rounded flex-shrink-0">
+                        <img src="{{ r.image | img }}" alt="{{ r.title }}" class="w-14 h-14 object-cover rounded flex-shrink-0">
                         <div class="flex-1 min-w-0">
                             <div class="text-xs font-semibold line-clamp-2" style="color:var(--secondary-foreground)">{{ r.title }}</div>
                             <div class="text-xs mt-1" style="color:var(--muted-foreground)">{{ r.author }}</div>

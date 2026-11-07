@@ -1,6 +1,6 @@
 /* ============================================================================
    UniLibreTour — Módulo de Gestión de Usuarios (usuarios.js)
-   Demostración de flujo asíncrono (async / await) y manejo de errores (try / catch).
+   Gestión de usuarios con flujo asíncrono (async / await) y manejo de errores (try / catch).
    
    Flujo:
    Botón Modal -> Formulario submit -> async/await fetch -> Blueprint /api/usuarios

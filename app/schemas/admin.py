@@ -60,6 +60,14 @@ class NoticiaCreateSchema(Schema):
     image = fields.Str(load_default=None)
 
 
+class SemilleroCreateSchema(Schema):
+    name = fields.Str(required=True, validate=validate.Length(min=3, max=150))
+    category = fields.Str(required=True, validate=validate.OneOf(["semillero", "grupo"]))
+    leadId = fields.Int(load_default=None, allow_none=True)
+    description = fields.Str(required=True, validate=validate.Length(min=3))
+    image = fields.Str(load_default=None, allow_none=True)
+
+
 class ValidacionSchema(Schema):
     accion = fields.Str(
         required=True,

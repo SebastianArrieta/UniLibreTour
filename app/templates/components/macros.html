@@ -107,7 +107,7 @@
 <a href="{{ url_for('web.detalle', cid=item.id) }}" class="group block" data-card-id="{{ item.id }}">
 <article class="museum-card content-card rounded overflow-hidden cursor-pointer flex flex-col h-full">
     <div class="relative overflow-hidden h-44 bg-gray-900 on-photo">
-        <img src="{{ item.image }}" alt="{{ item.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+        <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
         <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%)"></div>
         {% if show_status %}<div class="absolute top-3 left-3">{{ status_badge(item.status) }}</div>{% endif %}
     </div>

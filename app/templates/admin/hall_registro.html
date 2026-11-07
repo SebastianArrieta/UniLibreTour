@@ -111,7 +111,7 @@
             {% for m in hallMembers %}
             <article class="museum-card rounded overflow-hidden">
               <div class="relative overflow-hidden" style="aspect-ratio:4/3;background:var(--muted)">
-                <img src="{{ m.image }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80">
+                <img src="{{ m.image | img_persona }}" alt="{{ m.name }}" class="w-full h-full object-cover opacity-80">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%)"></div>
                 <div class="absolute bottom-0 left-0 right-0 p-4">
                   <div class="font-serif font-bold text-base leading-tight mb-0.5" style="color:var(--on-photo-fg)">{{ m.name }}</div>
@@ -136,7 +136,7 @@
 <script>
 window.__DATOS = {{ datos | tojson }};
 (function () {
-  var PERSON_PLACEHOLDER = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format';
+  var PERSON_PLACEHOLDER = '{{ url_for('static', filename='images/persona.svg') }}';
 
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 

@@ -4,7 +4,7 @@
 <style>
     .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
     @media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 </style>
 {% endblock %}
 {% block content %}
@@ -40,6 +40,7 @@
               {'id': 'tab-hall', 'icon': 'fa-solid fa-award', 'label': 'Hall de la Fama'},
               {'id': 'tab-evento', 'icon': 'fa-solid fa-calendar-days', 'label': 'Eventos del Calendario'},
               {'id': 'tab-noticias', 'icon': 'fa-solid fa-newspaper', 'label': 'Noticias'},
+              {'id': 'tab-semillero', 'icon': 'fa-solid fa-microscope', 'label': 'Semilleros y Grupos'},
             ] %}
             {% for a in accesos %}
             <a href="{{ url_for('web.admin_anadir', _anchor='tab-' ~ a.id | replace('tab-','')) }}"
@@ -56,40 +57,19 @@
           {{ stat_card('Total Piezas', '{:,}'.format(kpiData.totalContent).replace(',', '.')) }}
           {{ stat_card('Publicadas', '{:,}'.format(kpiData.published).replace(',', '.'), color='var(--gold)') }}
           {{ stat_card('Pendientes', '{:,}'.format(kpiData.pending).replace(',', '.'), color='var(--brown)') }}
-          {{ stat_card('Visitas Totales', '{:,}'.format(kpiData.visitors).replace(',', '.'), color='var(--secondary-foreground)') }}
-          {{ stat_card('Nuevas (mes)', '{:,}'.format(kpiData.newThisMonth).replace(',', '.')) }}
+          {{ stat_card('Usuarios nuevos', '{:,}'.format(kpiData.newThisMonth or 0).replace(',', '.'), sub='este mes') }}
           {{ stat_card('Usuarios', '{:,}'.format(kpiData.activeUsers).replace(',', '.'), sub='activos') }}
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="museum-card rounded p-5">
+          <div class="museum-card rounded p-5 md:col-span-2">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Visitas Mensuales 2024</h3>
-              <span class="text-xs font-mono" style="color:var(--gold)">+18% vs período anterior</span>
+              <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Contenido publicado por colección</h3>
+              <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ kpiData.published or 0 }} publicadas</span>
             </div>
-            <div class="flex items-end gap-2 h-32 pt-2">
-              {% set _m = kpiData.monthlyVisits | map(attribute='visits') | max %}
-              {% for d in kpiData.monthlyVisits %}
-              <div class="flex-1 h-full flex flex-col items-center justify-end gap-1">
-                <div class="w-full rounded-t transition-all duration-500"
-                     style="height:{{ ((d.visits / _m) * 100) | round(1) }}%;min-height:4px;background:var(--brown)"></div>
-                <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ d.month }}</span>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <div class="museum-card rounded p-5">
-            <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Contenido por Categoría</h3>
-            {% set cats = [
-              {'label': 'Proyectos de Grado', 'count': 527, 'pct': 39},
-              {'label': 'Investigación', 'count': 318, 'pct': 23},
-              {'label': 'Eventos', 'count': 203, 'pct': 15},
-              {'label': 'Historia', 'count': 142, 'pct': 10},
-              {'label': 'Logros', 'count': 89, 'pct': 7},
-              {'label': 'Docentes', 'count': 74, 'pct': 6},
-            ] %}
-            <div class="flex flex-col gap-3">
+            {% set cats = kpiData.porCategoria or [] %}
+            {% if cats %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
               {% for c in cats %}
               <div>
                 <div class="flex justify-between text-xs mb-1" style="color:var(--muted-foreground)">
@@ -103,6 +83,9 @@
               </div>
               {% endfor %}
             </div>
+            {% else %}
+            <div class="text-sm text-center py-6" style="color:var(--muted-foreground)">Aún no hay colecciones registradas</div>
+            {% endif %}
           </div>
 
           <div class="museum-card rounded p-5">
@@ -112,7 +95,7 @@
             </div>
             {% for item in pendientes %}
             <div class="flex items-center gap-3 mb-3">
-              <img src="{{ item.image }}" alt="{{ item.title }}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+              <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-10 h-10 rounded object-cover flex-shrink-0">
               <div class="flex-1 min-w-0">
                 <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
                 <div class="text-xs" style="color:var(--muted-foreground)">{{ item.submittedBy }}</div>
@@ -130,7 +113,8 @@
               <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Usuarios Recientes</h3>
               <a href="{{ url_for('web.admin_usuarios') }}" class="text-xs" style="color:var(--primary)">Ver todos</a>
             </div>
-            {% for u in users[:4] %}
+            {% set recientes = (users | reverse | list)[:4] %}
+            {% for u in recientes %}
             <div class="flex items-center gap-3 mb-3">
               <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
                    style="background:var(--brown-soft);color:var(--brown)">{{ u.name[0] }}</div>
@@ -142,6 +126,8 @@
               {% set _b = 'var(--gold-soft)' if u.status == 'activo' else ('var(--brown-soft)' if u.status == 'pendiente' else 'var(--surface-2)') %}
               <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:{{ _b }};color:{{ _c }}">{{ u.status }}</span>
             </div>
+            {% else %}
+            <div class="text-sm text-center py-6" style="color:var(--muted-foreground)">Aún no hay usuarios registrados</div>
             {% endfor %}
           </div>
         </div>

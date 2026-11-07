@@ -10,6 +10,7 @@ from app.models.contenido import Contenido
 from app.models.cronologia import CronologiaHito, Evento
 from app.models.premio import Premio
 from app.models.publicacion import HallFama, Noticia
+from app.models.semillero import Semillero
 from app.models.usuario import Usuario
 from app.services import contenido as contenido_svc
 from app.services import notificacion as notificacion_svc
@@ -121,6 +122,24 @@ def crear_noticia(data: dict, admin: Usuario) -> Noticia:
     db.session.add(noticia)
     db.session.commit()
     return noticia
+
+
+def crear_semillero(data: dict, admin: Usuario) -> Semillero | None:
+    lider_id = data.get("leadId")
+    if lider_id is not None:
+        lider = db.session.get(Usuario, lider_id)
+        if lider is None or lider.rol != "docente":
+            return None
+    semillero = Semillero(
+        nombre=data["name"].strip(),
+        categoria=data["category"],
+        lider_id=lider_id,
+        descripcion=data["description"].strip(),
+        imagen=data.get("image"),
+    )
+    db.session.add(semillero)
+    db.session.commit()
+    return semillero
 
 
 def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenido | None:

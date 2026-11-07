@@ -131,16 +131,17 @@
             </button>
         </div>
 
-        <!-- Sugerencias populares de etiquetas -->
+        <!-- Sugerencias: etiquetas más usadas en el contenido publicado -->
+        {% if tags %}
         <div class="search-tags-row">
             <span class="search-tags-label">Sugerencias:</span>
-            {% set sugerencias = ['Inteligencia Artificial', 'Ciberseguridad', 'Acreditación', 'Sistemas', 'Semillero', 'Robótica'] %}
-            {% for s in sugerencias %}
+            {% for s in tags %}
             <button type="button" data-tag-search="{{ s }}" class="search-tag-chip">
                 #{{ s }}
             </button>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
 
     <!-- Barra de estado de resultados -->

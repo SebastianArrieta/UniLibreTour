@@ -15,7 +15,9 @@ from app.extensions import db
 from app.models.usuario import Usuario
 from app.schemas.auth import LoginSchema
 from app.services import museo
+from app.services import correo as correo_svc
 from app.services import otp as otp_svc
+from app.services import limite
 from app.services.auth import verify_password
 from app.services.usuario import obtener_por_email
 from app.utils.response import json_error, json_ok
@@ -40,7 +42,7 @@ def _respuesta_sesion(usuario):
 
 
 def _perfil_contrato(usuario_id: int) -> dict | None:
-    """Usuario en la forma del contrato demo-data (name/points/badgeIds…)."""
+    """Usuario en la forma del contrato del frontend (name/points/badgeIds…)."""
     uid = str(usuario_id)
     return next((u for u in museo.usuarios() if u["id"] == uid), None)
 
@@ -83,18 +85,47 @@ def _token_desafio_desde_claims(usuario, claims: dict, intentos: int) -> str:
     )
 
 
+def _eco_desarrollo() -> bool:
+    cfg = current_app.config
+    return bool(cfg.get("OTP_DEV_ECHO") and cfg.get("DEBUG"))
+
+
+def _dos_factores_disponible() -> bool:
+    """El 2FA solo se exige si hay forma de entregar el código."""
+    return correo_svc.correo_configurado() or _eco_desarrollo()
+
+
 def _respuesta_desafio(usuario, codigo: str, nonce: str, intentos: int = 0):
     payload = {
         "requires_2fa": True,
         "pending_token": _token_desafio(usuario, codigo, nonce, intentos),
         "usuario": usuario.to_dict(),
     }
-    if current_app.config.get("OTP_DEV_ECHO") and current_app.config.get("DEBUG"):
-        # Sin servidor de correo: en desarrollo el código se muestra para poder
-        # completar el flujo. En producción configurar OTP_DEV_ECHO=0.
-        current_app.logger.info("[2FA] Código para %s: %s", usuario.email, codigo)
+    if correo_svc.correo_configurado():
+        try:
+            correo_svc.enviar_codigo_2fa(usuario.email, codigo, otp_svc.OTP_TTL_MINUTOS)
+        except Exception:
+            current_app.logger.exception("[2FA] No se pudo enviar el código a %s", usuario.email)
+            return json_error("No se pudo enviar el código de verificación. Intenta más tarde.", 503)
+    if _eco_desarrollo():
+        # Solo desarrollo local (DEBUG + OTP_DEV_ECHO): nunca en producción.
         payload["dev_code"] = codigo
     return json_ok(payload)
+
+
+def _ip() -> str:
+    return request.remote_addr or "?"
+
+
+# Solo cuentan los intentos FALLIDOS (ver app/services/limite.py).
+VENTANA_FALLOS = 900          # 15 minutos
+MAX_FALLOS_CUENTA = 10        # por email / usuario
+MAX_FALLOS_IP = 100           # por IP (alto: muchos usuarios pueden compartirla)
+MAX_REENVIOS_2FA = 5          # correos de código por usuario en la ventana
+
+
+def _demasiados_intentos():
+    return json_error("Demasiados intentos fallidos. Espera unos minutos e inténtalo de nuevo.", 429)
 
 
 def _claims_desafio():
@@ -125,14 +156,28 @@ def login():
     except ValidationError as err:
         return json_error(err.messages, 400)
 
+    clave_cuenta = "login:" + str(data["email"]).strip().lower()
+    clave_ip = "login-ip:" + _ip()
+    if (limite.bloqueado(clave_cuenta, MAX_FALLOS_CUENTA, VENTANA_FALLOS)
+            or limite.bloqueado(clave_ip, MAX_FALLOS_IP, VENTANA_FALLOS)):
+        return _demasiados_intentos()
+
     usuario = obtener_por_email(data["email"])
     if not usuario or not verify_password(data["password"], usuario.password_hash):
+        limite.registrar_fallo(clave_cuenta)
+        limite.registrar_fallo(clave_ip)
         return json_error("Credenciales inválidas", 401)
+    limite.limpiar(clave_cuenta)
 
     if usuario.estado != "activo":
         return json_error("Tu cuenta está pendiente de aprobación por un administrador", 403)
 
-    if usuario.two_factor_enabled:
+    if usuario.two_factor_enabled and not _dos_factores_disponible():
+        current_app.logger.warning(
+            "[2FA] %s tiene 2FA activo pero no hay correo configurado (MAIL_SERVER); se omite.",
+            usuario.email,
+        )
+    elif usuario.two_factor_enabled:
         codigo = otp_svc.generar_codigo()
         return _respuesta_desafio(usuario, codigo, otp_svc.nuevo_nonce())
 
@@ -149,6 +194,10 @@ def verificar_2fa():
         return error
     claims, usuario = par
 
+    clave_2fa = f"2fa:{usuario.id}"
+    if limite.bloqueado(clave_2fa, MAX_FALLOS_CUENTA, VENTANA_FALLOS):
+        return _demasiados_intentos()
+
     intentos = int(claims.get("att", 0))
     if intentos >= otp_svc.OTP_MAX_INTENTOS:
         return json_error("Demasiados intentos fallidos. Inicia sesión de nuevo.", 429)
@@ -159,6 +208,7 @@ def verificar_2fa():
         codigo,
         claims.get("otp", ""),
     ):
+        limite.registrar_fallo(clave_2fa)
         restantes = otp_svc.OTP_MAX_INTENTOS - (intentos + 1)
         return jsonify({
             "ok": False,
@@ -167,6 +217,7 @@ def verificar_2fa():
             "intentos_restantes": restantes,
         }), 401
 
+    limite.limpiar(clave_2fa)
     return _respuesta_sesion(usuario)
 
 
@@ -175,9 +226,17 @@ def reenviar_2fa():
     par, error = _claims_desafio()
     if error:
         return error
-    _, usuario = par
+    claims, usuario = par
+    clave_reenvio = f"2fa-reenvio:{usuario.id}"
+    if limite.bloqueado(clave_reenvio, MAX_REENVIOS_2FA, VENTANA_FALLOS):
+        return json_error("Has pedido demasiados códigos. Espera unos minutos.", 429)
+    limite.registrar_fallo(clave_reenvio)
+    intentos = int(claims.get("att", 0))
+    if intentos >= otp_svc.OTP_MAX_INTENTOS:
+        return json_error("Demasiados intentos fallidos. Inicia sesión de nuevo.", 429)
     codigo = otp_svc.generar_codigo()
-    return _respuesta_desafio(usuario, codigo, otp_svc.nuevo_nonce())
+    # Conserva los intentos del desafío anterior: reenviar no reinicia el contador.
+    return _respuesta_desafio(usuario, codigo, otp_svc.nuevo_nonce(), intentos)
 
 
 @auth_bp.post("/logout")

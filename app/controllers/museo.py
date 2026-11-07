@@ -1,6 +1,6 @@
 """API del Museo — lectura pública + escritura de aportes (fase 2).
 
-Lectura: contrato idéntico a demo-data.json (tablas reales vía /api/museo/*).
+Lectura: dataset del museo desde las tablas reales (/api/museo/*).
 Escritura: POST /contenidos requiere JWT de usuario autenticado y crea la
 pieza en estado 'pendiente' (cola de validación del flujo general).
 """
@@ -28,13 +28,13 @@ _SECCIONES = {
     "noticias": museo.noticias,
     "linea-tiempo": museo.linea_tiempo,
     "eventos": museo.eventos,
-    "contenidos": museo.contenidos,
+    "contenidos": museo.contenidos_publicados,
     "hall": museo.hall_fama,
     "insignias": museo.insignias,
     "usuarios": museo.usuarios_publicos,
     "grupos": museo.grupos_investigacion,
     "logros": museo.logros,
-    "docentes": museo.opciones_docentes,
+    "docentes": museo.opciones_docentes_publicas,
     "kpi": museo.kpis,
 }
 

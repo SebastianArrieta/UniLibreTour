@@ -15,6 +15,7 @@ from app.schemas.admin import (
     NoticiaCreateSchema,
     PremioCreateSchema,
     ProyectoCreateSchema,
+    SemilleroCreateSchema,
     UsuarioAdminUpdateSchema,
     ValidacionSchema,
 )
@@ -30,6 +31,7 @@ proyecto_schema = ProyectoCreateSchema()
 hall_schema = HallCreateSchema()
 evento_schema = EventoCreateSchema()
 noticia_schema = NoticiaCreateSchema()
+semillero_schema = SemilleroCreateSchema()
 validacion_schema = ValidacionSchema()
 usuario_schema = UsuarioAdminUpdateSchema()
 
@@ -109,6 +111,19 @@ def crear_noticia():
         return json_error(err.messages, 400)
     admin = _admin_actual()
     return json_ok(admin_svc.crear_noticia(data, admin).to_dict(), 201)
+
+
+@admin_bp.post("/semilleros")
+@role_required("admin")
+def crear_semillero():
+    try:
+        data = _cargar(semillero_schema)
+    except ValidationError as err:
+        return json_error(err.messages, 400)
+    semillero = admin_svc.crear_semillero(data, _admin_actual())
+    if semillero is None:
+        return json_error("El líder seleccionado debe ser un docente existente", 400)
+    return json_ok(semillero.to_dict(), 201)
 
 
 @admin_bp.put("/contenidos/<int:contenido_id>/validar")

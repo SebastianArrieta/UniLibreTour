@@ -33,13 +33,19 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
     JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hora
 
-    # Sembrar datos demo (cuentas con contraseña conocida). Desactivado por
-    # defecto en producción; activar explícitamente con SEED_DEMO=1.
-    SEED_DEMO = os.getenv("SEED_DEMO", "1") == "1"
+    # Eco del código 2FA en la respuesta: SOLO para desarrollo local sin
+    # servidor de correo. Nunca se aplica en producción (ver ProductionConfig).
+    OTP_DEV_ECHO = os.getenv("OTP_DEV_ECHO", "0") == "1"
 
-    # Sin servidor de correo configurado: en desarrollo se devuelve el código
-    # 2FA en la respuesta para poder probar el flujo. Apagarlo en producción.
-    OTP_DEV_ECHO = os.getenv("OTP_DEV_ECHO", "1") == "1"
+    # Correo saliente (código 2FA). Si MAIL_SERVER no está definido, el 2FA se
+    # omite con un aviso en el log para no bloquear el acceso.
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
+    MAIL_FROM = os.getenv("MAIL_FROM", os.getenv("MAIL_USERNAME", ""))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "1") == "1"
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "0") == "1"
 
 
 class DevelopmentConfig(Config):
@@ -48,8 +54,23 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    # No sembrar credenciales de demostración en producción salvo petición explícita.
-    SEED_DEMO = os.getenv("SEED_DEMO", "0") == "1"
+    OTP_DEV_ECHO = False
+    JWT_COOKIE_SECURE = os.getenv("JWT_COOKIE_SECURE", "1") == "1"
+
+    @staticmethod
+    def validar() -> None:
+        """Aborta el arranque si faltan secretos reales."""
+        inseguros = {"", "dev-secret", "toursecretkey", "cambia-esto", "cambiar-por-un-secreto-seguro"}
+        faltan = [
+            nombre for nombre in ("SECRET_KEY", "JWT_SECRET_KEY")
+            if (os.getenv(nombre) or "").strip() in inseguros
+        ]
+        if faltan:
+            raise RuntimeError(
+                "Configuración de producción insegura: define "
+                + ", ".join(faltan)
+                + " en el entorno con valores largos y aleatorios."
+            )
 
 
 class TestingConfig(Config):

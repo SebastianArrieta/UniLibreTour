@@ -14,11 +14,10 @@
   {% endif %}
 {% endfor %}
 {% set decades = tl_ns.groups.keys() | list | sort %}
-{% set eventos_home = contentItems | selectattr('category', 'equalto', 'eventos') | list %}
+{% set eventos_home = events | selectattr('date') | selectattr('date', 'ge', hoy_iso) | list %}
 
 <section id="sec-hero" class="relative min-h-[82vh] flex items-center overflow-hidden scroll-mt-24">
     <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=1400&h=900&fit=crop&auto=format" alt="Campus universitario" class="w-full h-full object-cover opacity-20">
         <div class="hero-overlay absolute inset-0"></div>
     </div>
     <div class="absolute inset-0 z-0" style="opacity:0.03;background-image:linear-gradient(var(--brown) 1px, transparent 1px), linear-gradient(90deg, var(--brown) 1px, transparent 1px);background-size:80px 80px"></div>
@@ -27,7 +26,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div class="animate-fadeInUp">
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-mono" style="background:var(--gold-soft);border:1px solid var(--gold-border);color:var(--gold)">
-                    ✦ 50 Años de Excelencia Académica · 1975–2025
+                    ✦ {{ anio_actual - 1975 }} años de historia académica · desde 1975
                 </div>
 
                 <h1 class="font-serif text-5xl md:text-6xl lg:text-7xl font-black leading-none mb-5" style="color:var(--foreground)">
@@ -53,7 +52,7 @@
             <div id="hero-timeline" class="hidden lg:block">
                 <div class="mb-4">
                     <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Cronología</div>
-                    <div class="text-sm font-serif font-semibold" style="color:var(--foreground)">Medio siglo de hitos</div>
+                    <div class="text-sm font-serif font-semibold" style="color:var(--foreground)">Hitos del programa</div>
                 </div>
 
                 <div class="flex flex-wrap gap-1.5 mb-4">
@@ -62,7 +61,10 @@
                     {% endfor %}
                 </div>
 
-                <div class="relative pl-6" style="min-height:220px">
+                {% if not decades %}
+                <div class="museum-card rounded ui-empty"><i class="fa-solid fa-timeline"></i><p class="text-sm">La cronología aún no tiene hitos registrados.</p></div>
+                {% endif %}
+                <div class="relative pl-6{{ ' hidden' if not decades }}" style="min-height:220px">
                     <div class="absolute left-0 top-1 bottom-1 rounded-full" style="width:3px;background:linear-gradient(to bottom, var(--brown), transparent)"></div>
                     {% for dec in decades %}
                     {% set group = tl_ns.groups[dec] %}
@@ -103,16 +105,19 @@
             <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Mantente informado</div>
             <h2 class="font-serif text-2xl md:text-3xl font-bold" style="color:var(--foreground)">Noticias</h2>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2{{ ' hidden' if (news | length) < 2 }}">
             <button type="button" id="news-prev" aria-label="Noticia anterior" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:-translate-x-0.5" style="border:1px solid var(--border-strong);color:var(--foreground);background:var(--card)">‹</button>
             <button type="button" id="news-next" aria-label="Noticia siguiente" class="w-9 h-9 rounded-full flex items-center justify-center text-lg transition-transform hover:translate-x-0.5" style="border:1px solid var(--border-strong);color:var(--foreground);background:var(--card)">›</button>
         </div>
     </div>
 
+    {% if not news %}
+    <div class="museum-card rounded ui-empty"><i class="fa-solid fa-newspaper"></i><p class="text-sm">Todavía no hay noticias publicadas.</p></div>
+    {% else %}
     <div id="news-carousel" class="relative rounded-lg overflow-hidden h-[340px] sm:h-[400px] group" style="border:1px solid var(--border)">
         {% for n in news %}
         <a href="{{ url_for('web.explorar') }}" aria-hidden="{{ 'false' if loop.first else 'true' }}" class="news-slide absolute inset-0 transition-opacity duration-700 cursor-pointer {% if loop.first %}opacity-100 z-10{% else %}opacity-0 z-0 pointer-events-none{% endif %}">
-            <img src="{{ n.image }}" alt="{{ n.title }}" class="absolute inset-0 w-full h-full object-cover">
+            <img src="{{ n.image | img }}" alt="{{ n.title }}" class="absolute inset-0 w-full h-full object-cover">
             <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.15) 100%)"></div>
             <div class="absolute bottom-0 left-0 right-0 p-6 md:p-10 max-w-3xl">
                 <div class="flex items-center gap-3 mb-3 flex-wrap">
@@ -131,15 +136,16 @@
         <button type="button" data-dot="{{ loop.index0 }}" aria-label="Ir a la noticia {{ loop.index }}" class="news-dot h-1.5 rounded-full transition-all duration-300" style="width:{{ 24 if loop.first else 8 }}px;background:{{ 'var(--primary-solid)' if loop.first else 'var(--border)' }}"></button>
         {% endfor %}
     </div>
+    {% endif %}
 </section>
 
 <section id="sec-colecciones" class="max-w-7xl mx-auto px-4 md:px-8 py-16 scroll-mt-24">
-    {{ section_header('Archivo', 'Colecciones', 'Seis colecciones temáticas que documentan la trayectoria del programa.') }}
+    {{ section_header('Archivo', 'Colecciones', 'Colecciones temáticas que documentan la trayectoria del programa.') }}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for col in collections %}
         <a href="{{ url_for('web.explorar') }}" class="museum-card rounded overflow-hidden text-left group block">
             <div class="relative h-40 overflow-hidden" style="background:var(--muted)">
-                <img src="{{ col.image }}" alt="{{ col.title }}" class="w-full h-full object-cover opacity-70 transition-all duration-500 group-hover:opacity-90 group-hover:scale-105">
+                <img src="{{ col.image | img }}" alt="{{ col.title }}" class="w-full h-full object-cover opacity-70 transition-all duration-500 group-hover:opacity-90 group-hover:scale-105">
                 <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 70%)"></div>
                 <span class="absolute bottom-3 left-3 w-8 h-8 rounded flex items-center justify-center text-sm" style="background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.2);color:var(--on-photo-fg)">
                     {% if 'fa-' in col.icon %}<i class="{{ col.icon }}"></i>{% else %}{{ col.icon }}{% endif %}
@@ -151,6 +157,8 @@
                 <p class="text-xs leading-relaxed" style="color:var(--muted-foreground)">{{ col.description }}</p>
             </div>
         </a>
+        {% else %}
+        <div class="museum-card rounded ui-empty sm:col-span-2 lg:col-span-3"><i class="fa-solid fa-layer-group"></i><p class="text-sm">Aún no hay colecciones.</p></div>
         {% endfor %}
     </div>
 </section>
@@ -163,7 +171,7 @@
         {% for ach in achievements[:3] %}
         <div class="museum-card rounded overflow-hidden flex flex-col group">
             <div class="h-32 relative" style="background:var(--muted)">
-                <img src="{{ ach.image }}" alt="{{ ach.title }}" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
+                <img src="{{ ach.image | img }}" alt="{{ ach.title }}" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity">
                 <div class="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs" style="background:rgba(0,0,0,0.6);border:1px solid var(--border);color:var(--medal-gold)"><i class="fa-solid fa-trophy"></i></div>
             </div>
             <div class="p-4 flex-1 flex flex-col">
@@ -172,6 +180,8 @@
                 <p class="text-xs line-clamp-2 mt-auto" style="color:var(--muted-foreground)">{{ ach.description }}</p>
             </div>
         </div>
+        {% else %}
+        <div class="museum-card rounded ui-empty md:col-span-3"><i class="fa-solid fa-trophy"></i><p class="text-sm">Aún no hay logros registrados.</p></div>
         {% endfor %}
     </div>
 </section>
@@ -197,6 +207,8 @@
                     </div>
                     <div class="text-xs font-mono px-2 py-0.5 rounded flex-shrink-0" style="background:var(--surface-1);color:var(--muted-foreground)">{{ g.members }} miembros</div>
                 </div>
+                {% else %}
+                <p class="text-sm py-3" style="color:var(--muted-foreground)">Aún no hay grupos de investigación registrados.</p>
                 {% endfor %}
             </div>
             <a href="{{ url_for('web.semilleros') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded mt-4">Ver todos los grupos →</a>
@@ -213,11 +225,13 @@
                         <div class="text-xs font-mono font-bold leading-none" style="color:var(--brown)">{{ ev.date[8:10] }}</div>
                         <div class="text-[10px] leading-none mt-0.5" style="color:var(--muted-foreground)">{{ meses.get(ev.date[5:7], ev.date[5:7]) }}</div>
                     </div>
-                    <a href="{{ url_for('web.detalle', cid=ev.id) }}" class="flex-1 min-w-0 block">
+                    <a href="{{ url_for('web.calendario') }}" class="flex-1 min-w-0 block">
                         <div class="text-sm font-serif font-semibold leading-tight group-hover:text-primary transition-colors" style="color:var(--card-foreground)">{{ ev.title }}</div>
-                        <div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)"><i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>{{ ev.ubicacion or 'Auditorio Principal' }}</div>
+                        <div class="text-xs mt-0.5 flex items-center gap-1" style="color:var(--muted-foreground)">{% if ev.location %}<i class="fa-solid fa-location-dot text-[10px] opacity-70"></i>{{ ev.location }}{% else %}{{ ev.time or '' }}{% endif %}</div>
                     </a>
                 </div>
+                {% else %}
+                <p class="text-sm py-3" style="color:var(--muted-foreground)">No hay eventos próximos programados.</p>
                 {% endfor %}
             </div>
             <a href="{{ url_for('web.calendario') }}" class="inline-flex text-xs btn-outline-primary px-3 py-1.5 rounded mt-4">Ver todos los eventos →</a>
@@ -230,7 +244,7 @@
 <section id="sec-cifras" class="py-16 scroll-mt-24">
     <div class="max-w-5xl mx-auto px-4 md:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {% for s in [{'label': 'Piezas en el Archivo', 'value': '1.353'}, {'label': 'Años de Historia', 'value': '50'}, {'label': 'Egresados Destacados', 'value': '2.400+'}, {'label': 'Proyectos Laureados', 'value': '84'}] %}
+            {% for s in [{'label': 'Piezas en el Archivo', 'value': kpiData.published or 0}, {'label': 'Años de Historia', 'value': anio_actual - 1975}, {'label': 'Hall de la Fama', 'value': hallMembers | length}, {'label': 'Logros Registrados', 'value': achievements | length}] %}
             <div>
                 <div class="font-serif text-4xl font-black mb-1 text-gold">{{ s.value }}</div>
                 <div class="text-xs font-mono uppercase tracking-widest" style="color:var(--muted-foreground)">{{ s.label }}</div>
@@ -248,12 +262,12 @@
     <div id="dock-indicator" class="dock-indicator"></div>
     <div class="dock-items">
         {% set nav_sections = [
-            {'id': 'sec-hero', 'num': '01', 'cat': 'Inicio', 'title': 'Herencia Digital', 'desc': '50 Años · Archivo vivo y cronología rápida', 'icon': 'fa-solid fa-landmark'},
+            {'id': 'sec-hero', 'num': '01', 'cat': 'Inicio', 'title': 'Herencia Digital', 'desc': 'Archivo vivo y cronología rápida', 'icon': 'fa-solid fa-landmark'},
             {'id': 'sec-noticias', 'num': '02', 'cat': 'Actualidad', 'title': 'Noticias del Programa', 'desc': 'Novedades, anuncios y boletines oficiales', 'icon': 'fa-solid fa-newspaper'},
-            {'id': 'sec-colecciones', 'num': '03', 'cat': 'Archivo', 'title': 'Colecciones', 'desc': '6 colecciones temáticas del museo', 'icon': 'fa-solid fa-layer-group'},
+            {'id': 'sec-colecciones', 'num': '03', 'cat': 'Archivo', 'title': 'Colecciones', 'desc': 'Colecciones temáticas del museo', 'icon': 'fa-solid fa-layer-group'},
             {'id': 'sec-logros', 'num': '04', 'cat': 'Reconocimiento', 'title': 'Logros Destacados', 'desc': 'Premios y distinciones de excelencia', 'icon': 'fa-solid fa-trophy'},
             {'id': 'sec-comunidad', 'num': '05', 'cat': 'Comunidad', 'title': 'Investigación y Eventos', 'desc': 'Grupos, semilleros y calendario del programa', 'icon': 'fa-solid fa-flask'},
-            {'id': 'sec-cifras', 'num': '06', 'cat': 'Impacto', 'title': 'Medio Siglo en Cifras', 'desc': 'Métricas históricas y comunidad de egresados', 'icon': 'fa-solid fa-chart-simple'}
+            {'id': 'sec-cifras', 'num': '06', 'cat': 'Impacto', 'title': 'El Museo en Cifras', 'desc': 'Piezas, años de historia y reconocimientos', 'icon': 'fa-solid fa-chart-simple'}
         ] %}
         {% for s in nav_sections %}
         <div class="dock-item" data-target="{{ s.id }}">

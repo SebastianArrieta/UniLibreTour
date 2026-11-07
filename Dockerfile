@@ -13,11 +13,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Codigo de la aplicacion
+# Codigo de la aplicacion (lo excluido está en .dockerignore)
 COPY . .
+
+# Ejecutar sin privilegios de root
+RUN useradd --create-home --uid 10001 appuser && chown -R appuser /app
+USER appuser
 
 # Puerto
 EXPOSE 5000
 
-# Ejecucion
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "run:app"]
+# Ejecucion (sin --reload: imagen de producción)
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "run:app"]

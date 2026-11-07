@@ -37,7 +37,7 @@
         {% set cm = contentItems | selectattr('id', 'equalto', item.id) | first %}
         <div class="museum-card rounded p-4 flex items-start gap-4 transition-transform hover:-translate-y-0.5" data-status="{{ item.status }}"
              data-href="{{ url_for('web.detalle', cid=cm.id) if (cm is defined and cm) else '' }}" data-clickable>
-          <img src="{{ item.image }}" alt="{{ item.title }}" class="w-20 h-20 rounded object-cover flex-shrink-0" />
+          <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-20 h-20 rounded object-cover flex-shrink-0" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap mb-1.5">
               {{ category_badge(item.category) }}

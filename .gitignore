@@ -37,3 +37,4 @@ Thumbs.db
 
 #base de datos
 mysql_data/
+.env.bak

@@ -30,7 +30,7 @@
                     <article class="rounded-lg p-4" data-revision-id="{{ item.id }}" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
                         <div class="flex items-start gap-4">
                             {% if item.imagen %}
-                            <img src="{{ item.imagen }}" alt="{{ item.titulo }}" class="w-16 h-16 object-cover rounded flex-shrink-0">
+                            <img src="{{ item.imagen | img }}" alt="{{ item.titulo }}" class="w-16 h-16 object-cover rounded flex-shrink-0">
                             {% endif %}
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap mb-1">
