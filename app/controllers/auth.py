@@ -13,16 +13,15 @@ from marshmallow import ValidationError
 
 from app.extensions import db
 from app.models.usuario import Usuario
-from app.schemas.auth import LoginSchema, RegisterSchema
+from app.schemas.auth import LoginSchema
 from app.services import museo
 from app.services import otp as otp_svc
 from app.services.auth import verify_password
-from app.services.usuario import obtener_por_email, registrar_usuario
+from app.services.usuario import obtener_por_email
 from app.utils.response import json_error, json_ok
 
 auth_bp = Blueprint("auth", __name__)
 login_schema = LoginSchema()
-register_schema = RegisterSchema()
 
 
 def _token_de(usuario) -> str:
@@ -186,27 +185,6 @@ def logout():
     respuesta, status = json_ok({"mensaje": "Sesión cerrada"})
     unset_access_cookies(respuesta)
     return respuesta, status
-
-
-@auth_bp.post("/register")
-def register():
-    try:
-        data = register_schema.load(request.get_json(silent=True) or {})
-    except ValidationError as err:
-        return json_error(err.messages, 400)
-
-    if obtener_por_email(data["email"]):
-        return json_error("El email ya está registrado", 409)
-
-    usuario = registrar_usuario(data)
-    # La cuenta queda pendiente: no se emite sesión hasta que un admin la apruebe.
-    return json_ok(
-        {
-            "usuario": usuario.to_dict(),
-            "mensaje": "Cuenta creada. Queda pendiente de aprobación.",
-        },
-        201,
-    )
 
 
 @auth_bp.get("/me")

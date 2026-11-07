@@ -45,11 +45,25 @@ def dataset_actual() -> dict:
     return _dataset_estatico()
 
 
+def _dataset_publico(d: dict) -> dict:
+    """Dataset para embeber en el navegador: sin cola interna ni emails."""
+    limpio = dict(d)
+    limpio.pop("contentQueue", None)
+    limpio["users"] = [
+        {k: v for k, v in u.items() if k != "email"} for u in d.get("users", [])
+    ]
+    limpio["teacherOptions"] = [
+        {"id": t.get("id"), "name": t.get("name")}
+        for t in d.get("teacherOptions", [])
+    ]
+    return limpio
+
+
 def _ctx(page: str, **extra) -> dict:
     d = dataset_actual()
     base = {
         "current_page": page,
-        "datos": d,
+        "datos": _dataset_publico(d),
         "contentItems": d.get("contentItems", []),
         "contentQueue": d.get("contentQueue", []),
         "news": d.get("news", []),
@@ -204,11 +218,6 @@ def login():
 @web_bp.get("/2fa")
 def two_fa():
     return render_template("auth/2fa.html", **_ctx("2fa"))
-
-
-@web_bp.get("/registro")
-def registro():
-    return render_template("auth/registro.html", **_ctx("registro"))
 
 
 # -----------------------------------------------------------------------------

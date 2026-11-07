@@ -31,7 +31,7 @@
                 {% if p %}
                 {% set lvl = p.points // pointsPerLevel %}
                 {% set prog = (p.points % pointsPerLevel) / pointsPerLevel * 100 %}
-                <div data-email="{{ p.email }}" class="podium-card museum-card rounded p-6 text-center"
+                <div data-user-id="{{ p.id }}" class="podium-card museum-card rounded p-6 text-center"
                      style="{{ 'border-color:var(--gold);box-shadow:0 0 0 1px var(--gold-border),0 18px 45px -18px var(--gold-border)' if loop.index0 == 1 else '' }}">
                     <div class="h-10 flex items-center justify-center mb-2">{{ podium_icons[loop.index0] | safe }}</div>
                     <div class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-xl font-bold"
@@ -84,7 +84,7 @@
                             {% set lvl = u.points // pointsPerLevel %}
                             {% set prog = (u.points % pointsPerLevel) / pointsPerLevel * 100 %}
                             {% set remain = pointsPerLevel - (u.points % pointsPerLevel) %}
-                            <tr data-email="{{ u.email }}"
+                            <tr data-user-id="{{ u.id }}"
                                 style="border-bottom:{{ '1px solid var(--border-subtle)' if not loop.last else 'none' }};transition:background .2s">
                                 <td class="px-5 py-3 font-mono font-bold">
                                     {% if loop.index0 == 0 %}
@@ -198,9 +198,9 @@ window.__DATOS = {{ datos | tojson }};
 
     function highlight(me) {
         if (!me) return;
-        var lists = document.querySelectorAll('[data-email]');
+        var lists = document.querySelectorAll('[data-user-id]');
         Array.prototype.forEach.call(lists, function (el) {
-            if (el.getAttribute('data-email') !== me.email) return;
+            if (el.getAttribute('data-user-id') !== String(me.id)) return;
             el.style.background = 'var(--primary-soft)';
             el.style.boxShadow = 'inset 3px 0 0 var(--primary)';
             var dataName = el.querySelector('[data-name]');

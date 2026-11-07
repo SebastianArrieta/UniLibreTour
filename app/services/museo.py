@@ -243,5 +243,28 @@ def dataset() -> dict:
     }
 
 
+def usuarios_publicos() -> list[dict]:
+    """Usuarios sin datos de contacto (para endpoints públicos)."""
+    return [
+        {clave: valor for clave, valor in u.items() if clave != "email"}
+        for u in usuarios()
+    ]
+
+
+def dataset_publico() -> dict:
+    """Dataset apto para el navegador: sin cola interna ni emails de usuarios."""
+    d = dataset()
+    d.pop("contentQueue", None)
+    d["users"] = [
+        {clave: valor for clave, valor in u.items() if clave != "email"}
+        for u in d.get("users", [])
+    ]
+    d["teacherOptions"] = [
+        {"id": t.get("id"), "name": t.get("name")}
+        for t in d.get("teacherOptions", [])
+    ]
+    return d
+
+
 def dataset_vacio(d: dict) -> bool:
     return not d.get("collections") and not d.get("contentItems")

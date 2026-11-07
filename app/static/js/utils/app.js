@@ -325,14 +325,6 @@
     }
 
     /* registro.html: el alta queda pendiente de aprobación, sin sesión. */
-    function registrarse(nombre, email, password, rol) {
-        return apiJson('/api/auth/register', 'POST', {
-            nombre: nombre, email: email, password: password, rol: rol,
-        }).then(function (data) {
-            return data.usuario || data;
-        });
-    }
-
     /* estudiante_contribuir / docente_evidencia: aporte → cola de validación. */
     function crearContenido(payload) {
         if (!isAuthenticated()) {
@@ -710,7 +702,6 @@
         getSesion: getSesion,
         iniciarSesion: iniciarSesion,
         completarInicioSesion: completarInicioSesion,
-        registrarse: registrarse,
         crearContenido: crearContenido,
         getTheme: getTheme,
         setTheme: setTheme,

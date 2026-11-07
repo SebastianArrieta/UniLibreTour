@@ -172,7 +172,11 @@
 
             <div class="rounded p-5 text-center" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
                 <p class="text-sm mb-3" style="color:var(--secondary-foreground)">¿Tienes una contribución para el museo?</p>
-                <a href="{{ url_for('web.registro') }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Registrarse</a>
+                {% if usuario %}
+                <a href="{{ url_for('web.estudiante_contribuir') }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Contribuir</a>
+                {% else %}
+                <a href="{{ url_for('web.login', next='/detalle/' ~ item.id) }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Inicia sesión para contribuir</a>
+                {% endif %}
             </div>
         </div>
     </div>

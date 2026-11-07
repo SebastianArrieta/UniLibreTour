@@ -65,13 +65,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 2. Manejador de errores try/catch para capturar excepciones
         try {
-            // Petición HTTP POST asíncrona hacia el Blueprint 'usuarios'
+            // Petición HTTP POST asíncrona hacia el Blueprint 'usuarios' (Bearer JWT)
+            const token = window.Museo && typeof Museo.getToken === "function" ? Museo.getToken() : null;
+            const headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            };
+            if (token) headers["Authorization"] = "Bearer " + token;
+
             const res = await fetch("/api/usuarios", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
+                headers: headers,
                 body: JSON.stringify(formData),
             });
 

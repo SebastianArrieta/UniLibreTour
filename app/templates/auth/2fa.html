@@ -231,7 +231,6 @@ window.__DATOS = {{ datos | tojson }};
                         msg.style.display = 'block';
                         setTimeout(function () { msg.style.display = 'none'; }, 4000);
                     }
-                    startTimer();
                 })
                 .catch(function (err) {
                     showError(err.message || 'No fue posible reenviar el código.');

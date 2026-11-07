@@ -29,10 +29,9 @@ _SECCIONES = {
     "linea-tiempo": museo.linea_tiempo,
     "eventos": museo.eventos,
     "contenidos": museo.contenidos,
-    "cola": museo.cola_contenidos,
     "hall": museo.hall_fama,
     "insignias": museo.insignias,
-    "usuarios": museo.usuarios,
+    "usuarios": museo.usuarios_publicos,
     "grupos": museo.grupos_investigacion,
     "logros": museo.logros,
     "docentes": museo.opciones_docentes,
@@ -42,8 +41,8 @@ _SECCIONES = {
 
 @museo_bp.get("/data")
 def data():
-    """Dataset completo (mismo contrato crudo que demo-data.json)."""
-    return jsonify(museo.dataset())
+    """Dataset público (sin cola interna ni emails de usuarios)."""
+    return jsonify(museo.dataset_publico())
 
 
 @museo_bp.get("/<seccion>")

@@ -26,7 +26,7 @@ UniLibreTour/
 │   ├── config.py               # Configuración dev/prod/test + cookies y seeds
 │   ├── extensions.py           # db, jwt y validaciones de tokens
 │   ├── controllers/
-│   │   ├── auth.py             # Login, registro, /me, logout, 2FA
+│   │   ├── auth.py             # Login, /me, logout, 2FA
 │   │   ├── usuarios.py         # CRUD /api/usuarios (con roles)
 │   │   ├── admin.py            # Altas y validación /api/admin
 │   │   ├── notificaciones.py   # Notificaciones del usuario
@@ -53,7 +53,7 @@ UniLibreTour/
 │   │   └── data/demo-data.json # Dataset de respaldo (sin credenciales)
 │   └── templates/
 │       ├── base.html
-│       ├── auth/               # login, registro, 2fa
+│       ├── auth/               # login, 2fa
 │       ├── publico/            # home, explorar, cronología, perfil, …
 │       ├── estudiante/         # dashboard, aportes, favoritos, contribuir
 │       ├── docente/            # dashboard, evidencia, notificaciones
@@ -118,8 +118,7 @@ python run.py
   **en el servidor** a partir del token firmado; sin sesión redirigen a
   `/login?next=…`. El rol de `localStorage` solo controla la interfaz.
 - CSRF activado para peticiones que usan la cookie (el frontend usa Bearer).
-- El registro público crea la cuenta en estado **pendiente**: no entrega sesión
-  hasta que un administrador la apruebe.
+- Las cuentas **solo las crea el administrador** (`/admin/usuarios`); no existe registro público.
 - El 2FA se verifica en el servidor con código de 6 dígitos, huella HMAC y
   máximo 5 intentos. El token de desafío no sirve como sesión.
 
@@ -130,7 +129,6 @@ python run.py
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
 | POST | `/api/auth/login` | Iniciar sesión (JWT + cookie) | — |
-| POST | `/api/auth/register` | Registro (queda pendiente) | — |
 | GET | `/api/auth/me` | Perfil de la sesión actual | JWT |
 | POST | `/api/auth/logout` | Cerrar sesión y borrar cookie | — |
 | POST | `/api/auth/2fa/verify` | Verificar código 2FA | Token de desafío |
@@ -151,9 +149,16 @@ python run.py
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
 | GET | `/api/health` | Estado del servidor | — |
-| GET | `/api/museo/data` | Dataset completo | — |
-| GET | `/api/museo/<seccion>` | Sección (`colecciones`, `noticias`, `linea-tiempo`, `eventos`, `contenidos`, `cola`, `hall`, `insignias`, `usuarios`, `grupos`, `logros`, `docentes`, `kpi`) | — |
-| POST | `/api/museo/contenidos` | Registrar aporte (queda en cola) | JWT |
+| GET | `/api/museo/data` | Dataset público (sin cola ni emails) | — |
+| GET | `/api/museo/<seccion>` | Sección (`colecciones`, `noticias`, `linea-tiempo`, `eventos`, `contenidos`, `hall`, `insignias`, `usuarios`, `grupos`, `logros`, `docentes`, `kpi`) | — |
+| POST | `/api/museo/contenidos` | Registrar aporte (revisión docente o cola) | JWT |
+| PUT | `/api/museo/contenidos/<id>/docente-revision` | Docente aprueba/devuelve aporte | docente/admin |
+| GET | `/api/museo/contenidos/<id>/comentarios` | Comentarios de una pieza | — |
+| POST | `/api/museo/contenidos/<id>/comentarios` | Publicar comentario | JWT |
+| DELETE | `/api/museo/comentarios/<id>` | Eliminar comentario (autor/admin) | JWT |
+| GET | `/api/museo/favoritos` | Ids favoritos del usuario | JWT |
+| POST | `/api/museo/favoritos/<id>` | Alternar favorito | JWT |
+| DELETE | `/api/museo/favoritos[/<id>]` | Quitar uno o todos | JWT |
 
 ### Administración
 
@@ -181,10 +186,12 @@ python run.py
 
 | Ruta | Acceso |
 |---|---|
-| `/`, `/explorar`, `/buscar`, `/detalle/<id>`, `/hall-fama`, `/semilleros`, `/calendario`, `/cronologia`, `/ranking`, `/egresado`, `/login`, `/registro`, `/2fa` | Público |
+| `/`, `/explorar`, `/buscar`, `/detalle/<id>`, `/hall-fama`, `/semilleros`, `/calendario`, `/cronologia`, `/ranking`, `/login`, `/2fa` | Público |
+| `/egresado` | `egresado` o `admin` |
 | `/perfil` | Autenticado |
-| `/estudiante`, `/estudiante/aportes`, `/estudiante/favoritos`, `/estudiante/contribuir` | `estudiante` o `admin` |
-| `/docente`, `/docente/registrar-evidencia`, `/docente/notificaciones` | `docente` o `admin` |
+| `/estudiante`, `/estudiante/aportes`, `/estudiante/contribuir` | `estudiante` o `admin` |
+| `/estudiante/favoritos` | autenticado |
+| `/docente`, `/docente/revision`, `/docente/registrar-evidencia`, `/docente/notificaciones` | `docente` o `admin` |
 | `/admin`, `/admin/anadir`, `/admin/usuarios`, `/admin/cola`, `/admin/validacion/<id>`, `/admin/confirmacion/<id>`, `/admin/registros`, `/admin/hall-registro` | `admin` |
 
 ### Formato de respuesta
