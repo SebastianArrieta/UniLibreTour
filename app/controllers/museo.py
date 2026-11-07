@@ -15,6 +15,7 @@ from app.models.contenido import Contenido
 from app.models.usuario import Usuario
 from app.schemas.contenido import ContenidoCreateSchema
 from app.services import contenido as contenido_svc
+from app.services import favoritos as favoritos_svc
 from app.services import interaccion as interaccion_svc
 from app.services import museo
 from app.utils.response import json_error, json_ok
@@ -130,3 +131,36 @@ def eliminar_comentario(comentario_id: int):
     if not interaccion_svc.eliminar_comentario(usuario, comentario_id):
         return json_error("No puedes eliminar este comentario", 403)
     return json_ok({"mensaje": "Comentario eliminado"})
+
+
+# -----------------------------------------------------------------------------
+# Favoritos persistentes por usuario
+# -----------------------------------------------------------------------------
+@museo_bp.get("/favoritos")
+@jwt_required()
+def listar_favoritos():
+    ids = favoritos_svc.ids_de(int(get_jwt_identity()))
+    return json_ok({"ids": [str(i) for i in ids]})
+
+
+@museo_bp.post("/favoritos/<int:contenido_id>")
+@jwt_required()
+def alternar_favorito(contenido_id: int):
+    if not favoritos_svc.existe_contenido(contenido_id):
+        return json_error("Contenido no encontrado", 404)
+    activo, ids = favoritos_svc.alternar(int(get_jwt_identity()), contenido_id)
+    return json_ok({"favorito": activo, "ids": [str(i) for i in ids]})
+
+
+@museo_bp.delete("/favoritos/<int:contenido_id>")
+@jwt_required()
+def eliminar_favorito(contenido_id: int):
+    ids = favoritos_svc.quitar(int(get_jwt_identity()), contenido_id)
+    return json_ok({"ids": [str(i) for i in ids]})
+
+
+@museo_bp.delete("/favoritos")
+@jwt_required()
+def limpiar_favoritos():
+    favoritos_svc.limpiar(int(get_jwt_identity()))
+    return json_ok({"ids": []})

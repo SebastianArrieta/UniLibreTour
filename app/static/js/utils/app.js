@@ -531,42 +531,97 @@
         });
     }
 
-    /* ---------- favoritos ---------- */
+    /* ---------- favoritos (persistentes por usuario) ---------- */
     function getFavs() {
         var v = lsGet(KEYS.FAVS);
-        return Array.isArray(v) ? v : [];
+        return Array.isArray(v) ? v.map(String) : [];
     }
+    function setFavs(list) { lsSet(KEYS.FAVS, (list || []).map(String)); }
     function isFav(id) { return getFavs().indexOf(String(id)) !== -1; }
-    function setFavs(list) { lsSet(KEYS.FAVS, list); }
-    function toggleFav(id) {
-        var list = getFavs();
-        var i = list.indexOf(String(id));
-        if (i === -1) { list.push(String(id)); } else { list.splice(i, 1); }
-        setFavs(list);
-        return list;
-    }
     function countFavs() { return getFavs().length; }
+
+    function sincronizarFavs() {
+        if (!isAuthenticated()) return Promise.resolve(getFavs());
+        return apiJson('/api/museo/favoritos', 'GET', null, getToken())
+            .then(function (data) {
+                var ids = (data && data.ids) || [];
+                setFavs(ids);
+                return ids;
+            })
+            .catch(function () { return getFavs(); });
+    }
+
+    function toggleFav(id) {
+        var sid = String(id);
+        var estaba = isFav(sid);
+        var list = getFavs();
+        if (estaba) list.splice(list.indexOf(sid), 1);
+        else list.push(sid);
+        setFavs(list);
+
+        if (isAuthenticated()) {
+            apiJson('/api/museo/favoritos/' + encodeURIComponent(sid), 'POST', {}, getToken())
+                .then(function (data) {
+                    if (data && data.ids) setFavs(data.ids);
+                })
+                .catch(function () {
+                    // revertir el cambio optimista
+                    var actuales = getFavs();
+                    var idx = actuales.indexOf(sid);
+                    if (estaba && idx === -1) actuales.push(sid);
+                    if (!estaba && idx !== -1) actuales.splice(idx, 1);
+                    setFavs(actuales);
+                    if (window.UI && UI.toast) UI.toast('No se pudo guardar el favorito', 'err');
+                });
+        }
+        return getFavs();
+    }
+
+    function pintarFavBtn(btn, id) {
+        var on = isFav(id);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.classList.toggle('is-fav', on);
+        var icon = btn.querySelector('[data-fav-icon]');
+        if (icon) {
+            icon.innerHTML = on
+                ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>'
+                : '<i class="fa-regular fa-heart"></i>';
+        }
+    }
+
+    function pedirSesionParaFavorito() {
+        var destino = window.location.pathname + window.location.search;
+        if (window.UI && UI.toast) UI.toast('Inicia sesión para guardar en favoritos', 'info');
+        setTimeout(function () {
+            window.location.href = '/login?next=' + encodeURIComponent(destino);
+        }, 700);
+    }
 
     function bindFavButtons(root, onChanged) {
         root = root || document;
-        root.querySelectorAll('.fav-toggle').forEach(function (btn) {
+        var botones = Array.prototype.slice.call(root.querySelectorAll('.fav-toggle'));
+        botones.forEach(function (btn) {
             var id = btn.getAttribute('data-id');
             if (!id) return;
-            btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
-            btn.classList.toggle('is-fav', Museo.isFav(id));
-            var initIcon = btn.querySelector('[data-fav-icon]');
-            if (initIcon) initIcon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>' : '<i class="fa-regular fa-heart"></i>';
+            pintarFavBtn(btn, id);
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                Museo.toggleFav(id);
-                btn.classList.toggle('is-fav', Museo.isFav(id));
-                btn.setAttribute('aria-pressed', Museo.isFav(id) ? 'true' : 'false');
-                var icon = btn.querySelector('[data-fav-icon]');
-                if (icon) icon.innerHTML = Museo.isFav(id) ? '<i class="fa-solid fa-heart" style="color:var(--primary)"></i>' : '<i class="fa-regular fa-heart"></i>';
-                if (typeof onChanged === 'function') onChanged(Museo.countFavs());
+                if (!isAuthenticated() || !isAuthRole(getRole())) {
+                    pedirSesionParaFavorito();
+                    return;
+                }
+                toggleFav(id);
+                pintarFavBtn(btn, id);
+                if (typeof onChanged === 'function') onChanged(countFavs());
             });
         });
+        if (botones.length && isAuthenticated()) {
+            sincronizarFavs().then(function () {
+                botones.forEach(function (btn) { pintarFavBtn(btn, btn.getAttribute('data-id')); });
+                if (typeof onChanged === 'function') onChanged(countFavs());
+            });
+        }
     }
 
     /* ---------- niveles y progreso ---------- */
@@ -629,6 +684,7 @@
         var toggleBtn = document.querySelector('.theme-toggle');
         if (toggleBtn) toggleBtn.addEventListener('click', toggleTheme);
 
+        if (isAuthenticated()) sincronizarFavs();
         loadData().catch(function () { /* sin datos: la app sigue */ });
     }
 
@@ -664,6 +720,7 @@
         isFav: isFav,
         toggleFav: toggleFav,
         countFavs: countFavs,
+        sincronizarFavs: sincronizarFavs,
         bindFavButtons: bindFavButtons,
         levelInfo: levelInfo,
         searchAll: searchAll,

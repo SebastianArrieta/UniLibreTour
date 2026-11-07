@@ -184,7 +184,6 @@
 (function () {
     var fav = document.querySelector('.fav-toggle');
     if (window.Museo) {
-        if (Museo.role === 'visitante') { if (fav) fav.classList.add('hidden'); }
         Museo.bindFavButtons(document);
     }
     var share = document.getElementById('share-btn');

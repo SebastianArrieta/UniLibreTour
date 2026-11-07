@@ -17,6 +17,7 @@ from app.middleware.auth import web_role_required
 from app.models.contenido import Contenido
 from app.models.usuario import Usuario
 from app.services import contenido as contenido_svc
+from app.services import favoritos as favoritos_svc
 from app.services import interaccion as interaccion_svc
 from app.services import museo
 from app.services import notificacion as notificacion_svc
@@ -203,9 +204,18 @@ def estudiante_aportes():
 
 
 @web_bp.get("/estudiante/favoritos")
-@web_role_required("estudiante", "egresado", "admin")
+@web_role_required("estudiante", "egresado", "docente", "admin")
 def estudiante_favoritos():
-    return render_template("estudiante/favoritos.html", **_ctx("est-favoritos"))
+    usuario = _usuario_actual()
+    favoritos = favoritos_svc.listar_contenidos(usuario.id) if usuario else []
+    es_docente = bool(usuario and usuario.rol == "docente")
+    pagina = "doc-favoritos" if es_docente else "est-favoritos"
+    return render_template(
+        "estudiante/favoritos.html",
+        favoritos=favoritos,
+        area="docente" if es_docente else "estudiante",
+        **_ctx(pagina),
+    )
 
 
 @web_bp.get("/estudiante/contribuir")
