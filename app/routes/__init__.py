@@ -1,5 +1,3 @@
-from flask import Flask
-
 from app.routes.agenda import cronologia_bp, eventos_bp
 from app.routes.contenidos import contenidos_bp
 from app.routes.evidencias import evidencias_bp
@@ -10,7 +8,7 @@ from app.routes.semilleros import semilleros_bp
 from app.routes.social import insignias_bp, notificaciones_bp, social_bp
 
 
-def register_routes(app: Flask) -> None:
+def register_routes(app) -> None:
     """Registra todos los blueprints de la API REST."""
     prefix = "/api"
 

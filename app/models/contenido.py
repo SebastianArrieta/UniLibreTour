@@ -101,3 +101,18 @@ class Contenido(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+
+class Favorito(db.Model):
+    __tablename__ = "favoritos"
+
+    usuario_id: Mapped[int] = mapped_column(Integer, ForeignKey("usuarios.id"), primary_key=True)
+    contenido_id: Mapped[int] = mapped_column(Integer, ForeignKey("contenidos.id"), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "usuario_id": self.usuario_id,
+            "contenido_id": self.contenido_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+        }

@@ -1,6 +1,4 @@
 from flask import Blueprint, request
-from marshmallow import ValidationError
-from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
 from app.middleware.auth import role_required
