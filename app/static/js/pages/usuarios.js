@@ -41,6 +41,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
+    const togglePassAdmin = document.getElementById("toggle-password-admin");
+    const passInput = document.getElementById("password");
+    if (togglePassAdmin && passInput) {
+        togglePassAdmin.addEventListener("click", () => {
+            const mostrar = passInput.type === "password";
+            passInput.type = mostrar ? "text" : "password";
+            togglePassAdmin.setAttribute("aria-label", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+            togglePassAdmin.setAttribute("title", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+            const icono = togglePassAdmin.querySelector("i");
+            if (icono) icono.className = "fa-solid " + (mostrar ? "fa-eye-slash" : "fa-eye");
+        });
+    }
+
     if (!form) return;
 
     form.addEventListener("submit", async (event) => {

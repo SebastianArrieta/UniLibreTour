@@ -86,7 +86,7 @@ def en_revision_para(docente_id: int) -> list[Contenido]:
     """Aportes que esperan el visto bueno de un docente concreto."""
     return (
         Contenido.query.filter_by(estado=ESTADO_REVISION_DOCENTE, docente_id=docente_id)
-        .order_by(Contenido.id.desc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
 

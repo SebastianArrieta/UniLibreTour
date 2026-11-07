@@ -113,7 +113,7 @@
               <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Usuarios Recientes</h3>
               <a href="{{ url_for('web.admin_usuarios') }}" class="text-xs" style="color:var(--primary)">Ver todos</a>
             </div>
-            {% set recientes = (users | reverse | list)[:4] %}
+            {% set recientes = (users | sort(attribute='joinDate', reverse=true) | list)[:4] %}
             {% for u in recientes %}
             <div class="flex items-center gap-3 mb-3">
               <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"

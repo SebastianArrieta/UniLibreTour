@@ -34,7 +34,7 @@
                 </tr>
               </thead>
               <tbody id="reg-tbody">
-                {% for item in todos %}
+                {% for item in todos | sort(attribute='created_at', reverse=true) %}
                 <tr data-query="{{ item.title | lower }} {{ (item.submittedBy or item.author or '') | lower }}" style="border-bottom:1px solid var(--border-subtle)">
                   <td style="color:var(--card-foreground)">{{ item.title }}</td>
                   <td style="color:var(--secondary-foreground)">{{ item.submittedBy or item.author }}</td>

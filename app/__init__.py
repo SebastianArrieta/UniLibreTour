@@ -2,7 +2,8 @@ import logging
 import os
 from datetime import datetime
 
-from flask import Flask
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
 
 from app.config import config_by_name
 from app.extensions import db, jwt
@@ -73,11 +74,35 @@ def create_app(config_name: str | None = None) -> Flask:
 
     register_blueprints(app)
 
+    @app.teardown_request
+    def _rollback_en_error(exc):
+        # No dejar la sesión SQLAlchemy sucia tras una petición fallida.
+        if exc is not None:
+            db.session.rollback()
+
+    @app.errorhandler(HTTPException)
+    def _http_error(err):
+        if _es_api():
+            return jsonify({"ok": False, "error": err.description or err.name}), err.code
+        return err
+
+    @app.errorhandler(Exception)
+    def _error_interno(err):
+        if isinstance(err, HTTPException):
+            return _http_error(err)
+        db.session.rollback()
+        app.logger.exception("Error no controlado en %s", request.path)
+        if _es_api():
+            return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
+        return "Error interno del servidor", 500
+
     with app.app_context():
         _esperar_bd(app)
         db.create_all()
         _migrar_columnas_faltantes()
         from app.services.catalogo import bootstrap_admin, seed_catalogo
+        from app.services.limite import limpiar_expirados
+        from app.services.token import limpiar_expirados as limpiar_tokens_expirados
 
         try:
             seed_catalogo()
@@ -86,12 +111,23 @@ def create_app(config_name: str | None = None) -> Flask:
             db.session.rollback()
             app.logger.exception("No se pudo preparar el catálogo base / administrador inicial")
 
+        try:
+            limpiar_expirados()
+            limpiar_tokens_expirados()
+        except Exception:  # no bloquear el arranque
+            db.session.rollback()
+            app.logger.exception("No se pudo limpiar tokens/rate limits caducados")
+
     @app.context_processor
     def _anio_actual():
         ahora = datetime.now()
         return {"anio_actual": ahora.year, "hoy_iso": ahora.strftime("%Y-%m-%d")}
 
     return app
+
+
+def _es_api() -> bool:
+    return request.path.startswith("/api/")
 
 
 def _esperar_bd(app, intentos: int = 30, pausa: float = 2.0) -> None:
@@ -134,6 +170,15 @@ def _migrar_columnas_faltantes() -> None:
                 with db.engine.begin() as conn:
                     conn.execute(text("ALTER TABLE contenidos ADD COLUMN docente_id INT NULL"))
                 log.info("columna contenidos.docente_id agregada")
+
+        if "usuarios" in inspector.get_table_names():
+            columnas = {c["name"] for c in inspector.get_columns("usuarios")}
+            if "token_version" not in columnas:
+                with db.engine.begin() as conn:
+                    conn.execute(text(
+                        "ALTER TABLE usuarios ADD COLUMN token_version INT NOT NULL DEFAULT 0"
+                    ))
+                log.info("columna usuarios.token_version agregada")
 
         if "favoritos" in inspector.get_table_names():
             columnas = {c["name"] for c in inspector.get_columns("favoritos")}

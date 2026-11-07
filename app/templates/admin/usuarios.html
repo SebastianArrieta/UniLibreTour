@@ -63,7 +63,13 @@
 
               <div>
                 <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Contraseña</label>
-                <input id="password" type="password" class="museum-input w-full px-3.5 py-2.5 rounded text-sm" placeholder="Mínimo 6 caracteres" required>
+                <div class="password-input-wrap">
+                  <input id="password" type="password" class="museum-input rounded text-sm" placeholder="Mínimo 6 caracteres" required autocomplete="new-password">
+                  <button type="button" id="toggle-password-admin" class="password-toggle-btn"
+                          aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
 
               <div>

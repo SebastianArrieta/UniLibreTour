@@ -14,6 +14,7 @@ from app.models.semillero import Semillero
 from app.models.usuario import Usuario
 from app.services import contenido as contenido_svc
 from app.services import notificacion as notificacion_svc
+from app.services.usuario import validar_cambio_admin
 
 
 def _meta_hall(data: dict) -> str:
@@ -183,10 +184,21 @@ def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenid
 
 
 def actualizar_usuario(usuario: Usuario, data: dict) -> Usuario:
+    validar_cambio_admin(
+        usuario,
+        nuevo_rol=data.get("rol"),
+        nuevo_estado=data.get("estado"),
+    )
+    cambios_de_sesion = False
     for campo in ("nombre", "email", "rol", "estado"):
         valor = data.get(campo)
-        if valor is not None:
+        if valor is not None and valor != getattr(usuario, campo):
+            if campo in ("rol", "estado"):
+                cambios_de_sesion = True
             setattr(usuario, campo, valor)
+    if cambios_de_sesion:
+        # Un rol/estado nuevo aplica de inmediato: invalida los JWT anteriores.
+        usuario.token_version = (usuario.token_version or 0) + 1
     db.session.commit()
     return usuario
 

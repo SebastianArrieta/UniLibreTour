@@ -18,6 +18,7 @@ from app.services import museo
 from app.services import correo as correo_svc
 from app.services import otp as otp_svc
 from app.services import limite
+from app.services import token as token_svc
 from app.services.auth import verify_password
 from app.services.usuario import obtener_por_email
 from app.utils.response import json_error, json_ok
@@ -29,7 +30,13 @@ login_schema = LoginSchema()
 def _token_de(usuario) -> str:
     return create_access_token(
         identity=str(usuario.id),
-        additional_claims={"rol": usuario.rol, "email": usuario.email},
+        additional_claims={
+            "rol": usuario.rol,
+            "email": usuario.email,
+            # Un cambio de rol/estado incrementa token_version e invalida
+            # todos los JWT emitidos antes (ver app/extensions.py).
+            "ver": int(usuario.token_version or 0),
+        },
     )
 
 
@@ -60,6 +67,7 @@ def _token_desafio(usuario, codigo: str, nonce: str, intentos: int) -> str:
         additional_claims={
             "rol": usuario.rol,
             "email": usuario.email,
+            "ver": int(usuario.token_version or 0),
             "scope": "2fa",
             "nonce": nonce,
             "otp": otp_svc.huella(_secreto(), nonce, codigo),
@@ -76,6 +84,7 @@ def _token_desafio_desde_claims(usuario, claims: dict, intentos: int) -> str:
         additional_claims={
             "rol": claims.get("rol", usuario.rol),
             "email": claims.get("email", usuario.email),
+            "ver": int(usuario.token_version or 0),
             "scope": "2fa",
             "nonce": claims.get("nonce", ""),
             "otp": claims.get("otp", ""),
@@ -145,6 +154,8 @@ def _claims_desafio():
     usuario = db.session.get(Usuario, int(claims.get("sub", 0)))
     if not usuario:
         return None, json_error("Usuario no encontrado", 401)
+    if int(claims.get("ver", 0)) != int(usuario.token_version or 0):
+        return None, json_error("Token de verificación inválido o expirado", 401)
 
     return (claims, usuario), None
 
@@ -239,8 +250,32 @@ def reenviar_2fa():
     return _respuesta_desafio(usuario, codigo, otp_svc.nuevo_nonce(), intentos)
 
 
+def _tokens_crudos() -> list[str]:
+    """Tokens presentes en la petición: header Bearer (API) y cookie httpOnly.
+
+    Se decodifican directamente para no exigir CSRF en el logout. Se revocan
+    ambos si existen: un logout de la API también invalida la cookie.
+    """
+    tokens: list[str] = []
+    encabezado = request.headers.get("Authorization", "")
+    if encabezado.startswith("Bearer "):
+        tokens.append(encabezado[7:].strip())
+    nombre_cookie = current_app.config.get("JWT_ACCESS_COOKIE_NAME", "access_token_cookie")
+    cookie = request.cookies.get(nombre_cookie)
+    if cookie and cookie not in tokens:
+        tokens.append(cookie)
+    return tokens
+
+
 @auth_bp.post("/logout")
 def logout():
+    for token in _tokens_crudos():
+        try:
+            claims = decode_token(token)
+            token_svc.revocar(claims.get("jti"), claims.get("exp"))
+        except Exception:
+            # Token ya expirado o inválido: no hay nada que revocar.
+            pass
     respuesta, status = json_ok({"mensaje": "Sesión cerrada"})
     unset_access_cookies(respuesta)
     return respuesta, status

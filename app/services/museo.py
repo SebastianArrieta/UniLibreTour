@@ -77,6 +77,7 @@ def _contenido_dict(c: Contenido) -> dict:
         "category": c.categoria,
         "author": c.autor,
         "date": c.fecha,
+        "created_at": c.created_at.isoformat() if c.created_at else "",
         "status": c.estado,
         "description": c.descripcion,
         "image": c.imagen,
@@ -98,7 +99,7 @@ def contenidos() -> list[dict]:
     """contentItems: todo el contenido que no fue devuelto por validación."""
     q = (
         Contenido.query.filter(Contenido.estado != "devuelto")
-        .order_by(Contenido.id.asc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
     return [_contenido_dict(c) for c in q]
@@ -108,7 +109,7 @@ def contenidos_publicados() -> list[dict]:
     """Solo piezas publicadas/institucionales (lo único apto para el público)."""
     q = (
         Contenido.query.filter(Contenido.estado.in_(ESTADOS_PUBLICADOS))
-        .order_by(Contenido.id.asc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
     return [_contenido_dict(c) for c in q]
@@ -122,7 +123,7 @@ def cola_contenidos() -> list[dict]:
     """contentQueue: pendientes y devueltos (flujo de validación)."""
     q = (
         Contenido.query.filter(Contenido.estado.in_(ESTADOS_COLA))
-        .order_by(Contenido.id.asc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
     out = []

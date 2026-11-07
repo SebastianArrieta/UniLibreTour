@@ -34,7 +34,10 @@
      * @returns {Promise<any>} Datos devueltos por el backend
      */
     async function request(url, method = 'GET', body = null, customToken = null) {
-        const token = customToken || getToken();
+        // En el login no enviar un token viejo: un 401 por credenciales malas
+        // no debe confundirse con una sesión caducada.
+        const esLogin = String(url).indexOf('/api/auth/login') === 0;
+        const token = esLogin ? null : (customToken || getToken());
         const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -63,9 +66,13 @@
                 var esDesafio2FA = String(url).indexOf('/api/auth/2fa/') === 0;
                 if (response.status === 401 && token && !esDesafio2FA) {
                     console.warn('[API Auth] Sesión caducada o inválida (401). Limpiando credenciales...');
-                    localStorage.removeItem(TOKEN_KEY);
-                    localStorage.removeItem('museo-usuario');
-                    localStorage.removeItem('museo-rol');
+                    if (window.Museo && typeof window.Museo.sessionExpired === 'function') {
+                        window.Museo.sessionExpired();
+                    } else {
+                        localStorage.removeItem(TOKEN_KEY);
+                        localStorage.removeItem('museo-usuario');
+                        localStorage.removeItem('museo-rol');
+                    }
                     if (window.UI && typeof UI.toast === 'function') {
                         UI.toast('Tu sesión ha expirado. Por favor ingresa nuevamente.', 'err');
                     }

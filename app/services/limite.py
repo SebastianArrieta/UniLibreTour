@@ -1,49 +1,77 @@
-"""Límite de intentos fallidos en memoria (ventana deslizante, por proceso).
+"""Rate limit persistente con ventana deslizante, compartido entre workers.
 
-Solo cuentan los FALLOS (contraseña o código incorrectos): los accesos
-correctos nunca bloquean a nadie, aunque muchos usuarios compartan IP (por
-ejemplo, detrás del proxy TLS o la red de la universidad).
-
-Con varios workers de gunicorn cada uno lleva su cuenta, así que el límite
-efectivo es ``maximo × workers``. Suficiente para frenar fuerza bruta sin
-dependencias externas.
+Cada evento se guarda en la tabla ``intentos_fallidos`` con su epoch, de modo
+que el límite es el mismo para todos los procesos de gunicorn y sobrevive a
+los reinicios (antes era un dict en memoria por proceso).
 """
 
 from __future__ import annotations
 
 import time
-from collections import defaultdict, deque
-from threading import Lock
 
-_fallos: dict[str, deque] = defaultdict(deque)
-_lock = Lock()
+from app.extensions import db
+from app.models.token import IntentoFallido
 
 
-def _purgar(cola: deque, ahora: float, ventana_seg: int) -> None:
-    while cola and ahora - cola[0] > ventana_seg:
-        cola.popleft()
+_ULTIMA_LIMPIEZA = 0
 
 
-def bloqueado(clave: str, maximo: int, ventana_seg: int) -> bool:
-    """¿La clave acumula ``maximo`` fallos o más dentro de la ventana?"""
-    ahora = time.monotonic()
-    with _lock:
-        cola = _fallos.get(clave)
-        if not cola:
-            return False
-        _purgar(cola, ahora, ventana_seg)
-        return len(cola) >= maximo
+def _ahora() -> int:
+    return int(time.time())
+
+
+def registrar(clave: str) -> None:
+    global _ULTIMA_LIMPIEZA
+    try:
+        db.session.add(IntentoFallido(clave=clave, ts=_ahora()))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return
+    # Poda periódica (como máximo una vez por hora y worker) para que la tabla
+    # no crezca sin límite en procesos de larga vida.
+    ahora = _ahora()
+    if ahora - _ULTIMA_LIMPIEZA > 3600:
+        _ULTIMA_LIMPIEZA = ahora
+        limpiar_expirados()
 
 
 def registrar_fallo(clave: str) -> None:
-    ahora = time.monotonic()
-    with _lock:
-        _fallos[clave].append(ahora)
-        if len(_fallos) > 10000:  # evita crecimiento sin límite
-            for k in [k for k, v in _fallos.items() if not v or ahora - v[-1] > 3600]:
-                del _fallos[k]
+    """Compatibilidad con el flujo de login/2FA: cuenta un evento fallido."""
+    registrar(clave)
+
+
+def bloqueado(clave: str, maximo: int, ventana_seg: int) -> bool:
+    """¿La clave alcanzó ``maximo`` eventos dentro de la ventana?"""
+    desde = _ahora() - int(ventana_seg)
+    try:
+        total = (
+            db.session.query(IntentoFallido)
+            .filter(IntentoFallido.clave == clave, IntentoFallido.ts >= desde)
+            .count()
+        )
+    except Exception:
+        # Sin BD no se puede contar: no bloquear el acceso (fail-open) y avisar.
+        db.session.rollback()
+        return False
+    return total >= int(maximo)
 
 
 def limpiar(clave: str) -> None:
-    with _lock:
-        _fallos.pop(clave, None)
+    try:
+        db.session.query(IntentoFallido).filter(
+            IntentoFallido.clave == clave
+        ).delete(synchronize_session=False)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+
+def limpiar_expirados(ventana_seg: int = 3600) -> None:
+    try:
+        db.session.query(IntentoFallido).filter(
+            IntentoFallido.ts < _ahora() - int(ventana_seg)
+        ).delete(synchronize_session=False)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()

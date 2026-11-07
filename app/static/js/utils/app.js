@@ -131,7 +131,9 @@
         return apiJson('/api/auth/me', 'GET', null, tok).then(function (u) {
             if (u) lsSet(KEYS.USUARIO, u);
             return u || null;
-        }).catch(function () {
+        }).catch(function (err) {
+            /* Token válido pero el usuario ya no existe: la sesión tampoco sirve. */
+            if (err && (err.status === 401 || err.status === 404)) sessionExpired();
             return null;
         });
     }
@@ -252,6 +254,37 @@
     function isAuthenticated() { return !!lsGet(KEYS.TOKEN); }
     function getToken() { return lsGet(KEYS.TOKEN); }
     function getSesion() { return lsGet(KEYS.USUARIO); }
+
+    /* Limpia TODA la sesión local (token + usuario + rol) cuando el servidor
+       rechaza el JWT. Sin borrar el rol, el header seguía mostrando la cuenta
+       como si tuviera sesión aunque el token ya no existiera. */
+    function limpiarSesionLocal() {
+        lsRemove(KEYS.ROLE);
+        lsRemove(KEYS.TOKEN);
+        lsRemove(KEYS.USUARIO);
+        lsRemove(KEYS.FAVS);
+        lsRemove(KEYS.PEND_TOKEN);
+        lsRemove(KEYS.PEND_USUARIO);
+        try {
+            localStorage.removeItem('museo-pending-role');
+            localStorage.removeItem('museo-pending-email');
+            localStorage.removeItem('museo-pending-devcode');
+        } catch (e) { /* noop */ }
+        Museo.role = 'visitante';
+    }
+
+    /* Sesión caducada/inválida detectada por la API (401). */
+    function sessionExpired() {
+        var estabaAutenticado = isAuthRole(getRole());
+        limpiarSesionLocal();
+        renderAuth();
+
+        var privada = /^\/(estudiante|docente|admin|perfil|mi-espacio)(\/|$)/.test(window.location.pathname);
+        if (estabaAutenticado && privada) {
+            var destino = window.location.pathname + window.location.search;
+            window.location.href = '/login?next=' + encodeURIComponent(destino);
+        }
+    }
 
     /* Login: Valida credenciales contra el backend.
        Si la cuenta tiene 2FA activo, el servidor NO entrega sesión: devuelve un
@@ -413,7 +446,11 @@
                 '</div>';
         }
 
-        getUser().then(pintarMenu).catch(function () { pintarMenu(null); });
+        getUser().then(function (me) {
+            if (isAuthRole(Museo.role)) pintarMenu(me);
+        }).catch(function () {
+            if (isAuthRole(Museo.role)) pintarMenu(null);
+        });
     }
 
     function showLogoutModal() {
@@ -684,6 +721,8 @@
         getSesion: getSesion,
         iniciarSesion: iniciarSesion,
         completarInicioSesion: completarInicioSesion,
+        sessionExpired: sessionExpired,
+        limpiarSesionLocal: limpiarSesionLocal,
         crearContenido: crearContenido,
         getTheme: getTheme,
         setTheme: setTheme,

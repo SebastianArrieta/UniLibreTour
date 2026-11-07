@@ -24,4 +24,5 @@ USER appuser
 EXPOSE 5000
 
 # Ejecucion (sin --reload: imagen de producción)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "run:app"]
+# --max-requests recicla cada worker (evita fugas de memoria a largo plazo).
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "60", "--max-requests", "1000", "--max-requests-jitter", "100", "--access-logfile", "-", "--error-logfile", "-", "run:app"]

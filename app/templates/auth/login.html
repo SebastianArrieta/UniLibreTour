@@ -26,8 +26,14 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium mb-1.5" style="color:var(--secondary-foreground)">Contraseña</label>
-                    <input id="login-password" type="password" placeholder="••••••••"
-                           class="museum-input w-full px-4 py-2.5 rounded text-sm" required>
+                    <div class="password-input-wrap">
+                        <input id="login-password" type="password" placeholder="••••••••"
+                               class="museum-input rounded text-sm" required autocomplete="current-password">
+                        <button type="button" id="toggle-password" class="password-toggle-btn"
+                                aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
                 <div id="login-error" class="text-xs px-3 py-2 rounded" style="display:none;background:var(--primary-soft);color:var(--primary);border:1px solid var(--primary-border)"></div>
                 <button type="submit" class="btn-primary w-full py-3 rounded font-semibold">Ingresar</button>
@@ -46,6 +52,7 @@
     var TWO_FA_URL = "{{ url_for('web.two_fa') }}";
     var emailEl = document.getElementById('login-email');
     var passEl = document.getElementById('login-password');
+    var togglePassEl = document.getElementById('toggle-password');
     var errorEl = document.getElementById('login-error');
     var form = document.getElementById('login-form');
     var submitBtn = form.querySelector('button[type="submit"]');
@@ -54,6 +61,17 @@
         if (!errorEl) return;
         errorEl.textContent = msg;
         errorEl.style.display = 'block';
+    }
+
+    if (togglePassEl && passEl) {
+        togglePassEl.addEventListener('click', function () {
+            var mostrar = passEl.type === 'password';
+            passEl.type = mostrar ? 'text' : 'password';
+            togglePassEl.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            togglePassEl.setAttribute('title', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            var icono = togglePassEl.querySelector('i');
+            if (icono) icono.className = 'fa-solid text-xs ' + (mostrar ? 'fa-eye-slash' : 'fa-eye');
+        });
     }
 
     form.addEventListener('submit', function (e) {

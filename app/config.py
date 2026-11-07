@@ -31,7 +31,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = _database_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
-    JWT_ACCESS_TOKEN_EXPIRES = 3600  # 1 hora
+    # Duración del token de sesión en segundos (por defecto 1 hora).
+    # Se puede ajustar con JWT_ACCESS_TOKEN_EXPIRES en el entorno.
+    JWT_ACCESS_TOKEN_EXPIRES = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", "3600"))
 
     # Eco del código 2FA en la respuesta: SOLO para desarrollo local sin
     # servidor de correo. Nunca se aplica en producción (ver ProductionConfig).

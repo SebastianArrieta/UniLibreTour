@@ -31,6 +31,9 @@ class Usuario(db.Model):
         nullable=True,
     )
     two_factor_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Incrementa cuando cambian rol/estado (o la contraseña): invalida los JWT
+    # emitidos antes del cambio sin necesidad de guardar cada token.
+    token_version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     anio_grado: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     cargo_actual: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

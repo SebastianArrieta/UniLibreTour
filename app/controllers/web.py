@@ -8,7 +8,7 @@ a través del servicio app.services.museo.
 import logging
 
 from flask import Blueprint, abort, redirect, render_template, url_for
-from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from app.extensions import db
 from app.middleware.auth import web_role_required
@@ -244,9 +244,9 @@ def two_fa():
 @web_role_required()
 def mi_espacio():
     """Enlace neutro al panel principal: cada rol va a su propio dashboard."""
-    claims = get_jwt()
+    usuario = _usuario_actual()
     destinos = {"egresado": "web.egresado", "docente": "web.docente", "admin": "web.admin"}
-    return redirect(url_for(destinos.get(claims.get("rol"), "web.estudiante")))
+    return redirect(url_for(destinos.get(usuario.rol if usuario else "", "web.estudiante")))
 
 
 @web_bp.get("/estudiante")
@@ -266,7 +266,7 @@ def estudiante_aportes():
     usuario = _usuario_actual()
     items = (
         Contenido.query.filter_by(creador_id=usuario.id)
-        .order_by(Contenido.id.desc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
         if usuario else []
     )
@@ -316,7 +316,9 @@ def docente():
     }
     notifs = notificacion_svc.listar(usuario.id) if usuario else []
     mis_aportes = (
-        Contenido.query.filter_by(creador_id=usuario.id).order_by(Contenido.id.desc()).all()
+        Contenido.query.filter_by(creador_id=usuario.id)
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
+        .all()
         if usuario else []
     )
     return render_template(
@@ -338,7 +340,7 @@ def docente_revision():
     if usuario and usuario.rol == "admin":
         items = (
             Contenido.query.filter_by(estado=contenido_svc.ESTADO_REVISION_DOCENTE)
-            .order_by(Contenido.id.desc())
+            .order_by(Contenido.created_at.desc(), Contenido.id.desc())
             .all()
         )
     elif usuario:

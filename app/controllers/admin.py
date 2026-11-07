@@ -20,7 +20,7 @@ from app.schemas.admin import (
     ValidacionSchema,
 )
 from app.services import admin as admin_svc
-from app.services.usuario import obtener_usuario
+from app.services.usuario import ReglaUsuarioError, obtener_usuario
 from app.utils.response import json_error, json_ok
 
 admin_bp = Blueprint("admin", __name__)
@@ -151,6 +151,9 @@ def actualizar_usuario(usuario_id: int):
     try:
         data = _cargar(usuario_schema)
         usuario = admin_svc.actualizar_usuario(usuario, data)
+    except ReglaUsuarioError as err:
+        db.session.rollback()
+        return json_error(str(err), 400)
     except ValidationError as err:
         return json_error(err.messages, 400)
     except IntegrityError:

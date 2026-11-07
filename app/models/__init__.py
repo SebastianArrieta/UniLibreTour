@@ -29,6 +29,9 @@ from app.models.cronologia import CronologiaHito, Evento
 # ── Publicaciones ───────────────────────────────────────────
 from app.models.publicacion import HallFama, Noticia
 
+# ── Seguridad (tokens revocados y rate limit) ───────────────
+from app.models.token import IntentoFallido, TokenRevocado
+
 __all__ = [
     # Core
     "Semillero",
@@ -61,4 +64,7 @@ __all__ = [
     # Publicaciones
     "HallFama",
     "Noticia",
+    # Seguridad
+    "IntentoFallido",
+    "TokenRevocado",
 ]
