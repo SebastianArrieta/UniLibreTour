@@ -2,60 +2,58 @@
 {% block title %}Mi Espacio — Estudiante{% endblock %}
 {% block content %}
 {% from 'components/sidebar.html' import sidebar_for %}
-{% from 'components/macros.html' import content_card, status_badge, empty_state, category_badge, tag_list %}
+{% from 'components/macros.html' import content_card, status_badge, empty_state, category_badge %}
 
-{% set sb_active = current_page %}
-{% set todo = contentItems + contentQueue %}
-{% set mis_aportes = (todo | selectattr('author', 'equalto', 'Ana Lucía Bermúdez') | list + todo | selectattr('submittedBy', 'equalto', 'Ana Lucía Bermúdez') | list) | unique(attribute='id') | list %}
-{% set ap_pub = (mis_aportes | selectattr('status', 'equalto', 'publicado') | list + mis_aportes | selectattr('status', 'equalto', 'institucional') | list) | unique(attribute='id') | list %}
-{% set puntos = users | selectattr('email', 'equalto', 'ana.bermudez@unilibre.edu.co') | first %}
-{% set pts = puntos.points if puntos else 3240 %}
+{% set pts = usuario.puntos if usuario else 0 %}
 {% set nivel = [((pts // pointsPerLevel) + 1), maxLevel] | min %}
 {% set pts_nivel = pts - (nivel - 1) * pointsPerLevel %}
 {% set pct = 100 if nivel >= maxLevel else ((pts_nivel / pointsPerLevel) * 100) %}
 {% set falta = 0 if nivel >= maxLevel else (pointsPerLevel - pts_nivel) %}
-{% set anuncios = [
-  {'f':'28 Jun','d':'Jun','t':'Semillero de Investigación GISI','h':'10:00 AM · Sala 301'},
-  {'f':'2 Jul','d':'Jul','t':'Taller: Redacción de Proyectos de Grado','h':'2:00 PM · Auditorio B'},
-  {'f':'10 Jul','d':'Jul','t':'Congreso Estudiantil de Ingeniería','h':'8:00 AM · Auditorio Principal'},
-] %}
+{% set pendientes = mis_aportes | rejectattr('estado', 'in', ['publicado', 'institucional']) | list %}
+
+<style>
+.page-wrap { padding-bottom: 5.5rem; }
+@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
+.fab-contribuir { position: fixed; right: 1.25rem; bottom: 5.75rem; z-index: 45; box-shadow: 0 6px 20px var(--shadow-color); }
+@media (min-width: 768px) { .fab-contribuir { bottom: 1.5rem; } }
+</style>
+
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-    {{ sidebar_for('estudiante', sb_active) }}
+    {{ sidebar_for('estudiante', current_page) }}
     <div class="min-w-0">
       <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--brown)">Panel de Control</div>
-          <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Mi Espacio</h1>
-          <p class="text-sm mt-1" style="color:var(--muted-foreground)">Bienvenida, Ana Lucía · Ingeniería de Sistemas</p>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">Estudiante</span>
+            {% if usuario and usuario.semillero %}<span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ usuario.semillero.nombre }}</span>{% endif %}
+          </div>
+          <h1 class="font-serif text-3xl font-bold" style="color:var(--foreground)">Hola, {{ usuario.nombre if usuario else 'estudiante' }}</h1>
+          <p class="text-sm mt-1" style="color:var(--muted-foreground)">Este es tu espacio en Herencia Digital.</p>
         </div>
         <a href="{{ url_for('web.estudiante_contribuir') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold">+ Nueva Contribución</a>
       </div>
 
-      <div id="banner-convocatoria" class="mb-8 rounded-lg p-4 flex items-start gap-4" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
-        <div class="w-8 h-8 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)"><i class="fa-solid fa-bullhorn text-sm"></i></div>
-        <div class="flex-1">
-          <h4 class="font-serif font-bold text-sm mb-1" style="color:var(--foreground)">Convocatoria Proyectos Destacados 2025</h4>
-          <p class="text-xs" style="color:var(--secondary-foreground)">Fecha límite: 31 julio. Postula tu proyecto de grado para el Hall de la Fama.</p>
-        </div>
-        <button type="button" data-dismiss="banner-convocatoria" class="text-xs px-2 py-1 opacity-50 hover:opacity-100" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="museum-card rounded p-5">
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Contribuciones</div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Mis aportes</div>
           <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ mis_aportes | length }}</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">{{ ap_pub | length }} publicadas</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">registrados</div>
         </div>
         <div class="museum-card rounded p-5">
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Favoritos</div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)"><span id="fav-count">7</span></div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">guardados</div>
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Publicados</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ aportes_publicados }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">en el archivo</div>
         </div>
+        <a href="{{ url_for('web.estudiante_favoritos') }}" class="museum-card rounded p-5 block">
+          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Favoritos</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ favoritos_count }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">piezas guardadas</div>
+        </a>
         <div class="museum-card rounded p-5">
           <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Comentarios</div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">12</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">este semestre</div>
+          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ comentarios_count }}</div>
+          <div class="text-xs mt-1" style="color:var(--muted-foreground)">reseñas escritas</div>
         </div>
       </div>
 
@@ -79,76 +77,68 @@
         <div class="h-2.5 rounded-full" style="background:var(--surface-2)">
           <div class="h-full rounded-full transition-all duration-700" style="width:{{ pct }}%;background:var(--gold)"></div>
         </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div class="museum-card rounded p-5">
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Contenido en el archivo</div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ '{:,.0f}'.format(kpiData.totalContent) | replace(',', '.') }}</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">piezas del museo</div>
+        {% if insignias %}
+        <div class="flex flex-wrap items-center gap-2 mt-5 pt-4" style="border-top:1px solid var(--border-subtle)">
+          <span class="text-xs font-mono uppercase tracking-widest mr-1" style="color:var(--muted-foreground)">Insignias</span>
+          {% for ins in insignias %}
+          <span class="w-7 h-7 rounded flex items-center justify-center" style="background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-border)" title="{{ ins.nombre }}">
+            {% if ins.icono and 'fa-' in ins.icono %}<i class="{{ ins.icono }} text-xs"></i>{% else %}<i class="fa-solid fa-medal text-xs"></i>{% endif %}
+          </span>
+          {% endfor %}
         </div>
-        <div class="museum-card rounded p-5">
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Visitantes</div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ '{:,.0f}'.format(kpiData.visitors) | replace(',', '.') }}</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">este año</div>
-        </div>
-        <div class="museum-card rounded p-5">
-          <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Usuarios activos</div>
-          <div class="font-serif text-3xl font-bold" style="color:var(--foreground)">{{ '{:,.0f}'.format(kpiData.activeUsers) | replace(',', '.') }}</div>
-          <div class="text-xs mt-1" style="color:var(--muted-foreground)">en la plataforma</div>
-        </div>
-      </div>
-
-      <div class="mb-8">
-        <div class="flex items-end justify-between mb-4 gap-4 flex-wrap">
-          <h3 class="font-serif text-xl font-semibold" style="color:var(--card-foreground)">Contenido Reciente del Programa</h3>
-          <a href="{{ url_for('web.explorar') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver todo →</a>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {% for item in contentItems if item.status in ['publicado', 'institucional'] %}{% if loop.index0 < 3 %}{{ content_card(item) }}{% endif %}{% endfor %}
-        </div>
+        {% endif %}
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div class="museum-card rounded p-5">
-          <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Agenda Académica</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Necesitan tu atención</h3>
+            <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs" style="color:var(--primary)">Ver todos →</a>
+          </div>
           <div class="flex flex-col gap-3">
-            {% for ev in anuncios %}
-            <div class="flex gap-3 items-start">
-              <div class="w-12 flex-shrink-0 text-center rounded p-1.5" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
-                <div class="text-xs font-mono font-bold" style="color:var(--brown)">{{ ev.f }}</div>
-                <div class="text-xs" style="color:var(--muted-foreground)">{{ ev.d }}</div>
+            {% if pendientes | length == 0 %}
+              {{ empty_state('No tienes aportes pendientes. ¡Todo al día!', 'fa-solid fa-check') }}
+            {% else %}
+              {% for item in pendientes[:4] %}
+              <div class="flex items-center gap-3 p-3 rounded" style="background:var(--surface-1)">
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.titulo }}</div>
+                  <div class="mt-1 flex items-center gap-2 flex-wrap">
+                    {{ status_badge(item.estado) }}
+                    {% if item.estado == 'devuelto' and item.observaciones %}
+                    <span class="text-xs line-clamp-1" style="color:var(--primary)">{{ item.observaciones }}</span>
+                    {% endif %}
+                  </div>
+                </div>
               </div>
-              <div>
-                <div class="text-sm font-medium" style="color:var(--card-foreground)">{{ ev.t }}</div>
-                <div class="text-xs" style="color:var(--muted-foreground)">{{ ev.h }}</div>
-              </div>
+              {% endfor %}
+            {% endif %}
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">Mis aportes →</a>
+              <a href="{{ url_for('web.estudiante_contribuir') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">+ Agregar nueva</a>
             </div>
-            {% endfor %}
           </div>
         </div>
 
         <div class="museum-card rounded p-5">
-          <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Necesitan tu Atención</h3>
+          <h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Agenda académica</h3>
           <div class="flex flex-col gap-3">
-            {% set pendientes = mis_aportes | rejectattr('status', 'in', ['publicado', 'institucional']) | list %}
-            {% if pendientes | length > 0 %}
-              {% for item in pendientes %}
-              <div class="flex items-center gap-3">
-                <img src="{{ item.image }}" alt="{{ item.title }}" class="w-10 h-10 object-cover rounded flex-shrink-0" />
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
-                  {{ status_badge(item.status) }}
+            {% if eventos | length == 0 %}
+              <p class="text-sm" style="color:var(--muted-foreground)">Sin actividades próximas.</p>
+            {% else %}
+              {% for ev in eventos %}
+              <div class="flex gap-3 items-start">
+                <div class="w-12 flex-shrink-0 text-center rounded p-1.5" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
+                  <div class="text-xs font-mono font-bold" style="color:var(--brown)">{{ ev.date | fmt_fecha }}</div>
+                  <div class="text-xs" style="color:var(--muted-foreground)">{{ ev.time or '' }}</div>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-sm font-medium line-clamp-1" style="color:var(--card-foreground)">{{ ev.title }}</div>
+                  <div class="text-xs line-clamp-1" style="color:var(--muted-foreground)">{{ ev.location or '' }}</div>
                 </div>
               </div>
               {% endfor %}
-            {% else %}
-              {{ empty_state('No tienes contribuciones pendientes de revisión.', 'fa-solid fa-check') }}
             {% endif %}
-            <div class="grid grid-cols-2 gap-2 mt-1">
-              <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">Ver mis aportes →</a>
-              <a href="{{ url_for('web.estudiante_contribuir') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded text-center">+ Agregar nueva</a>
-            </div>
           </div>
         </div>
       </div>
@@ -160,22 +150,18 @@
         </div>
         {% if mis_aportes | length > 0 %}
         <div class="flex flex-col gap-3">
-          {% for item in mis_aportes | sort(attribute='date', reverse=true) %}
+          {% for item in mis_aportes[:5] %}
           <div class="museum-card rounded p-4 flex items-start gap-4">
-            <img src="{{ item.image }}" alt="{{ item.title }}" class="w-16 h-16 rounded object-cover flex-shrink-0" />
+            {% if item.imagen %}<img src="{{ item.imagen }}" alt="{{ item.titulo }}" class="w-16 h-16 rounded object-cover flex-shrink-0">{% endif %}
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                {% from 'components/macros.html' import category_badge, tag_list %}
-                {{ category_badge(item.category) }}
-                {{ status_badge(item.status) }}
-                <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ item.date | fmt_fecha }}</span>
+                {{ category_badge(item.categoria) }}
+                {{ status_badge(item.estado) }}
+                <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ item.fecha | fmt_fecha }}</span>
               </div>
-              <h4 class="font-serif font-semibold text-sm mb-1 line-clamp-1" style="color:var(--card-foreground)">{{ item.title }}</h4>
-              <p class="text-xs line-clamp-2" style="color:var(--muted-foreground)">{{ item.description }}</p>
+              <h4 class="font-serif font-semibold text-sm mb-1 line-clamp-1" style="color:var(--card-foreground)">{{ item.titulo }}</h4>
+              <p class="text-xs line-clamp-2" style="color:var(--muted-foreground)">{{ item.descripcion }}</p>
             </div>
-            <button type="button" class="fav-toggle flex-shrink-0 self-center w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
-              <span data-fav-icon><i class="fa-regular fa-heart"></i></span>
-            </button>
           </div>
           {% endfor %}
         </div>
@@ -185,6 +171,17 @@
         </div>
         {% endif %}
       </div>
+
+      <div class="mb-8">
+        <div class="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <h3 class="font-serif text-xl font-semibold" style="color:var(--card-foreground)">Contenido reciente del programa</h3>
+          <a href="{{ url_for('web.explorar') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver todo →</a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {% set publicados = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
+          {% for item in publicados[:3] %}{{ content_card(item) }}{% endfor %}
+        </div>
+      </div>
     </div>
   </div>
 
@@ -192,21 +189,4 @@
     <i class="fa-solid fa-arrow-up-from-bracket"></i> Contribuir
   </a>
 </div>
-<style>
-.page-wrap { padding-bottom: 5.5rem; }
-@media (min-width: 768px) { .page-wrap { padding-bottom: 2.5rem; } }
-.fab-contribuir { position: fixed; right: 1.25rem; bottom: 5.75rem; z-index: 45; box-shadow: 0 6px 20px var(--shadow-color); }
-@media (min-width: 768px) { .fab-contribuir { bottom: 1.5rem; } }
-</style>
-{% endblock %}
-{% block extra_js %}
-<script>
-(function () {
-  var deny = document.querySelector('[data-dismiss="banner-convocatoria"]');
-  if (deny) deny.addEventListener('click', function () { var b = document.getElementById('banner-convocatoria'); if (b) b.style.display = 'none'; });
-  var favCount = document.getElementById('fav-count');
-  if (favCount) favCount.textContent = (Museo.getFavs().length || 7);
-  Museo.bindFavButtons(document);
-})();
-</script>
 {% endblock %}

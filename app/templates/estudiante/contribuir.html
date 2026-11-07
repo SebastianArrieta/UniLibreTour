@@ -48,7 +48,7 @@
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-medium mb-1.5" for="inp-autor" style="color:var(--secondary-foreground)">Autor</label>
-                <input type="text" id="inp-autor" value="Ana Lucía Bermúdez" class="museum-input w-full px-3 py-2.5 rounded text-sm" />
+                <input type="text" id="inp-autor" value="{{ usuario.nombre if usuario else '' }}" class="museum-input w-full px-3 py-2.5 rounded text-sm" />
               </div>
               <div>
                 <label class="block text-xs font-medium mb-1.5" for="inp-teacher" style="color:var(--secondary-foreground)">Docente Involucrado *</label>
@@ -165,7 +165,7 @@
       id: 'prev-' + Date.now(),
       title: val('inp-title') || 'Título de la contribución',
       category: val('inp-category') || 'investigacion',
-      author: val('inp-autor') || 'Ana Lucía Bermúdez',
+      author: val('inp-autor') || 'Autor',
       date: new Date().toISOString().slice(0, 10),
       status: 'pendiente',
       description: val('inp-desc') || 'Describe el contenido y relevancia de esta contribución…',

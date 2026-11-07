@@ -90,5 +90,22 @@ def _migrar_columnas_faltantes() -> None:
                 with db.engine.begin() as conn:
                     conn.execute(text("ALTER TABLE contenidos ADD COLUMN docente_id INT NULL"))
                 print("[schema] columna contenidos.docente_id agregada")
+
+        if "favoritos" in inspector.get_table_names():
+            columnas = {c["name"] for c in inspector.get_columns("favoritos")}
+            if "created_at" not in columnas:
+                with db.engine.begin() as conn:
+                    if "fecha" in columnas:
+                        # Esquema antiguo: renombrar conservando los datos.
+                        conn.execute(text(
+                            "ALTER TABLE favoritos CHANGE COLUMN fecha created_at "
+                            "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                        ))
+                    else:
+                        conn.execute(text(
+                            "ALTER TABLE favoritos ADD COLUMN created_at "
+                            "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                        ))
+                print("[schema] columna favoritos.created_at normalizada")
     except Exception as exc:  # nunca bloquear el arranque por una migración
         print(f"[schema] no se pudo verificar/agregar columnas nuevas: {exc}")

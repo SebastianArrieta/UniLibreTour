@@ -4,10 +4,8 @@
 {% from 'components/sidebar.html' import sidebar_for %}
 {% from 'components/macros.html' import empty_state, status_badge, category_badge, tag_list, page_nav %}
 
-{% set todo = contentItems + contentQueue %}
-{% set mis_aportes = ((todo | selectattr('author', 'equalto', 'Ana Lucía Bermúdez') | list) + (todo | selectattr('submittedBy', 'equalto', 'Ana Lucía Bermúdez') | list)) | unique(attribute='id') | list | sort(attribute='date', reverse=true) %}
 {% set ap_pub = mis_aportes | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
-{% set ap_pend = mis_aportes | selectattr('status', 'equalto', 'pendiente') | list %}
+{% set ap_pend = mis_aportes | selectattr('status', 'in', ['pendiente', 'revision_docente']) | list %}
 {% set ap_dev = mis_aportes | selectattr('status', 'equalto', 'devuelto') | list %}
 <style>
 .page-wrap { padding-bottom: 5.5rem; }
@@ -101,7 +99,7 @@
   function fits(status, f) {
     if (f === 'todos') return true;
     if (f === 'publicados') return status === 'publicado' || status === 'institucional';
-    if (f === 'pendientes') return status === 'pendiente';
+    if (f === 'pendientes') return status === 'pendiente' || status === 'revision_docente';
     if (f === 'devueltos') return status === 'devuelto';
     return true;
   }

@@ -15,6 +15,7 @@ from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 from app.extensions import db
 from app.middleware.auth import web_role_required
 from app.models.contenido import Contenido
+from app.models.interaccion import Comentario
 from app.models.usuario import Usuario
 from app.services import contenido as contenido_svc
 from app.services import favoritos as favoritos_svc
@@ -93,6 +94,34 @@ def _usuario_sesion_opcional() -> Usuario | None:
         return None
 
 
+def _datos_personales(usuario: Usuario | None) -> dict:
+    """Datos reales del usuario para dashboards y perfil."""
+    if not usuario:
+        return {
+            "usuario": None,
+            "mis_aportes": [],
+            "aportes_publicados": 0,
+            "favoritos_count": 0,
+            "comentarios_count": 0,
+            "insignias": [],
+        }
+    aportes = (
+        Contenido.query.filter_by(creador_id=usuario.id)
+        .order_by(Contenido.id.desc())
+        .all()
+    )
+    return {
+        "usuario": usuario,
+        "mis_aportes": aportes,
+        "aportes_publicados": sum(
+            1 for c in aportes if c.estado in ("publicado", "institucional")
+        ),
+        "favoritos_count": len(favoritos_svc.ids_de(usuario.id)),
+        "comentarios_count": Comentario.query.filter_by(usuario_id=usuario.id).count(),
+        "insignias": [ui.insignia for ui in usuario.insignias if ui.insignia],
+    }
+
+
 # -----------------------------------------------------------------------------
 # Vistas Públicas
 # -----------------------------------------------------------------------------
@@ -153,12 +182,15 @@ def ranking():
 @web_bp.get("/perfil")
 @web_role_required()
 def perfil():
-    return render_template("publico/perfil.html", **_ctx("perfil"))
+    usuario = _usuario_actual()
+    return render_template("publico/perfil.html", **_ctx("perfil", **_datos_personales(usuario)))
 
 
 @web_bp.get("/egresado")
+@web_role_required("egresado", "admin")
 def egresado():
-    return render_template("publico/egresado.html", **_ctx("egresado"))
+    usuario = _usuario_actual()
+    return render_template("publico/egresado.html", **_ctx("egresado", **_datos_personales(usuario)))
 
 
 # -----------------------------------------------------------------------------
@@ -194,13 +226,29 @@ def mi_espacio():
 @web_bp.get("/estudiante")
 @web_role_required("estudiante", "admin")
 def estudiante():
-    return render_template("estudiante/dashboard.html", **_ctx("est-dashboard"))
+    usuario = _usuario_actual()
+    return render_template(
+        "estudiante/dashboard.html",
+        eventos=museo.eventos()[:3],
+        **_ctx("est-dashboard", **_datos_personales(usuario)),
+    )
 
 
 @web_bp.get("/estudiante/aportes")
 @web_role_required("estudiante", "egresado", "admin")
 def estudiante_aportes():
-    return render_template("estudiante/aportes.html", **_ctx("est-aportes"))
+    usuario = _usuario_actual()
+    items = (
+        Contenido.query.filter_by(creador_id=usuario.id)
+        .order_by(Contenido.id.desc())
+        .all()
+        if usuario else []
+    )
+    return render_template(
+        "estudiante/aportes.html",
+        mis_aportes=[museo.contenido_dict(c) for c in items],
+        **_ctx("est-aportes"),
+    )
 
 
 @web_bp.get("/estudiante/favoritos")
@@ -221,7 +269,11 @@ def estudiante_favoritos():
 @web_bp.get("/estudiante/contribuir")
 @web_role_required("estudiante", "egresado", "admin")
 def estudiante_contribuir():
-    return render_template("estudiante/contribuir.html", **_ctx("est-contribuir"))
+    return render_template(
+        "estudiante/contribuir.html",
+        usuario=_usuario_actual(),
+        **_ctx("est-contribuir"),
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -279,7 +331,14 @@ def docente_evidencia():
 @web_bp.get("/docente/notificaciones")
 @web_role_required("docente", "admin")
 def docente_notificaciones():
-    return render_template("docente/notificaciones.html", **_ctx("doc-notificaciones"))
+    usuario = _usuario_actual()
+    notifs = notificacion_svc.listar(usuario.id) if usuario else []
+    return render_template(
+        "docente/notificaciones.html",
+        notifs=notifs,
+        notifs_sin_leer=sum(1 for n in notifs if not n.leido),
+        **_ctx("doc-notificaciones"),
+    )
 
 
 # -----------------------------------------------------------------------------

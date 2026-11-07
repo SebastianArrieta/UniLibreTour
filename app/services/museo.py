@@ -94,7 +94,14 @@ def _contenido_dict(c: Contenido) -> dict:
     }
     if c.creador is not None:
         d["submittedBy"] = c.creador.nombre
+    if c.observaciones:
+        d["reviewNote"] = c.observaciones
     return d
+
+
+def contenido_dict(c: Contenido) -> dict:
+    """Forma del contrato para una pieza concreta (incluye devueltas)."""
+    return _contenido_dict(c)
 
 
 def contenidos() -> list[dict]:

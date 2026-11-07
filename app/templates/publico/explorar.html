@@ -5,7 +5,12 @@
 {% set cat = request.args.get('cat', '') %}
 {% set nid = request.args.get('news', '') %}
 {% set labels = {'noticias': 'Noticias', 'historia': 'Historia', 'investigacion': 'Investigación', 'proyectos': 'Proyectos', 'eventos': 'Eventos', 'logros': 'Logros', 'docentes': 'Docentes', 'galeria': 'Galería Histórica', 'egresados': 'Egresados Destacados', 'premios': 'Premios'} %}
-{% set cats = [('', 'fa-solid fa-layer-group', 'Todo', contentItems | length), ('noticias', 'fa-solid fa-newspaper', 'Noticias', news | length), ('historia', 'fa-solid fa-landmark', 'Historia', 142), ('investigacion', 'fa-solid fa-microscope', 'Investigación', 318), ('proyectos', 'fa-solid fa-graduation-cap', 'Proyectos', 527), ('eventos', 'fa-solid fa-calendar-days', 'Eventos', 203), ('logros', 'fa-solid fa-trophy', 'Logros', 89), ('docentes', 'fa-solid fa-chalkboard-user', 'Docentes', 74), ('galeria', 'fa-solid fa-images', 'Galería Histórica', 120), ('egresados', 'fa-solid fa-user-graduate', 'Egresados Destacados', 6), ('premios', 'fa-solid fa-award', 'Premios', 5)] %}
+{% set counts = namespace(map={}) %}
+{% for item in contentItems if item.status in ['publicado', 'institucional'] %}
+  {% set _ = counts.map.update({item.category: counts.map.get(item.category, 0) + 1}) %}
+{% endfor %}
+{% set total_publicado = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | list | length %}
+{% set cats = [('', 'fa-solid fa-layer-group', 'Todo', total_publicado), ('noticias', 'fa-solid fa-newspaper', 'Noticias', news | length), ('historia', 'fa-solid fa-landmark', 'Historia', counts.map.get('historia', 0)), ('investigacion', 'fa-solid fa-microscope', 'Investigación', counts.map.get('investigacion', 0)), ('proyectos', 'fa-solid fa-graduation-cap', 'Proyectos', counts.map.get('proyectos', 0)), ('eventos', 'fa-solid fa-calendar-days', 'Eventos', counts.map.get('eventos', 0)), ('logros', 'fa-solid fa-trophy', 'Logros', counts.map.get('logros', 0)), ('docentes', 'fa-solid fa-chalkboard-user', 'Docentes', counts.map.get('docentes', 0)), ('galeria', 'fa-solid fa-images', 'Galería Histórica', counts.map.get('galeria', 0)), ('egresados', 'fa-solid fa-user-graduate', 'Egresados Destacados', counts.map.get('egresados', 0)), ('premios', 'fa-solid fa-award', 'Premios', counts.map.get('premios', 0))] %}
 {% if cat %}
   {% set filtered = contentItems | selectattr('category', 'equalto', cat) | list %}
 {% else %}

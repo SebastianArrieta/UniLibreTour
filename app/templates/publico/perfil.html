@@ -1,7 +1,13 @@
 {% extends "base.html" %}
-{% from 'components/macros.html' import page_nav %}
+{% from 'components/macros.html' import page_nav, status_badge, category_badge, empty_state %}
 {% block title %}Mi Perfil — UniLibreTour{% endblock %}
 {% block content %}
+{% set rol_labels = {'estudiante': 'Estudiante', 'docente': 'Docente', 'egresado': 'Egresado', 'admin': 'Admin', 'visitante': 'Visitante'} %}
+{% set pts = usuario.puntos if usuario else 0 %}
+{% set nivel = [((pts // pointsPerLevel) + 1), maxLevel] | min %}
+{% set pts_nivel = pts - (nivel - 1) * pointsPerLevel %}
+{% set pct = 100 if nivel >= maxLevel else ((pts_nivel / pointsPerLevel) * 100) %}
+
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
     {{ page_nav([('Inicio', url_for('web.home')), ('Mi Perfil', '')], back_url=url_for('web.home'), back_label='Inicio') }}
     <div class="mb-8">
@@ -10,245 +16,161 @@
         <p class="mt-2 text-base" style="color:var(--muted-foreground)">Tu información dentro de Herencia Digital.</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-8 items-start">
+    {% if usuario %}
+    <div class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8 items-start">
         <div class="flex flex-col gap-6 min-w-0">
-            <div id="perfil-usuario"></div>
-            <div id="perfil-bio"></div>
-            <div id="perfil-progreso"></div>
-            <div id="perfil-grupo"></div>
-            <div id="perfil-egresado"></div>
+            <div class="museum-card rounded p-6 text-center">
+                <div class="w-24 h-24 rounded-full mx-auto flex items-center justify-center font-serif text-4xl font-bold"
+                     style="background:var(--primary-soft);color:var(--primary);border:2px solid var(--primary-border)">
+                    {{ usuario.nombre[0] | upper }}
+                </div>
+                <h2 id="perfil-nombre" class="font-serif text-xl font-bold mt-3" style="color:var(--foreground)">{{ usuario.nombre }}</h2>
+                <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
+                    <span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">{{ rol_labels.get(usuario.rol, usuario.rol) }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:{{ 'var(--gold-soft)' if usuario.estado == 'activo' else 'var(--brown-soft)' }};color:{{ 'var(--gold)' if usuario.estado == 'activo' else 'var(--brown)' }}">{{ usuario.estado | capitalize }}</span>
+                </div>
+                <div class="text-sm mt-3" style="color:var(--muted-foreground)">
+                    <div>{{ usuario.email }}</div>
+                    {% if usuario.created_at %}
+                    <div class="text-xs mt-1">Miembro desde {{ usuario.created_at.strftime('%B %Y') }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="museum-card rounded p-5">
+                <h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Editar nombre</h3>
+                <form id="perfil-form" class="flex flex-col gap-3">
+                    <label class="text-xs" for="perfil-input-nombre" style="color:var(--secondary-foreground)">Nombre visible</label>
+                    <input id="perfil-input-nombre" type="text" maxlength="100" required value="{{ usuario.nombre }}"
+                           class="museum-input w-full px-3 py-2 rounded text-sm">
+                    <span id="perfil-feedback" class="text-xs" style="display:none"></span>
+                    <button type="submit" class="btn-primary px-4 py-2 rounded text-sm font-semibold">Guardar cambios</button>
+                </form>
+            </div>
+
+            <div class="museum-card rounded p-5">
+                <h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Nivel y puntos</h3>
+                <div class="flex items-baseline justify-between">
+                    <span class="font-serif text-4xl font-black" style="color:var(--gold)">{{ nivel }}</span>
+                    <span class="text-sm" style="color:var(--muted-foreground)">/ {{ maxLevel }}</span>
+                </div>
+                <div class="h-2.5 rounded-full mt-3" style="background:var(--surface-2)">
+                    <div class="h-full rounded-full" style="width:{{ pct }}%;background:var(--gold)"></div>
+                </div>
+                <div class="flex items-center justify-between text-xs mt-2 font-mono" style="color:var(--muted-foreground)">
+                    <span>{{ '{:,.0f}'.format(pts) | replace(',', '.') }} pts</span>
+                    <span>Nivel {{ nivel }}</span>
+                </div>
+            </div>
+
+            {% if usuario.rol == 'egresado' or usuario.anio_grado or usuario.cargo_actual or usuario.semillero %}
+            <div class="museum-card rounded p-5 text-sm" style="color:var(--secondary-foreground)">
+                <h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Trayectoria</h3>
+                <div class="flex flex-col gap-2">
+                    {% if usuario.anio_grado %}<div class="flex justify-between gap-3"><span style="color:var(--muted-foreground)">Graduación</span><span>{{ usuario.anio_grado }}</span></div>{% endif %}
+                    {% if usuario.cargo_actual %}<div class="flex justify-between gap-3"><span style="color:var(--muted-foreground)">Cargo</span><span class="text-right">{{ usuario.cargo_actual }}</span></div>{% endif %}
+                    {% if usuario.semillero %}<div class="flex justify-between gap-3"><span style="color:var(--muted-foreground)">Semillero</span><span class="text-right">{{ usuario.semillero.nombre }}</span></div>{% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
-        <div class="flex-1 min-w-0 flex flex-col gap-8">
-            <div id="perfil-badges"></div>
-            <div id="perfil-logros"></div>
+        <div class="flex flex-col gap-8 min-w-0">
+            <div class="museum-card rounded p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Insignias</h3>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--gold-soft);color:var(--gold)">{{ insignias | length }}</span>
+                </div>
+                {% if insignias | length == 0 %}
+                    {{ empty_state('Aún no tienes insignias. Participa para conseguirlas.', 'fa-solid fa-medal') }}
+                {% else %}
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {% for ins in insignias %}
+                    <div class="flex flex-col items-center justify-center gap-1.5 p-3 rounded text-center" style="background:var(--gold-soft);border:1px solid var(--gold-border)">
+                        <span class="h-7 flex items-center justify-center" style="color:var(--gold)">
+                            {% if ins.icono and 'fa-' in ins.icono %}<i class="{{ ins.icono }} text-lg"></i>{% else %}<i class="fa-solid fa-medal text-lg"></i>{% endif %}
+                        </span>
+                        <span class="text-xs font-medium line-clamp-1" style="color:var(--gold)">{{ ins.nombre }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
             <div>
-                <h3 id="perfil-aportes-title" class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Mis aportes</h3>
-                <div id="perfil-aportes"></div>
+                <div class="flex items-end justify-between mb-4 gap-4 flex-wrap">
+                    <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Mis aportes</h3>
+                    <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver todos →</a>
+                </div>
+                {% if mis_aportes | length == 0 %}
+                <div class="museum-card rounded p-4">
+                    {{ empty_state('Aún no has realizado contribuciones.', 'fa-solid fa-folder-open') }}
+                </div>
+                {% else %}
+                <div class="flex flex-col gap-3">
+                    {% for item in mis_aportes[:6] %}
+                    <div class="museum-card rounded p-4 flex items-start gap-4">
+                        {% if item.imagen %}<img src="{{ item.imagen }}" alt="{{ item.titulo }}" class="w-14 h-14 rounded object-cover flex-shrink-0">{% endif %}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                {{ category_badge(item.categoria) }}
+                                {{ status_badge(item.estado) }}
+                                <span class="text-xs font-mono ml-auto" style="color:var(--muted-foreground)">{{ item.fecha | fmt_fecha }}</span>
+                            </div>
+                            <div class="text-sm font-medium line-clamp-1" style="color:var(--card-foreground)">{{ item.titulo }}</div>
+                        </div>
+                        {% if item.estado in ('publicado', 'institucional') %}
+                        <a href="{{ url_for('web.detalle', cid=item.id) }}" class="text-xs btn-outline-primary px-3 py-1.5 rounded flex-shrink-0">Ver</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="museum-card rounded p-8 text-center">
+        <p class="text-sm" style="color:var(--muted-foreground)">Inicia sesión para ver tu perfil.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-window.__DATOS = {{ datos | tojson }};
-window.__RANKING_URL = "{{ url_for('web.ranking') }}";
-window.__LOGIN_URL = "{{ url_for('web.login') }}";
-window.__PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format";
-</script>
-<script>
 (function () {
-    var D = window.__DATOS || {};
-    var UIw = window.UI;
-    var esc = UIw.esc;
-    var ROLE_LABEL = {
-        visitante: 'Visitante', estudiante: 'Estudiante', docente: 'Docente', admin: 'Admin', egresado: 'Egresado'
-    };
-    var STATUS = {
-        activo: { label: 'Activo', color: 'var(--gold)', bg: 'var(--gold-soft)' },
-        pendiente: { label: 'Pendiente de aprobación', color: 'var(--brown)', bg: 'var(--brown-soft)' },
-        inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'var(--surface-1)' }
-    };
-    var ROLE_EMAIL = {
-        estudiante: 'ana.bermudez@unilibre.edu.co',
-        egresado: 'egresado@unilibre.edu.co',
-        docente: 'h.casas@unilibre.edu.co',
-        admin: 'admin@unilibre.edu.co'
-    };
-    var CATEGORY_ICON = { premio: 'fa-solid fa-trophy', certificacion: 'fa-solid fa-certificate', reconocimiento: 'fa-solid fa-handshake' };
+    var form = document.getElementById('perfil-form');
+    if (!form) return;
+    var input = document.getElementById('perfil-input-nombre');
+    var feedback = document.getElementById('perfil-feedback');
+    var nombreEl = document.getElementById('perfil-nombre');
+    var token = window.Museo && Museo.getToken ? Museo.getToken() : null;
+    var userId = {{ usuario.id if usuario else 'null' }};
 
-    function findSelf() {
-        var role = (window.Museo && Museo.role) || 'visitante';
-        var email = ROLE_EMAIL[role];
-        var user = null;
-        (D.users || []).forEach(function (u) { if (u.email === email) user = u; });
-        return user;
+    function aviso(msg, ok) {
+        if (!feedback) return;
+        feedback.textContent = msg;
+        feedback.style.display = 'block';
+        feedback.style.color = ok ? 'var(--gold)' : 'var(--primary)';
     }
 
-    function fmtJoin(iso) {
-        var d = new Date(iso + 'T00:00:00');
-        if (isNaN(d.getTime())) return '';
-        return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'long' });
-    }
-
-    function card(body, cls) {
-        return '<div class="museum-card rounded p-5 ' + (cls || '') + '">' + body + '</div>';
-    }
-
-    function renderUser(user) {
-        var el = document.getElementById('perfil-usuario');
-        var status = STATUS[user.status] || STATUS.inactivo;
-        var photo = user.photoUrl || window.__PHOTO;
-        el.innerHTML =
-            '<div class="museum-card rounded p-6 text-center">' +
-            '<div class="relative w-24 h-24 mx-auto">' +
-            '<img src="' + esc(photo) + '" alt="' + esc(user.name) + '" class="w-24 h-24 rounded-full object-cover" ' +
-            'style="border:2px solid var(--primary-border)">' +
-            '<div class="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-xs"' +
-            'style="background:var(--primary-solid);color:var(--primary-foreground);border:2px solid var(--card)" title="Foto de perfil"><i class="fa-solid fa-camera"></i></div>' +
-            '</div>' +
-            '<h2 class="font-serif text-xl font-bold mt-3" style="color:var(--foreground)">' + esc(user.name) + '</h2>' +
-            '<div class="flex flex-wrap items-center justify-center gap-2 mt-2">' +
-            '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:var(--brown-soft);color:var(--brown);border:1px solid var(--brown-border)">' + (ROLE_LABEL[user.role] || user.role) + '</span>' +
-            '<span class="text-xs px-2 py-0.5 rounded-full font-mono" style="background:' + status.bg + ';color:' + status.color + '">' + status.label + '</span>' +
-            '</div>' +
-            '<div class="text-sm mt-3" style="color:var(--muted-foreground)">' +
-            '<div>' + esc(user.email) + '</div>' +
-            '<div class="text-xs mt-1">Miembro desde ' + fmtJoin(user.joinDate) + '</div>' +
-            '</div></div>';
-    }
-
-    function renderBio(user) {
-        var el = document.getElementById('perfil-bio');
-        if (!user.bio) {
-            el.innerHTML = card(
-                '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Biografía</h3>' +
-                '<div class="text-center py-2">' +
-                '<p class="text-sm mb-2" style="color:var(--muted-foreground)">Todavía no has escrito tu biografía.</p>' +
-                '<button type="button" class="text-xs btn-primary px-4 py-1.5 rounded">Escribir biografía</button>' +
-                '</div>');
-            return;
-        }
-        el.innerHTML = card(
-            '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Biografía</h3>' +
-            '<p class="text-sm leading-relaxed" style="color:var(--secondary-foreground)">' + esc(user.bio) + '</p>');
-    }
-
-    function renderProgreso(user) {
-        var el = document.getElementById('perfil-progreso');
-        if (['estudiante', 'egresado', 'docente'].indexOf(user.role) === -1) { el.innerHTML = ''; return; }
-        var lvl = window.Museo.levelInfo(user.points || 0);
-        el.innerHTML = card(
-            '<div class="flex items-center justify-between mb-4 flex-wrap gap-2">' +
-            '<h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Progreso</h3>' +
-            '<a href="' + window.__RANKING_URL + '" class="text-xs btn-outline-primary px-3 py-1.5 rounded">Ver progreso →</a>' +
-            '</div>' +
-            '<div class="flex flex-wrap items-center gap-6">' +
-            '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Nivel</div>' +
-            '<div class="flex items-baseline gap-1"><span class="font-serif text-3xl font-black" style="color:var(--gold)">' + lvl.level + '</span>' +
-            '<span class="text-xs" style="color:var(--muted-foreground)">/ ' + lvl.maxLevel + '</span></div></div>' +
-            '<div><div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Puntos</div>' +
-            '<div class="font-serif text-xl font-bold" style="color:var(--foreground)">' + Number(user.points || 0).toLocaleString('es-CO') + '</div></div>' +
-            '</div>' +
-            '<div class="h-2.5 rounded-full mt-4" style="background:var(--surface-2)">' +
-            '<div class="h-full rounded-full transition-all duration-700" style="width:' + lvl.progressPct + '%;background:var(--gold)"></div></div>');
-    }
-
-    function renderGrupo(user) {
-        var el = document.getElementById('perfil-grupo');
-        if (user.role !== 'estudiante' && user.role !== 'docente') { el.innerHTML = ''; return; }
-        var group = null;
-        (D.researchGroups || []).forEach(function (g) { if (g.id === user.researchGroupId) group = g; });
-        var body = '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Grupo de Investigación / Semillero</h3>';
-        if (group) {
-            var leader = group.lead === user.name;
-            body += '<div class="flex items-center gap-3">' +
-                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)">' + (group.category === 'semillero' ? '<i class="fa-solid fa-microscope text-sm"></i>' : '<i class="fa-solid fa-flask text-sm"></i>') + '</div>' +
-                '<div><div class="text-sm font-serif font-semibold" style="color:var(--card-foreground)">' + esc(group.name) + '</div>' +
-                '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:' + (leader ? 'var(--gold-soft)' : 'var(--surface-2)') + ';color:' + (leader ? 'var(--gold)' : 'var(--muted-foreground)') + '">' + (leader ? 'Líder del grupo' : 'Miembro') + '</span></div></div>';
-        } else {
-            body += '<p class="text-sm" style="color:var(--muted-foreground)">No pertenece a ningún grupo de investigación o semillero todavía.</p>';
-        }
-        el.innerHTML = card(body);
-    }
-
-    function renderEgresado(user) {
-        var el = document.getElementById('perfil-egresado');
-        if (user.role !== 'egresado') { el.innerHTML = ''; return; }
-        var body = '<h3 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Trayectoria de Egresado</h3>' +
-            '<div class="flex flex-col gap-2 text-sm">';
-        if (user.graduationYear) {
-            body += '<div class="flex justify-between" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.5rem">' +
-                '<span style="color:var(--muted-foreground)">Año de grado</span><span style="color:var(--secondary-foreground)">' + user.graduationYear + '</span></div>';
-        }
-        if (user.currentPosition) {
-            body += '<div class="flex justify-between"><span style="color:var(--muted-foreground)">Cargo actual</span><span style="color:var(--secondary-foreground)">' + esc(user.currentPosition) + '</span></div>';
-        }
-        el.innerHTML = card(body + '</div>');
-    }
-
-    function renderBadges(user) {
-        var el = document.getElementById('perfil-badges');
-        var badges = D.badges || [];
-        var earnedIds = user.badgeIds || [];
-        var grid = badges.map(function (b) {
-            var earned = earnedIds.indexOf(b.id) !== -1;
-            var iconHtml = earned ? (b.icon && b.icon.indexOf('fa-') !== -1 ? '<i class="' + window.UI.esc(b.icon) + ' text-lg"></i>' : b.icon) : '<i class="fa-solid fa-lock text-sm opacity-40"></i>';
-            return '<div class="flex flex-col items-center justify-center gap-1.5 p-3 rounded text-center min-h-[85px]" style="background:' +
-                (earned ? 'var(--gold-soft)' : 'var(--surface-1)') +
-                ';border:1px solid ' + (earned ? 'var(--gold-border)' : 'var(--border-subtle)') +
-                ';opacity:' + (earned ? 1 : 0.45) + '">' +
-                '<span class="h-7 flex items-center justify-center" style="color:' + (earned ? 'var(--gold)' : 'var(--muted-foreground)') + '">' + iconHtml + '</span>' +
-                '<span class="text-xs font-medium text-center line-clamp-1" style="color:' + (earned ? 'var(--gold)' : 'var(--muted-foreground)') + '">' + esc(b.name) + '</span></div>';
-        }).join('');
-        el.innerHTML = card(
-            '<div class="flex items-center justify-between mb-4">' +
-            '<h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Insignias</h3>' +
-            '<span class="text-xs font-mono px-2 py-0.5 rounded" style="background:var(--gold-soft);color:var(--gold)">' + earnedIds.length + ' / ' + badges.length + '</span>' +
-            '</div>' +
-            '<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">' + grid + '</div>', 'p-5');
-    }
-
-    function renderLogros() {
-        var el = document.getElementById('perfil-logros');
-        var list = (D.achievements || []).map(function (a) {
-            var iconCls = CATEGORY_ICON[a.category] || 'fa-solid fa-trophy';
-            return '<div class="flex items-start gap-3" style="border-bottom:1px solid var(--border-subtle);padding-bottom:0.75rem">' +
-                '<div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background:var(--brown-soft);color:var(--brown)"><i class="' + iconCls + ' text-sm"></i></div>' +
-                '<div class="min-w-0">' +
-                '<div class="font-serif text-sm font-semibold" style="color:var(--card-foreground)">' + esc(a.title) + '</div>' +
-                '<div class="text-xs font-mono mt-0.5" style="color:var(--muted-foreground)">' + a.year + ' · ' + esc(a.institution) + '</div>' +
-                '<p class="text-xs mt-1 leading-relaxed" style="color:var(--secondary-foreground)">' + esc(a.description) + '</p>' +
-                '</div></div>';
-        }).join('');
-        if (!list) list = UIw.emptyState('Todavía no hay logros registrados.', 'fa-solid fa-trophy');
-        el.innerHTML = card(
-            '<h3 class="font-serif font-semibold mb-4" style="color:var(--card-foreground)">Logros y Reconocimientos</h3>' +
-            '<div class="flex flex-col gap-3">' + list + '</div>', 'p-5');
-    }
-
-    function renderAportes(user) {
-        var el = document.getElementById('perfil-aportes');
-        var title = document.getElementById('perfil-aportes-title');
-        var contribs = [];
-        var seen = {};
-        (D.contentItems || []).concat(D.contentQueue || []).forEach(function (item) {
-            if ((item.author === user.name || item.submittedBy === user.name) && !seen[item.id]) {
-                seen[item.id] = 1;
-                if (item.status === 'publicado' || item.status === 'institucional') contribs.push(item);
-            }
-        });
-        if (title) title.textContent = 'Mis aportes (' + contribs.length + ')';
-        if (!contribs.length) {
-            el.innerHTML = UIw.emptyState('Todavía no hay contribuciones registradas.', 'fa-solid fa-folder-open');
-            return;
-        }
-        el.innerHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">' +
-            contribs.map(function (i) { return UIw.contentCard(i, { showStatus: true }); }).join('') +
-            '</div>';
-    }
-
-    function renderEmpty() {
-        var areas = ['perfil-usuario', 'perfil-badges', 'perfil-logros', 'perfil-aportes'];
-        areas.forEach(function (id) {
-            var el = document.getElementById(id);
-            if (!el) return;
-            el.innerHTML = UIw.emptyState('Inicia sesión para ver tu perfil.', 'fa-solid fa-user');
-        });
-    }
-
-    var user = findSelf();
-    if (!user) { renderEmpty(); return; }
-    renderUser(user);
-    renderBio(user);
-    renderProgreso(user);
-    renderGrupo(user);
-    renderEgresado(user);
-    renderBadges(user);
-    renderLogros();
-    renderAportes(user);
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var nombre = (input.value || '').trim();
+        if (!nombre) { aviso('El nombre no puede estar vacío.', false); return; }
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        window.API.request('/api/usuarios/' + userId, 'PUT', { nombre: nombre }, token)
+            .then(function (data) {
+                if (nombreEl && data && data.nombre) nombreEl.textContent = data.nombre;
+                aviso('Nombre actualizado.', true);
+            })
+            .catch(function (err) {
+                aviso(err && err.message ? err.message : 'No se pudo guardar el nombre.', false);
+            })
+            .finally(function () { btn.disabled = false; });
+    });
 })();
 </script>
 {% endblock %}
