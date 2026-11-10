@@ -78,6 +78,25 @@ def crear_contenido(data: dict, usuario: Usuario, estado: str | None = None) -> 
             referencia_id=contenido.id,
         )
 
+    if not publicado:
+        if docente and estado == ESTADO_REVISION_DOCENTE:
+            mensaje_autor = (
+                f'Tu aporte "{contenido.titulo}" fue enviado a revisión de '
+                f'{docente.nombre}.'
+            )
+        else:
+            mensaje_autor = (
+                f'Tu aporte "{contenido.titulo}" fue registrado y está en la '
+                "cola de validación."
+            )
+        notificacion_svc.crear(
+            usuario.id,
+            mensaje_autor,
+            tipo="enviado",
+            referencia_tipo="contenido",
+            referencia_id=contenido.id,
+        )
+
     db.session.commit()
     return contenido
 
@@ -119,7 +138,7 @@ def decision_docente(
             notificacion_svc.crear(
                 contenido.creador_id,
                 f'Tu aporte "{contenido.titulo}" superó la revisión docente y espera la validación del administrador.',
-                tipo="aprobado",
+                tipo="avalado",
                 referencia_tipo="contenido",
                 referencia_id=contenido.id,
             )

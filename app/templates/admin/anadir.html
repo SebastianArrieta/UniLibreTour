@@ -299,7 +299,25 @@ window.__DATOS = {{ datos | tojson }};
 
   function activePanel() { return document.querySelector('.tab-panel[data-panel="' + activeTab + '"]'); }
 
-  function fd() { return new FormData(activePanel()); }
+  function fd() {
+    var data = new FormData();
+    activePanel().querySelectorAll('input, select, textarea').forEach(function (el) {
+      if (!el.name) return;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        if (el.checked) data.append(el.name, el.value);
+      } else {
+        data.append(el.name, el.value);
+      }
+    });
+    return data;
+  }
+
+  function resetActivePanel() {
+    activePanel().querySelectorAll('input, select, textarea').forEach(function (el) {
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+      else el.value = '';
+    });
+  }
 
   function categoryForPreview() {
     var tab = activeTab;
@@ -502,7 +520,7 @@ window.__DATOS = {{ datos | tojson }};
           } });
         }
         toast(TAB_LABEL[activeTab] + ': registro publicado');
-        activePanel().reset();
+        resetActivePanel();
         renderPreview();
       })
       .catch(function (err) {

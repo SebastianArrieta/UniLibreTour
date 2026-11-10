@@ -261,7 +261,7 @@ def estudiante():
 
 
 @web_bp.get("/estudiante/aportes")
-@web_role_required("estudiante", "egresado", "admin")
+@web_role_required("estudiante", "egresado", "docente", "admin")
 def estudiante_aportes():
     usuario = _usuario_actual()
     items = (
@@ -270,10 +270,12 @@ def estudiante_aportes():
         .all()
         if usuario else []
     )
+    es_docente = bool(usuario and usuario.rol == "docente")
     return render_template(
         "estudiante/aportes.html",
         mis_aportes=[museo.contenido_dict(c) for c in items],
-        **_ctx("est-aportes"),
+        area="docente" if es_docente else "estudiante",
+        **_ctx("doc-aportes" if es_docente else "est-aportes"),
     )
 
 

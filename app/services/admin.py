@@ -166,7 +166,10 @@ def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenid
         if data.get("fecha_publicacion"):
             contenido.fecha = data["fecha_publicacion"]
         tipo_notificacion = "aprobado"
-        mensaje = f'Tu contribución "{contenido.titulo}" fue aprobada y publicada.'
+        if contenido.estado == "institucional":
+            mensaje = f'Tu aporte "{contenido.titulo}" fue validado como óptimo y marcado como institucional.'
+        else:
+            mensaje = f'Tu aporte "{contenido.titulo}" fue validado como óptimo y publicado.'
         if data.get("mensaje"):
             mensaje = f"{mensaje} {data['mensaje'].strip()}"
 
