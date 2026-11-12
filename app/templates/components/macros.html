@@ -103,7 +103,7 @@
 {% endmacro %}
 
 {% macro stat_card(label, value, sub='', color='var(--foreground)') %}
-<div class="museum-card rounded p-5">
+<div class="museum-card rounded p-6">
     <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">{{ label }}</div>
     <div class="font-serif text-3xl font-bold" style="color:{{ color }}">{{ value }}</div>
     {% if sub %}<div class="text-xs mt-1" style="color:var(--muted-foreground)">{{ sub }}</div>{% endif %}

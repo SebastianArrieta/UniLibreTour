@@ -2,7 +2,7 @@
 {% block title %}Dashboard Admin — UniLibreTour{% endblock %}
 {% block extra_head %}
 <style>
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
     @media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 </style>
@@ -27,12 +27,12 @@
           </a>
         </div>
 
-        <div class="museum-card rounded p-5 mb-8">
-          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div class="museum-card rounded p-6 mb-10">
+          <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
             <h3 class="font-serif font-semibold flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-circle-plus text-xs" style="color:var(--brown)"></i> Añadir Información</h3>
             <span class="text-xs" style="color:var(--muted-foreground)">Se publica de inmediato en el museo</span>
           </div>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap gap-2.5">
             {% set accesos = [
               {'id': 'tab-timeline', 'icon': 'fa-solid fa-timeline', 'label': 'Línea de Tiempo'},
               {'id': 'tab-premio', 'icon': 'fa-solid fa-trophy', 'label': 'Premios y Reconocimientos'},
@@ -44,7 +44,7 @@
             ] %}
             {% for a in accesos %}
             <a href="{{ url_for('web.admin_anadir', _anchor='tab-' ~ a.id | replace('tab-','')) }}"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
+               class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all"
                style="background:var(--primary-soft);border:1px solid var(--border);color:var(--secondary-foreground)">
               <span class="flex items-center justify-center text-xs" style="color:var(--brown)">{% if 'fa-' in a.icon %}<i class="{{ a.icon }}"></i>{% else %}{{ a.icon }}{% endif %}</span>{{ a.label }}
             </a>
@@ -52,7 +52,7 @@
           </div>
         </div>
 
-        <div class="kpi-grid mb-8">
+        <div class="kpi-grid mb-10">
           {% from 'components/macros.html' import stat_card %}
           {{ stat_card('Total Piezas', '{:,}'.format(kpiData.totalContent).replace(',', '.')) }}
           {{ stat_card('Publicadas', '{:,}'.format(kpiData.published).replace(',', '.'), color='var(--gold)') }}
@@ -61,22 +61,23 @@
           {{ stat_card('Usuarios', '{:,}'.format(kpiData.activeUsers).replace(',', '.'), sub='activos') }}
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="museum-card rounded p-5 md:col-span-2">
-            <div class="flex items-center justify-between mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="museum-card rounded p-6 md:col-span-2">
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
               <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Contenido publicado por colección</h3>
               <span class="text-xs font-mono" style="color:var(--muted-foreground)">{{ kpiData.published or 0 }} publicadas</span>
             </div>
-            {% set cats = kpiData.porCategoria or [] %}
+            {% set cats = (kpiData.porCategoria or []) | sort(attribute='count', reverse=true) %}
             {% if cats %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+            <div class="grid grid-cols-1 gap-y-8">
               {% for c in cats %}
               <div>
-                <div class="flex justify-between text-xs mb-1" style="color:var(--muted-foreground)">
-                  <span>{{ c.label }}</span>
-                  <span class="font-mono">{{ c.count }}</span>
+                <div class="flex items-baseline justify-between gap-3 text-sm mb-2.5" style="color:var(--secondary-foreground)">
+                  <span class="font-medium truncate min-w-0">{{ c.label }}</span>
+                  <span class="font-mono text-xs flex-shrink-0" style="color:var(--muted-foreground)">{{ c.count }} · {{ c.pct }}%</span>
                 </div>
-                <div class="h-1.5 rounded-full" style="background:var(--surface-2)">
+                <div class="h-3 rounded-full" style="background:var(--surface-2)"
+                     role="img" aria-label="{{ c.label }}: {{ c.count }} piezas publicadas, {{ c.pct }}% del total">
                   <div class="h-full rounded-full transition-all duration-700"
                        style="width:{{ c.pct }}%;background:var(--brown)"></div>
                 </div>
@@ -88,14 +89,14 @@
             {% endif %}
           </div>
 
-          <div class="museum-card rounded p-5">
-            <div class="flex items-center justify-between mb-4">
+          <div class="museum-card rounded p-6">
+            <div class="flex items-center justify-between mb-6">
               <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Cola de Validación</h3>
               <a href="{{ url_for('web.admin_cola') }}" class="text-xs" style="color:var(--primary)">Ver todo</a>
             </div>
             {% for item in pendientes %}
-            <div class="flex items-center gap-3 mb-3">
-              <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+            <div class="flex items-center gap-3 mb-4">
+              <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-12 h-12 rounded object-cover flex-shrink-0">
               <div class="flex-1 min-w-0">
                 <div class="text-sm line-clamp-1" style="color:var(--secondary-foreground)">{{ item.title }}</div>
                 <div class="text-xs" style="color:var(--muted-foreground)">{{ item.submittedBy }}</div>
@@ -104,19 +105,19 @@
             </div>
             {% endfor %}
             {% if not pendientes %}
-            <div class="text-sm text-center py-6" style="color:var(--muted-foreground)">No hay piezas pendientes por validar</div>
+            <div class="text-sm text-center py-8" style="color:var(--muted-foreground)">No hay piezas pendientes por validar</div>
             {% endif %}
           </div>
 
-          <div class="museum-card rounded p-5">
-            <div class="flex items-center justify-between mb-4">
+          <div class="museum-card rounded p-6">
+            <div class="flex items-center justify-between mb-6">
               <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Usuarios Recientes</h3>
               <a href="{{ url_for('web.admin_usuarios') }}" class="text-xs" style="color:var(--primary)">Ver todos</a>
             </div>
             {% set recientes = (users | sort(attribute='joinDate', reverse=true) | list)[:4] %}
             {% for u in recientes %}
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
                    style="background:var(--brown-soft);color:var(--brown)">{{ u.name[0] }}</div>
               <div class="flex-1 min-w-0">
                 <div class="text-sm" style="color:var(--secondary-foreground)">{{ u.name }}</div>
