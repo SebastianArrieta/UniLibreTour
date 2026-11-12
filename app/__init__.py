@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 from flask import Flask, jsonify, request
+from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
 
 from app.config import config_by_name
@@ -74,6 +75,8 @@ def create_app(config_name: str | None = None) -> Flask:
 
     register_blueprints(app)
 
+    _init_swagger(app)
+
     @app.teardown_request
     def _rollback_en_error(exc):
         # No dejar la sesión SQLAlchemy sucia tras una petición fallida.
@@ -124,6 +127,86 @@ def create_app(config_name: str | None = None) -> Flask:
         return {"anio_actual": ahora.year, "hoy_iso": ahora.strftime("%Y-%m-%d")}
 
     return app
+
+
+def _init_swagger(app: Flask) -> None:
+    """Swagger UI (/apidocs) + spec OpenAPI 2.0 (/apispec_1.json).
+
+    Solo se documentan las rutas /api/*: las vistas HTML de web.py no
+    llevan docstring con '---' y además se descartan con rule_filter.
+    """
+    config = Swagger.DEFAULT_CONFIG.copy()
+    config.update({
+        "title": "UniLibreTour API",
+        "description": (
+            "API REST del museo digital universitario UniLibreTour. "
+            "Autenticación JWT: pulsa Authorize y pega el access_token "
+            "devuelto por POST /api/auth/login."
+        ),
+        "version": "1.0.0",
+        "uiversion": 3,
+        "doc_expansion": "list",
+        "specs": [{
+            "endpoint": "apispec_1",
+            "route": "/apispec_1.json",
+            "rule_filter": lambda rule: rule.rule.startswith("/api"),
+            "model_filter": lambda model: True,
+        }],
+    })
+    Swagger(app, config=config, template={
+        "securityDefinitions": {
+            "Bearer": {
+                "type": "apiKey",
+                "name": "Authorization",
+                "in": "header",
+                "description": "JWT de login: Bearer <access_token>",
+            }
+        },
+        "definitions": {
+            "LoginRequest": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                    "email": {"type": "string", "format": "email"},
+                    "password": {"type": "string", "format": "password"},
+                },
+            },
+            "UsuarioCreate": {
+                "type": "object",
+                "required": ["nombre", "email", "password", "rol"],
+                "properties": {
+                    "nombre": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "email": {"type": "string", "format": "email"},
+                    "password": {"type": "string", "format": "password", "minLength": 6},
+                    "rol": {"type": "string", "enum": ["admin", "docente", "estudiante", "egresado"]},
+                },
+            },
+            "UsuarioUpdate": {
+                "type": "object",
+                "properties": {
+                    "nombre": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "email": {"type": "string", "format": "email"},
+                    "rol": {"type": "string", "enum": ["admin", "docente", "estudiante", "egresado"]},
+                },
+            },
+            "ContenidoCreate": {
+                "type": "object",
+                "required": ["title", "category", "description"],
+                "properties": {
+                    "title": {"type": "string", "minLength": 3, "maxLength": 200},
+                    "category": {"type": "string", "minLength": 1, "maxLength": 100},
+                    "description": {"type": "string", "minLength": 10},
+                },
+            },
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "ok": {"type": "boolean", "example": False},
+                    "error": {"type": "string"},
+                },
+            },
+        },
+    })
 
 
 def _es_api() -> bool:

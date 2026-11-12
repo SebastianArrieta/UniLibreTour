@@ -12,6 +12,7 @@ Ingeniería de Sistemas — Universidad Libre. Aplicación monolítica **Flask**
 | ORM | Flask-SQLAlchemy 3.1 (SQLAlchemy 2.x) |
 | Base de datos | MySQL 8.0 (SQLite válido para pruebas) |
 | Validación | Marshmallow 4 |
+| Documentación | Flasgger (Swagger UI / OpenAPI) en `/apidocs` |
 | Autenticación | Flask-JWT-Extended 4.7 (JWT + roles + 2FA) |
 | Frontend | Jinja2 + CSS + JavaScript vanilla |
 | Contenedores | Docker + Docker Compose |
@@ -93,7 +94,8 @@ docker compose up --build -d
 4. Los estudiantes aportan contenido → revisión docente → validación del admin → publicado.
 
 - Health check (incluye la BD): <http://localhost:5000/api/health>
-- La BD no publica puertos fuera de Docker.
+- Documentación Swagger/OpenAPI: <http://localhost:5000/apidocs>
+- La BD publica el puerto 3306 en el host (si está ocupado, usa `3307:3306`).
 - `JWT_COOKIE_SECURE=1` exige HTTPS (pon la app detrás de un proxy con TLS). Para
   probar por HTTP en tu máquina usa `JWT_COOKIE_SECURE=0`.
 
@@ -147,6 +149,10 @@ python run.py
 
 ## Endpoints de la API
 
+> Documentación interactiva en **<http://localhost:5000/apidocs>** (Swagger UI,
+> spec OpenAPI en `/apispec_1.json`). Pulsa **Authorize** y pega el
+> `access_token` del login para probar los endpoints protegidos.
+
 ### Autenticación
 
 | Método | Ruta | Descripción | Auth |
@@ -165,6 +171,7 @@ python run.py
 | GET | `/api/usuarios/<id>` | Obtener usuario | propio o admin |
 | POST | `/api/usuarios` | Crear usuario | admin |
 | PUT | `/api/usuarios/<id>` | Actualizar (`nombre` propio) | propio o admin |
+| PATCH | `/api/usuarios/<id>` | Actualización parcial (solo campos enviados) | propio o admin |
 | DELETE | `/api/usuarios/<id>` | Eliminar usuario | admin |
 
 ### Museo
