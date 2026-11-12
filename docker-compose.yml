@@ -4,20 +4,27 @@ services:
     image: docker.io/library/mysql:8.0
     container_name: unilibretour-db
     restart: unless-stopped
+    # Puerto publicado en el host para clientes externos (HeidiSQL/Workbench).
+    # Si tu MySQL local ya usa el 3306, cambia el host a 3307: "3307:3306".
+    ports:
+      - "3306:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-unilibretour_db}
       MYSQL_USER: ${MYSQL_USER:-unilibretour}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en .env}
-    # Sin puerto publicado: la BD solo es accesible desde la red interna de Docker.
     volumes:
       - mysql-data:/var/lib/mysql
       - ./database/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       # Por TCP: durante la inicialización MySQL solo escucha por socket local,
       # así el servidor no arranca hasta que la BD acepta conexiones reales.
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --protocol=tcp -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 --protocol=tcp -uroot -p$$MYSQL_ROOT_PASSWORD --silent",
+        ]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -53,7 +60,13 @@ services:
         condition: service_healthy
     healthcheck:
       # Python ya está en la imagen (no hay curl); /api/health toca la BD.
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=3)"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=3)",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

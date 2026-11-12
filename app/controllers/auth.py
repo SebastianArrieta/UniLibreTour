@@ -162,6 +162,53 @@ def _claims_desafio():
 
 @auth_bp.post("/login")
 def login():
+    """Iniciar sesión (JWT + cookie de sesión)
+    ---
+    tags: [Autenticación]
+    summary: Valida credenciales y devuelve access_token
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/LoginRequest'
+    responses:
+      200:
+        description: Sesión iniciada (o desafío 2FA si la cuenta lo requiere)
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+              example: true
+            data:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                requires_2fa:
+                  type: boolean
+                pending_token:
+                  type: string
+                usuario:
+                  type: object
+      400:
+        description: Payload inválido (validación Marshmallow)
+        schema:
+          $ref: '#/definitions/Error'
+      401:
+        description: Credenciales inválidas
+        schema:
+          $ref: '#/definitions/Error'
+      403:
+        description: Cuenta pendiente de aprobación
+        schema:
+          $ref: '#/definitions/Error'
+      429:
+        description: Demasiados intentos fallidos
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         data = login_schema.load(request.get_json(silent=True) or {})
     except ValidationError as err:
@@ -197,6 +244,50 @@ def login():
 
 @auth_bp.post("/2fa/verify")
 def verificar_2fa():
+    """Verificar el código del segundo factor (2FA)
+    ---
+    tags: [Autenticación]
+    summary: Intercambia el token de desafío + código por la sesión completa
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: Bearer <pending_token> devuelto por /api/auth/login
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [codigo]
+          properties:
+            codigo:
+              type: string
+              description: Código de 6 dígitos enviado por correo
+    responses:
+      200:
+        description: Verificación correcta - sesión completa con access_token
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            data:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                usuario:
+                  type: object
+      401:
+        description: Código incorrecto o token de desafío inválido (devuelve intentos restantes)
+        schema:
+          $ref: '#/definitions/Error'
+      429:
+        description: Demasiados intentos o códigos solicitados
+        schema:
+          $ref: '#/definitions/Error'
+    """
     datos = request.get_json(silent=True) or {}
     codigo = str(datos.get("codigo", "")).strip()
 
@@ -234,6 +325,40 @@ def verificar_2fa():
 
 @auth_bp.post("/2fa/resend")
 def reenviar_2fa():
+    """Reenviar el código 2FA por correo
+    ---
+    tags: [Autenticación]
+    summary: Emite un nuevo código sin reiniciar el contador de intentos
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: Bearer <pending_token>
+    responses:
+      200:
+        description: Nuevo desafío con código enviado (o dev_code en desarrollo)
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            data:
+              type: object
+              properties:
+                pending_token:
+                  type: string
+                dev_code:
+                  type: string
+      401:
+        description: Token de desafío inválido
+        schema:
+          $ref: '#/definitions/Error'
+      429:
+        description: Límite de reenvíos o intentos alcanzado
+        schema:
+          $ref: '#/definitions/Error'
+    """
     par, error = _claims_desafio()
     if error:
         return error
@@ -269,6 +394,31 @@ def _tokens_crudos() -> list[str]:
 
 @auth_bp.post("/logout")
 def logout():
+    """Cerrar sesión y revocar el token
+    ---
+    tags: [Autenticación]
+    summary: Revoca el JWT (header o cookie) y borra la cookie de sesión
+    parameters:
+      - in: header
+        name: Authorization
+        required: false
+        type: string
+        description: Bearer <access_token> (opcional; también lee la cookie)
+    responses:
+      200:
+        description: Sesión cerrada
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            data:
+              type: object
+              properties:
+                mensaje:
+                  type: string
+                  example: Sesión cerrada
+    """
     for token in _tokens_crudos():
         try:
             claims = decode_token(token)
@@ -284,6 +434,31 @@ def logout():
 @auth_bp.get("/me")
 @jwt_required()
 def me():
+    """Perfil de la sesión actual
+    ---
+    tags: [Autenticación]
+    summary: Devuelve el usuario dueño del JWT enviado
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Perfil del usuario autenticado
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            data:
+              type: object
+      401:
+        description: Sin token o token expirado
+        schema:
+          $ref: '#/definitions/Error'
+      404:
+        description: Usuario no encontrado
+        schema:
+          $ref: '#/definitions/Error'
+    """
     usuario = db.session.get(Usuario, int(get_jwt_identity()))
     if not usuario:
         return json_error("Usuario no encontrado", 404)

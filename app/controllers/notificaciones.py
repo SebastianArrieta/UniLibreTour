@@ -19,12 +19,59 @@ def _usuario_id() -> int:
 @notificaciones_bp.get("")
 @jwt_required()
 def listar():
+    """Listar notificaciones del usuario
+    ---
+    tags: [Notificaciones]
+    summary: Avisos del usuario autenticado
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Lista de notificaciones
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            data:
+              type: array
+              items:
+                type: object
+      401:
+        description: Sin token
+        schema:
+          $ref: '#/definitions/Error'
+    """
     return json_ok([n.to_dict() for n in notificacion_svc.listar(_usuario_id())])
 
 
 @notificaciones_bp.put("/leidas")
 @jwt_required()
 def marcar_todas():
+    """Marcar todas como leídas
+    ---
+    tags: [Notificaciones]
+    summary: Pone leídas todas las notificaciones del usuario
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Número de notificaciones actualizadas
+        schema:
+          type: object
+          properties:
+            ok:
+              type: boolean
+            data:
+              type: object
+              properties:
+                actualizadas:
+                  type: integer
+      401:
+        description: Sin token
+        schema:
+          $ref: '#/definitions/Error'
+    """
     actualizadas = notificacion_svc.marcar_todas(_usuario_id())
     return json_ok({"actualizadas": actualizadas})
 
@@ -32,6 +79,44 @@ def marcar_todas():
 @notificaciones_bp.put("/<int:notificacion_id>")
 @jwt_required()
 def marcar(notificacion_id: int):
+    """Marcar una notificación como leída o no leída
+    ---
+    tags: [Notificaciones]
+    summary: Cambia el estado de una notificación concreta
+    security:
+      - Bearer: []
+    parameters:
+      - in: path
+        name: notificacion_id
+        required: true
+        type: integer
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required: [leido]
+          properties:
+            leido:
+              type: boolean
+    responses:
+      200:
+        description: Notificación actualizada
+        schema:
+          type: object
+      400:
+        description: Validación fallida
+        schema:
+          $ref: '#/definitions/Error'
+      401:
+        description: Sin token
+        schema:
+          $ref: '#/definitions/Error'
+      404:
+        description: Notificación no encontrada
+        schema:
+          $ref: '#/definitions/Error'
+    """
     try:
         data = update_schema.load(request.get_json(silent=True) or {})
     except ValidationError as err:
