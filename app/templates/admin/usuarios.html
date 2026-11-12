@@ -147,6 +147,7 @@
             <table class="museum-table w-full text-sm">
               <thead>
                 <tr style="border-bottom:1px solid var(--border)">
+                  <th>Acciones</th>
                   <th>Usuario</th>
                   <th>Rol</th>
                   <th>Estado</th>
@@ -154,7 +155,6 @@
                   <th>Contribuciones</th>
                   <th>Puntos</th>
                   <th>Insignias</th>
-                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody id="users-tbody">
@@ -162,6 +162,14 @@
                 <tr data-name="{{ u.name | lower }} {{ u.email | lower }}" data-role="{{ u.role }}"
                     data-user-id="{{ u.id }}" data-user-name="{{ u.name }}" data-user-email="{{ u.email }}"
                     data-user-role="{{ u.role }}" data-user-status="{{ u.status }}" class="transition-colors hover:opacity-80">
+                  <td>
+                    <div class="flex gap-1.5">
+                      {% if u.status == 'pendiente' %}
+                      <button type="button" class="text-xs px-2.5 py-1 rounded" style="background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-border)" onclick="aprobarUsuario(this.closest('tr'))">Aprobar</button>
+                      {% endif %}
+                      <button type="button" class="text-xs px-2.5 py-1 rounded btn-outline-primary" onclick="editarUsuario(this.closest('tr'))">Editar</button>
+                    </div>
+                  </td>
                   <td>
                     <div class="flex items-center gap-2.5">
                       <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
@@ -182,14 +190,6 @@
                   <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ u.contributions }}</td>
                   <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ u.points if u.points is defined else '—' }}</td>
                   <td class="text-center font-mono" style="color:var(--secondary-foreground)">{{ (u.badgeIds or []) | length }}</td>
-                  <td>
-                    <div class="flex gap-1.5">
-                      <button type="button" class="text-xs px-2.5 py-1 rounded btn-outline-primary" onclick="editarUsuario(this.closest('tr'))">Editar</button>
-                      {% if u.status == 'pendiente' %}
-                      <button type="button" class="text-xs px-2.5 py-1 rounded" style="background:var(--gold-soft);color:var(--gold);border:1px solid var(--gold-border)" onclick="aprobarUsuario(this.closest('tr'))">Aprobar</button>
-                      {% endif %}
-                    </div>
-                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
