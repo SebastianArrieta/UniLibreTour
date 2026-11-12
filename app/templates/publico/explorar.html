@@ -44,7 +44,7 @@
                 <a href="{{ url_for('web.explorar') }}?cat=noticias" class="inline-flex text-xs btn-outline-primary px-4 py-2 rounded mb-5">← Volver a las noticias</a>
                 <article class="museum-card rounded overflow-hidden">
                     <div class="relative h-[280px] md:h-[380px]">
-                        <img src="{{ news_ns.item.image }}" alt="{{ news_ns.item.title }}" class="w-full h-full object-cover">
+                        <img src="{{ news_ns.item.image | img }}" alt="{{ news_ns.item.title }}" class="w-full h-full object-cover">
                         <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)"></div>
                         <div class="absolute flex items-center gap-3 flex-wrap" style="bottom:1rem;left:1.25rem;right:1.25rem">
                             <span class="text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:var(--primary-foreground)">{{ news_ns.item.category }}</span>
@@ -68,7 +68,7 @@
                 {% for n in news %}
                 <a href="{{ url_for('web.explorar') }}?cat=noticias&news={{ n.id }}" data-news-card class="museum-card rounded overflow-hidden text-left group fade-up-delayed flex flex-col">
                     <div class="relative h-40 overflow-hidden">
-                        <img src="{{ n.image }}" alt="{{ n.title }}" class="w-full h-full object-cover opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105">
+                        <img src="{{ n.image | img }}" alt="{{ n.title }}" class="w-full h-full object-cover opacity-80 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105">
                         <span class="absolute top-3 left-3 text-xs font-mono px-2 py-0.5 rounded uppercase tracking-wider" style="background:var(--primary-solid);color:var(--primary-foreground)">{{ n.category }}</span>
                     </div>
                     <div class="p-4 flex flex-col flex-1">

@@ -4,6 +4,7 @@
 {% from 'components/sidebar.html' import sidebar_for %}
 {% from 'components/macros.html' import empty_state, status_badge, category_badge, tag_list, page_nav %}
 
+{% set es_docente = area == 'docente' %}
 {% set ap_pub = mis_aportes | selectattr('status', 'in', ['publicado', 'institucional']) | list %}
 {% set ap_pend = mis_aportes | selectattr('status', 'in', ['pendiente', 'revision_docente']) | list %}
 {% set ap_dev = mis_aportes | selectattr('status', 'equalto', 'devuelto') | list %}
@@ -13,16 +14,20 @@
 </style>
 <div class="max-w-7xl mx-auto px-4 md:px-8 py-10 page-wrap">
   <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
-    {{ sidebar_for('estudiante', current_page) }}
+    {{ sidebar_for('docente' if es_docente else 'estudiante', current_page) }}
     <div class="min-w-0">
+      {% if es_docente %}
+      {{ page_nav([('Panel Docente', url_for('web.docente')), ('Mis Aportes', '')], back_url=url_for('web.docente'), back_label='Panel Docente') }}
+      {% else %}
       {{ page_nav([('Mi Panel', url_for('web.estudiante')), ('Mis Aportes', '')], back_url=url_for('web.estudiante'), back_label='Mi Panel') }}
+      {% endif %}
       <div class="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
           <div class="text-xs font-mono uppercase tracking-widest mb-2" style="color:var(--brown)">Mis contribuciones</div>
           <h2 class="font-serif text-3xl md:text-4xl font-bold leading-tight" style="color:var(--foreground)">Mis Aportes</h2>
           <p class="mt-2 text-base" style="color:var(--muted-foreground)">{{ mis_aportes | length }} aportes · {{ ap_pub | length }} publicados · {{ ap_pend | length + ap_dev | length }} en proceso</p>
         </div>
-        <a href="{{ url_for('web.estudiante_contribuir') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold">+ Nueva Contribución</a>
+        <a href="{{ url_for('web.docente_evidencia') if es_docente else url_for('web.estudiante_contribuir') }}" class="btn-primary px-5 py-2.5 rounded text-sm font-semibold">{{ 'Registrar Evidencia' if es_docente else '+ Nueva Contribución' }}</a>
       </div>
 
       <div class="flex gap-2 flex-wrap mb-6" id="aporte-filtros">
@@ -37,7 +42,7 @@
         {% set cm = contentItems | selectattr('id', 'equalto', item.id) | first %}
         <div class="museum-card rounded p-4 flex items-start gap-4 transition-transform hover:-translate-y-0.5" data-status="{{ item.status }}"
              data-href="{{ url_for('web.detalle', cid=cm.id) if (cm is defined and cm) else '' }}" data-clickable>
-          <img src="{{ item.image }}" alt="{{ item.title }}" class="w-20 h-20 rounded object-cover flex-shrink-0" />
+          <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-20 h-20 rounded object-cover flex-shrink-0" />
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap mb-1.5">
               {{ category_badge(item.category) }}
@@ -80,7 +85,7 @@
           <i class="fa-solid fa-folder-open text-4xl opacity-20" style="color:var(--muted-foreground)"></i>
           <p data-msg-todos style="color:var(--muted-foreground)">Aún no has realizado contribuciones. Comparte tu primer proyecto o investigación.</p>
           <p data-msg-filtered style="color:var(--muted-foreground);display:none">No tienes aportes en esta categoría.</p>
-          <a href="{{ url_for('web.estudiante_contribuir') }}" class="btn-outline-primary px-5 py-2 rounded text-sm">Registrar Contribución</a>
+          <a href="{{ url_for('web.docente_evidencia') if es_docente else url_for('web.estudiante_contribuir') }}" class="btn-outline-primary px-5 py-2 rounded text-sm">{{ 'Registrar Evidencia' if es_docente else 'Registrar Contribución' }}</a>
         </div>
       </div>
     </div>

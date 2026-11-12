@@ -22,8 +22,8 @@ Ingeniería de Sistemas — Universidad Libre. Aplicación monolítica **Flask**
 ```
 UniLibreTour/
 ├── app/
-│   ├── __init__.py             # Factory create_app: config, blueprints, seeds
-│   ├── config.py               # Configuración dev/prod/test + cookies y seeds
+│   ├── __init__.py             # Factory create_app: config, blueprints, catálogo base
+│   ├── config.py               # Configuración dev/prod/test, cookies y correo
 │   ├── extensions.py           # db, jwt y validaciones de tokens
 │   ├── controllers/
 │   │   ├── auth.py             # Login, /me, logout, 2FA
@@ -38,10 +38,11 @@ UniLibreTour/
 │   ├── schemas/                # Schemas de validación Marshmallow
 │   ├── services/
 │   │   ├── auth.py             # Hash/verificación de contraseñas
-│   │   ├── usuario.py          # CRUD de usuarios + seed de cuentas
-│   │   ├── cuentas.py          # Única fuente de verdad de cuentas demo
+│   │   ├── usuario.py          # CRUD de usuarios
+│   │   ├── catalogo.py         # Colecciones/insignias base + primer admin (ADMIN_*)
 │   │   ├── otp.py              # Códigos 2FA (HMAC, sin estado)
-│   │   ├── seed_demo.py        # Dataset demo desde demo-data.json
+│   │   ├── correo.py           # Envío SMTP del código 2FA
+│   │   ├── limite.py           # Límite de intentos en login/2FA
 │   │   ├── museo.py            # Lectura del museo desde la BD
 │   │   ├── admin.py            # Altas directas y validación
 │   │   ├── notificacion.py     # Avisos al usuario
@@ -50,7 +51,7 @@ UniLibreTour/
 │   │   ├── css/main.css
 │   │   ├── js/utils/{api,app,ui}.js
 │   │   ├── js/pages/usuarios.js
-│   │   └── data/demo-data.json # Dataset de respaldo (sin credenciales)
+│   │   └── images/             # Escudo y marcadores de imagen locales
 │   └── templates/
 │       ├── base.html
 │       ├── auth/               # login, 2fa
@@ -63,35 +64,52 @@ UniLibreTour/
 ├── docker-compose.yml
 ├── Dockerfile
 ├── requirements.txt
-├── reset_demo.py               # Reinicia esquema y resiembra (¡dev only!)
 └── run.py                      # Punto de entrada
 ```
 
 > El esquema lo crea **SQLAlchemy** (`db.create_all()`) al iniciar. El SQL de
 > `database/init/` es documentación/referencia.
 
-## Instalación
+## Puesta en marcha desde cero
+
+La aplicación arranca **vacía**: no hay datos ni cuentas de demostración. Al
+iniciar solo se crean el catálogo base (6 colecciones temáticas y 12 insignias)
+y, si no existe ninguno, el **primer administrador** definido en el `.env`.
+Todo lo demás (usuarios, aportes, noticias, eventos, hitos, premios, Hall de la
+Fama, semilleros) se registra desde la propia aplicación.
 
 ### Opción A — Docker (recomendada)
 
 ```bash
 cp .env.example .env
-docker compose up --build
+# Completa SECRET_KEY, JWT_SECRET_KEY, MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD,
+# ADMIN_EMAIL y ADMIN_PASSWORD (y MAIL_* si usarás 2FA).
+docker compose up --build -d
 ```
 
-- App: <http://localhost:5000>
-- Health check: <http://localhost:5000/api/health>
+1. Entra en <http://localhost:5000/login> con `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+2. En **Panel Admin → Usuarios** crea las cuentas de docentes, estudiantes y egresados.
+3. En **Panel Admin → Añadir información** publica noticias, eventos, hitos, premios, Hall de la Fama y semilleros.
+4. Los estudiantes aportan contenido → revisión docente → validación del admin → publicado.
 
-### Opción B — Local
+- Health check (incluye la BD): <http://localhost:5000/api/health>
+- La BD no publica puertos fuera de Docker.
+- `JWT_COOKIE_SECURE=1` exige HTTPS (pon la app detrás de un proxy con TLS). Para
+  probar por HTTP en tu máquina usa `JWT_COOKIE_SECURE=0`.
+
+> **¿Vienes de una versión con datos demo?** El volumen de MySQL conserva lo
+> sembrado antes. Para empezar en blanco hay que borrarlo (destruye todos los
+> datos): `docker compose down -v` y luego `docker compose up --build -d`.
+
+### Opción B — Local (desarrollo)
 
 Requisitos: Python 3.12+ y MySQL 8.0.
 
 ```bash
-mysql -u root -p -e "CREATE DATABASE unilibretour_db; CREATE USER 'unilibretour'@'localhost' IDENTIFIED BY 'unilibretour'; GRANT ALL PRIVILEGES ON unilibretour_db.* TO 'unilibretour'@'localhost'; FLUSH PRIVILEGES;"
-
 python -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+# En .env: FLASK_ENV=development, DATABASE_URL=..., ADMIN_EMAIL, ADMIN_PASSWORD
 python run.py
 ```
 
@@ -99,16 +117,18 @@ python run.py
 
 | Variable | Descripción | Por defecto |
 |---|---|---|
-| `FLASK_ENV` | `development` / `production` / `testing` | `development` |
-| `SECRET_KEY` | Clave de sesión de Flask | `dev-secret` |
-| `JWT_SECRET_KEY` | Clave de firma de los JWT | `dev-secret` |
-| `DATABASE_URL` | URI de conexión SQLAlchemy | MySQL local |
-| `JWT_COOKIE_SECURE` | `1` para cookie solo por HTTPS (producción) | `0` |
-| `SEED_DEMO` | `1` siembra datos y cuentas demo | `1` (dev), `0` (prod) |
-| `OTP_DEV_ECHO` | Devuelve el código 2FA en la respuesta (dev) | `1` |
+| `FLASK_ENV` | `development` / `production` / `testing` | `production` en Docker |
+| `SECRET_KEY` | Clave de sesión de Flask (**obligatoria en producción**) | — |
+| `JWT_SECRET_KEY` | Clave de firma de los JWT (**obligatoria en producción**) | — |
+| `DATABASE_URL` | URI de conexión SQLAlchemy (Docker la arma con `MYSQL_*`) | MySQL local |
+| `JWT_COOKIE_SECURE` | `1` cookie solo por HTTPS | `1` en producción |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Primer administrador (solo si no hay ninguno; si el email ya existe, esa cuenta pasa a admin con esta contraseña) | — |
+| `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM`, `MAIL_USE_TLS`, `MAIL_USE_SSL` | SMTP para enviar el código 2FA | sin correo |
+| `OTP_DEV_ECHO` | Solo desarrollo: muestra el código 2FA en pantalla | `0` |
 
-> **Producción:** `JWT_COOKIE_SECURE=1`, `SEED_DEMO=0` y `OTP_DEV_ECHO=0`
-> (requiere integrar un proveedor de correo para el 2FA).
+> En producción la app **no arranca** si `SECRET_KEY` o `JWT_SECRET_KEY` faltan
+> o tienen un valor de ejemplo. Si no hay SMTP configurado, el 2FA se omite (con
+> aviso en el log) para no bloquear a nadie.
 
 ## Autenticación y seguridad
 
@@ -119,8 +139,11 @@ python run.py
   `/login?next=…`. El rol de `localStorage` solo controla la interfaz.
 - CSRF activado para peticiones que usan la cookie (el frontend usa Bearer).
 - Las cuentas **solo las crea el administrador** (`/admin/usuarios`); no existe registro público.
-- El 2FA se verifica en el servidor con código de 6 dígitos, huella HMAC y
-  máximo 5 intentos. El token de desafío no sirve como sesión.
+- El 2FA envía un código de 6 dígitos por correo (SMTP) y se verifica en el
+  servidor con huella HMAC y máximo 5 intentos (reenviar no reinicia el
+  contador). El token de desafío no sirve como sesión.
+- Login y 2FA bloquean temporalmente tras 10 intentos **fallidos** por cuenta (15 min); los accesos correctos nunca cuentan.
+- Los aportes sin aprobar solo los ven su autor, docentes y administradores.
 
 ## Endpoints de la API
 
@@ -148,7 +171,7 @@ python run.py
 
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| GET | `/api/health` | Estado del servidor | — |
+| GET | `/api/health` | Estado del servidor y de la BD | — |
 | GET | `/api/museo/data` | Dataset público (sin cola ni emails) | — |
 | GET | `/api/museo/<seccion>` | Sección (`colecciones`, `noticias`, `linea-tiempo`, `eventos`, `contenidos`, `hall`, `insignias`, `usuarios`, `grupos`, `logros`, `docentes`, `kpi`) | — |
 | POST | `/api/museo/contenidos` | Registrar aporte (revisión docente o cola) | JWT |
@@ -170,6 +193,7 @@ python run.py
 | POST | `/api/admin/hall` | Crear miembro del Hall de la Fama | admin |
 | POST | `/api/admin/eventos` | Crear evento | admin |
 | POST | `/api/admin/noticias` | Crear noticia | admin |
+| POST | `/api/admin/semilleros` | Crear semillero o grupo de investigación | admin |
 | PUT | `/api/admin/contenidos/<id>/validar` | Aprobar o devolver contenido | admin |
 | PUT | `/api/admin/usuarios/<id>` | Editar usuario | admin |
 | PUT | `/api/admin/usuarios/<id>/aprobar` | Aprobar cuenta pendiente | admin |
@@ -209,32 +233,5 @@ En errores de validación, `error` contiene el diccionario de Marshmallow.
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
   -c cookies.txt \
-  -d '{"email": "admin@unilibre.edu.co", "password": "123456"}'
-```
-
-## Cuentas demo (seed)
-
-El seed se ejecuta al arrancar **solo si `SEED_DEMO=1`** (por defecto en
-desarrollo y pruebas). Es idempotente por email: crea únicamente las cuentas
-que falten.
-
-| Rol | Email | Contraseña |
-|---|---|---|
-| admin | `admin@unilibre.edu.co` | `123456` |
-| estudiante | `estudiante@unilibre.edu.co` | `123456` |
-| docente | `docente@unilibre.edu.co` | `123456` |
-| egresado | `egresado@unilibre.edu.co` | `123456` |
-
-Además se siembran los perfiles de contenido del museo (docentes, estudiantes
-y egresados) que también usan la contraseña demo; sus emails siguen el patrón
-`nombre.apellido@unilibre.edu.co`.
-
-> Las credenciales demo son solo para desarrollo. En producción no se siembran
-> (`SEED_DEMO=0`) y deben existir cuentas reales creadas por un administrador.
-
-## Utilidades
-
-```bash
-# Reinicia el esquema y vuelve a sembrar el dataset demo (¡destruye datos!)
-python reset_demo.py
+  -d '{"email": "<ADMIN_EMAIL>", "password": "<ADMIN_PASSWORD>"}'
 ```

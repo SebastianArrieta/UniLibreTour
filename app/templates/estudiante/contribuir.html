@@ -70,7 +70,7 @@
             </div>
             <div>
               <label class="block text-xs font-medium mb-1.5" for="inp-imagen" style="color:var(--secondary-foreground)">URL de la imagen</label>
-              <input type="url" id="inp-imagen" placeholder="https://images.unsplash.com/…"
+              <input type="url" id="inp-imagen" placeholder="https://… (opcional)"
                      class="museum-input w-full px-4 py-2.5 rounded text-sm" />
               <p class="text-xs mt-1.5" style="color:var(--muted-foreground)">Si la dejas vacía se usará una imagen por defecto.</p>
             </div>
@@ -128,7 +128,7 @@
 <script>
 (function () {
   var ROOT = '{{ url_for("web.estudiante") }}';
-  var DEFAULT_IMG = 'https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=800&h=500&fit=crop&auto=format';
+  var DEFAULT_IMG = '{{ url_for('static', filename='images/placeholder.svg') }}';
   var steps = ['Info', 'Detalles', 'Revisar y enviar'];
   var step = 1;
   var form = document.getElementById('wizard-form');
@@ -213,7 +213,7 @@
       category: item.category,
       description: item.description,
       date: item.date,
-      image: item.image,
+      image: val('inp-imagen') || null,
       author: val('inp-autor') || undefined,
       docenteId: parseInt(val('inp-teacher'), 10) || undefined,
       tags: item.tags

@@ -13,7 +13,7 @@
    Datos:
      Museo.loadData()          -> Promise<Object> (fetch /api/museo/data, cachea)
      Museo.data()              -> dataset actual (null hasta cargar)
-     Museo.getUser()           -> Promise<User|undefined> (demo por rol)
+     Museo.getUser()           -> Promise<User|null> (usuario de la sesión)
      Museo.getContributions(pt) -> filtro de aportes (author/submittedBy)
 
    Estado / sesión:
@@ -80,13 +80,6 @@
         egresado: dashEntry('Mi Espacio', '/egresado', 'fa-solid fa-user-tie'),
     };
 
-    var USER_EMAIL = {
-        estudiante: 'ana.bermudez@unilibre.edu.co',
-        egresado: 'egresado@unilibre.edu.co',
-        docente: 'h.casas@unilibre.edu.co',
-        admin: 'admin@unilibre.edu.co',
-    };
-
     /* ---------- utilidades ---------- */
     function lsGet(key) {
         try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
@@ -105,9 +98,12 @@
     }
     function isAuthRole(role) { return role !== 'visitante'; }
 
-    /* ---------- datos demo ---------- */
+    /* ---------- datos del museo (siempre desde la API) ---------- */
     var _data = null;
     var _fetching = null;
+    // Limpia la copia antigua que se guardaba en localStorage (podía mostrar
+    // datos viejos o de otra sesión).
+    lsRemove('museo-datos-v2');
 
     function loadData(force) {
         if (!force && _data) return Promise.resolve(_data);
@@ -116,41 +112,29 @@
             .then(function (r) { if (!r.ok) throw new Error('museo-data ' + r.status); return r.json(); })
             .then(function (json) {
                 _data = json;
-                try { localStorage.setItem(KEYS.DATA, JSON.stringify(json)); } catch (e) { /* noop */ }
                 return json;
             })
             .catch(function () {
-                var cached = lsGet(KEYS.DATA);
-                if (cached) { _data = cached; return cached; }
-                throw new Error('No hay datos demo disponibles');
+                throw new Error('No se pudieron cargar los datos del museo');
             })
             .finally(function () { _fetching = null; });
         return _fetching;
     }
 
     function cachedOrLoaded() {
-        if (_data) return _data;
-        var cached = lsGet(KEYS.DATA);
-        if (cached) { _data = cached; return cached; }
-        return null;
-    }
-
-    function getUserPorRol() {
-        return loadData().then(function (d) {
-            return (d.users || []).find(function (x) {
-                return x.email === USER_EMAIL[Museo.role];
-            });
-        });
+        return _data;
     }
 
     function getUser() {
         var tok = lsGet(KEYS.TOKEN);
-        if (!tok) return getUserPorRol();
+        if (!tok) return Promise.resolve(null);
         return apiJson('/api/auth/me', 'GET', null, tok).then(function (u) {
             if (u) lsSet(KEYS.USUARIO, u);
-            return u || lsGet(KEYS.USUARIO) || getUserPorRol();
-        }).catch(function () {
-            return lsGet(KEYS.USUARIO) || getUserPorRol();
+            return u || null;
+        }).catch(function (err) {
+            /* Token válido pero el usuario ya no existe: la sesión tampoco sirve. */
+            if (err && (err.status === 401 || err.status === 404)) sessionExpired();
+            return null;
         });
     }
 
@@ -270,6 +254,37 @@
     function isAuthenticated() { return !!lsGet(KEYS.TOKEN); }
     function getToken() { return lsGet(KEYS.TOKEN); }
     function getSesion() { return lsGet(KEYS.USUARIO); }
+
+    /* Limpia TODA la sesión local (token + usuario + rol) cuando el servidor
+       rechaza el JWT. Sin borrar el rol, el header seguía mostrando la cuenta
+       como si tuviera sesión aunque el token ya no existiera. */
+    function limpiarSesionLocal() {
+        lsRemove(KEYS.ROLE);
+        lsRemove(KEYS.TOKEN);
+        lsRemove(KEYS.USUARIO);
+        lsRemove(KEYS.FAVS);
+        lsRemove(KEYS.PEND_TOKEN);
+        lsRemove(KEYS.PEND_USUARIO);
+        try {
+            localStorage.removeItem('museo-pending-role');
+            localStorage.removeItem('museo-pending-email');
+            localStorage.removeItem('museo-pending-devcode');
+        } catch (e) { /* noop */ }
+        Museo.role = 'visitante';
+    }
+
+    /* Sesión caducada/inválida detectada por la API (401). */
+    function sessionExpired() {
+        var estabaAutenticado = isAuthRole(getRole());
+        limpiarSesionLocal();
+        renderAuth();
+
+        var privada = /^\/(estudiante|docente|admin|perfil|mi-espacio)(\/|$)/.test(window.location.pathname);
+        if (estabaAutenticado && privada) {
+            var destino = window.location.pathname + window.location.search;
+            window.location.href = '/login?next=' + encodeURIComponent(destino);
+        }
+    }
 
     /* Login: Valida credenciales contra el backend.
        Si la cuenta tiene 2FA activo, el servidor NO entrega sesión: devuelve un
@@ -431,7 +446,11 @@
                 '</div>';
         }
 
-        getUser().then(pintarMenu).catch(function () { pintarMenu(null); });
+        getUser().then(function (me) {
+            if (isAuthRole(Museo.role)) pintarMenu(me);
+        }).catch(function () {
+            if (isAuthRole(Museo.role)) pintarMenu(null);
+        });
     }
 
     function showLogoutModal() {
@@ -702,6 +721,8 @@
         getSesion: getSesion,
         iniciarSesion: iniciarSesion,
         completarInicioSesion: completarInicioSesion,
+        sessionExpired: sessionExpired,
+        limpiarSesionLocal: limpiarSesionLocal,
         crearContenido: crearContenido,
         getTheme: getTheme,
         setTheme: setTheme,

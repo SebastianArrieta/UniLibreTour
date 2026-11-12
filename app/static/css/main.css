@@ -857,6 +857,8 @@ body.ui-modal-open { overflow: hidden; }
     font-family: var(--font-sans);
     transition: border-color 0.2s, box-shadow 0.2s;
     width: 100%;
+    box-sizing: border-box;
+    padding: 0.625rem 1rem;
 }
 .museum-input:focus {
     outline: none;
@@ -866,6 +868,48 @@ body.ui-modal-open { overflow: hidden; }
 }
 .museum-input::placeholder { color: var(--muted-foreground); }
 .museum-input option { background: var(--card); color: var(--foreground); }
+
+/* Campo de contraseña con botón revelar/ocultar integrado */
+.password-input-wrap {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+.password-input-wrap .museum-input {
+    width: 100%;
+    padding-right: 2.75rem !important;
+}
+.password-toggle-btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 0.375rem;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    z-index: 5;
+}
+.password-toggle-btn:hover {
+    color: var(--primary);
+    background: var(--surface-2);
+}
+.password-toggle-btn:active {
+    transform: translateY(-50%) scale(0.92);
+}
+.password-toggle-btn i {
+    font-size: 0.875rem;
+    pointer-events: none;
+}
 
 
 label {

@@ -2,11 +2,13 @@
 {% block title %}Mi Espacio — Docente{% endblock %}
 {% block content %}
 {% from 'components/sidebar.html' import sidebar_for %}
-{% from 'components/macros.html' import empty_state, status_badge %}
+{% from 'components/macros.html' import empty_state, status_badge, notif_action %}
 
 {% set tipos_notif = {
+  'enviado': ('fa-solid fa-paper-plane', 'var(--brown)'),
   'revision': ('fa-solid fa-clipboard-check', 'var(--brown)'),
   'validacion': ('fa-solid fa-stamp', 'var(--gold)'),
+  'avalado': ('fa-solid fa-user-check', 'var(--gold)'),
   'aprobado': ('fa-solid fa-check', 'var(--gold)'),
   'devuelto': ('fa-solid fa-rotate-left', 'var(--primary)'),
 } %}
@@ -103,7 +105,10 @@
           <div class="museum-card rounded p-5">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-serif font-semibold" style="color:var(--card-foreground)">Mis aportes</h3>
-              <a href="{{ url_for('web.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nuevo</a>
+              <div class="flex items-center gap-2">
+                <a href="{{ url_for('web.estudiante_aportes') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">Ver todos</a>
+                <a href="{{ url_for('web.docente_evidencia') }}" class="text-xs btn-outline-primary px-2 py-1 rounded">+ Nuevo</a>
+              </div>
             </div>
             <div class="flex flex-col gap-3">
               {% if mis_aportes | length == 0 %}
@@ -144,6 +149,7 @@
                   <i class="{{ cfg[0] }}"></i>
                 </div>
                 <div class="flex-1 min-w-0">
+                  <div class="mb-1">{{ notif_action(n.tipo) }}</div>
                   <p class="text-sm" style="color:var(--secondary-foreground)">{{ n.mensaje }}</p>
                   <span class="text-xs font-mono" style="color:var(--muted-foreground)">
                     {% if n.created_at %}{{ n.created_at.strftime('%d/%m · %H:%M') }}{% endif %}

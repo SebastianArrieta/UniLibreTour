@@ -16,7 +16,7 @@
       <div class="min-w-0">
         {% from 'components/macros.html' import section_header, page_nav %}
         {{ page_nav([('Panel Admin', url_for('web.admin')), ('Añadir Información', '')], back_url=url_for('web.admin'), back_label='Panel Admin') }}
-        {{ section_header('Administración', 'Añadir Información', 'Publica hitos, premios, proyectos, miembros del Hall y eventos directamente en el museo.') }}
+        {{ section_header('Administración', 'Añadir Información', 'Publica hitos, premios, proyectos, miembros del Hall, eventos, noticias y semilleros directamente en el museo.') }}
 
         <div class="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6 items-start">
           <nav class="relative flex lg:flex-col gap-1 overflow-x-auto pb-1" id="anadir-nav" role="tablist" aria-label="Tipo de contenido">
@@ -27,6 +27,7 @@
               {'id': 'hall', 'label': 'Hall de la Fama', 'icon': 'fa-solid fa-star'},
               {'id': 'evento', 'label': 'Eventos del Calendario', 'icon': 'fa-solid fa-calendar-days'},
               {'id': 'noticias', 'label': 'Noticias', 'icon': 'fa-solid fa-newspaper'},
+              {'id': 'semillero', 'label': 'Semilleros y Grupos', 'icon': 'fa-solid fa-microscope'},
             ] %}
             {% for t in tabs %}
             <button type="button" data-tab="{{ t.id }}" role="tab" id="tab-{{ t.id }}" aria-controls="panel-{{ t.id }}" aria-selected="{{ 'true' if loop.first else 'false' }}" tabindex="{{ '0' if loop.first else '-1' }}" class="sb-item group relative z-10 flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap {{ 'sb-active' if loop.first }}">
@@ -59,16 +60,7 @@
                     </div>
                     {% call field('Título *') %}<input name="title" data-required placeholder="Inauguración del nuevo laboratorio…" class="{{ inputCls }}">{% endcall %}
                     {% call field('Descripción *') %}<textarea rows="3" name="description" data-required placeholder="Describe el hito…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
-                    <div>
-                      <span class="block text-xs font-mono uppercase tracking-widest mb-1.5" style="color:var(--muted-foreground)">Evidencias Multimedia *</span>
-                      <button type="button" id="media-drop" class="w-full rounded-lg border-2 border-dashed p-6 text-center transition-all"
-                              style="border-color:var(--border);background:transparent">
-                        <div class="text-2xl mb-1.5 opacity-50"><i class="fa-solid fa-paperclip"></i></div>
-                        <p class="text-sm font-medium" style="color:var(--secondary-foreground)">Arrastra archivos aquí o haz clic para seleccionar</p>
-                        <p class="text-xs mt-1" style="color:var(--muted-foreground)">Fotos, videos, audios o documentos que respalden el hito (máx. 50 MB por archivo)</p>
-                      </button>
-                      <div id="media-list" class="flex flex-col gap-2 mt-3"></div>
-                    </div>
+                    {% call field('Enlaces de evidencia (opcional, uno por línea)') %}<textarea rows="2" name="media" placeholder="https://…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
                   </div>
                 </div>
 
@@ -183,6 +175,32 @@
                   </div>
                 </div>
 
+                <div class="tab-panel hidden" data-panel="semillero" id="panel-semillero" role="tabpanel" aria-labelledby="tab-semillero">
+                  <h3 class="font-serif font-semibold mb-4 flex items-center gap-2" style="color:var(--card-foreground)"><i class="fa-solid fa-microscope" style="color:var(--brown)"></i> Nuevo semillero o grupo de investigación</h3>
+                  <div class="flex flex-col gap-4">
+                    {% call field('Nombre *') %}<input name="name" data-required placeholder="Nombre del semillero o grupo…" class="{{ inputCls }}">{% endcall %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {% call field('Tipo *') %}
+                      <select name="category" data-required class="{{ inputCls }}">
+                        <option value="">Selecciona…</option>
+                        <option value="semillero">Semillero</option>
+                        <option value="grupo">Grupo de investigación</option>
+                      </select>
+                      {% endcall %}
+                      {% call field('Líder (docente)') %}
+                      <select name="leadId" class="{{ inputCls }}">
+                        <option value="">Sin líder asignado</option>
+                        {% for t in teacherOptions %}
+                        <option value="{{ t.id }}">{{ t.name }}</option>
+                        {% endfor %}
+                      </select>
+                      {% endcall %}
+                    </div>
+                    {% call field('Descripción *') %}<textarea rows="3" name="description" data-required placeholder="Líneas de investigación, objetivos…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                    {% call field('URL de imagen (opcional)') %}<input name="image" placeholder="https://…" class="{{ inputCls }}">{% endcall %}
+                  </div>
+                </div>
+
                 <div class="flex justify-end pt-2 mt-6" style="border-top:1px solid var(--border)">
                   <button type="submit" class="btn-primary btn-float px-6 py-2.5 rounded text-sm font-semibold">Publicar en el museo →</button>
                 </div>
@@ -216,20 +234,20 @@
 <script>
 window.__DATOS = {{ datos | tojson }};
 (function () {
-  var TABS = ['timeline', 'premio', 'proyecto', 'hall', 'evento', 'noticias'];
-  var TAB_LABEL = { timeline: 'Línea de Tiempo', premio: 'Premios y Reconocimientos', proyecto: 'Proyectos Destacados', hall: 'Hall de la Fama', evento: 'Eventos del Calendario', noticias: 'Noticias' };
+  var TABS = ['timeline', 'premio', 'proyecto', 'hall', 'evento', 'noticias', 'semillero'];
+  var TAB_LABEL = { timeline: 'Línea de Tiempo', premio: 'Premios y Reconocimientos', proyecto: 'Proyectos Destacados', hall: 'Hall de la Fama', evento: 'Eventos del Calendario', noticias: 'Noticias', semillero: 'Semilleros y Grupos' };
   var ENDPOINTS = {
     timeline: '/api/admin/hitos',
     premio: '/api/admin/premios',
     proyecto: '/api/admin/proyectos',
     hall: '/api/admin/hall',
     evento: '/api/admin/eventos',
-    noticias: '/api/admin/noticias'
+    noticias: '/api/admin/noticias',
+    semillero: '/api/admin/semilleros'
   };
-  var PLACEHOLDER = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop&auto=format';
-  var PERSON_PLACEHOLDER = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format';
+  var PLACEHOLDER = '{{ url_for('static', filename='images/placeholder.svg') }}';
+  var PERSON_PLACEHOLDER = '{{ url_for('static', filename='images/persona.svg') }}';
   var activeTab = 'timeline';
-  var mediaFiles = [];
   var published = [];
   var seq = 0;
 
@@ -281,7 +299,25 @@ window.__DATOS = {{ datos | tojson }};
 
   function activePanel() { return document.querySelector('.tab-panel[data-panel="' + activeTab + '"]'); }
 
-  function fd() { return new FormData(activePanel()); }
+  function fd() {
+    var data = new FormData();
+    activePanel().querySelectorAll('input, select, textarea').forEach(function (el) {
+      if (!el.name) return;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        if (el.checked) data.append(el.name, el.value);
+      } else {
+        data.append(el.name, el.value);
+      }
+    });
+    return data;
+  }
+
+  function resetActivePanel() {
+    activePanel().querySelectorAll('input, select, textarea').forEach(function (el) {
+      if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+      else el.value = '';
+    });
+  }
 
   function categoryForPreview() {
     var tab = activeTab;
@@ -290,6 +326,7 @@ window.__DATOS = {{ datos | tojson }};
     if (tab === 'premio') return 'logros';
     if (tab === 'timeline') return 'historia';
     if (tab === 'evento') return 'eventos';
+    if (tab === 'semillero') return 'investigacion';
     return 'proyectos';
   }
 
@@ -338,15 +375,6 @@ window.__DATOS = {{ datos | tojson }};
       '<p class="text-sm" style="color:var(--secondary-foreground)">' + esc(m.achievement) + '</p></div></article>';
   }
 
-  function renderMedia() {
-    var list = document.getElementById('media-list');
-    list.innerHTML = mediaFiles.map(function (f, i) {
-      return '<div class="flex items-center gap-2 text-sm px-3 py-2 rounded" style="background:var(--gold-soft);border:1px solid var(--gold-border)">' +
-        '<i class="fa-solid fa-check" style="color:var(--gold);font-size:11px"></i><span style="color:var(--secondary-foreground)">' + esc(f) + '</span>' +
-        '<button type="button" data-i="' + i + '" class="ml-auto text-xs" style="color:var(--muted-foreground)"><i class="fa-solid fa-xmark"></i></button></div>';
-    }).join('');
-  }
-
   function validate() {
     var data = fd();
     var missing = [];
@@ -359,6 +387,7 @@ window.__DATOS = {{ datos | tojson }};
     if (activeTab === 'hall' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
     if (activeTab === 'evento' && !data.get('type')) { showError('El campo "Tipo" es obligatorio.'); return false; }
     if (activeTab === 'noticias' && !data.get('category')) { showError('El campo "Categoría" es obligatorio.'); return false; }
+    if (activeTab === 'semillero' && !data.get('category')) { showError('El campo "Tipo" es obligatorio.'); return false; }
     var year = Number(data.get('year'));
     if (data.get('year') && (!Number.isInteger(year) || year < 1900 || year > 2100)) { showError('El año debe estar entre 1900 y 2100.'); return false; }
     return true;
@@ -383,7 +412,7 @@ window.__DATOS = {{ datos | tojson }};
         type: data.get('type'),
         title: (data.get('title') || '').trim(),
         description: (data.get('description') || '').trim(),
-        media: mediaFiles.slice()
+        media: (data.get('media') || '').split(/\n+/).map(function (u) { return u.trim(); }).filter(function (u) { return /^https?:\/\//i.test(u); })
       };
     }
     if (tab === 'premio') {
@@ -430,6 +459,15 @@ window.__DATOS = {{ datos | tojson }};
         description: (data.get('description') || '').trim() || null
       };
     }
+    if (tab === 'semillero') {
+      return {
+        name: (data.get('name') || '').trim(),
+        category: data.get('category'),
+        leadId: parseInt(data.get('leadId'), 10) || null,
+        description: (data.get('description') || '').trim(),
+        image: (data.get('image') || '').trim() || null
+      };
+    }
     return {
       title: (data.get('title') || '').trim(),
       category: data.get('category'),
@@ -471,8 +509,8 @@ window.__DATOS = {{ datos | tojson }};
           seq += 1;
           addPublished({ content: {
             id: 'sess-' + seq,
-            title: payload.title,
-            category: activeTab === 'noticias' ? 'historia' : (payload.category || categoryForPreview()),
+            title: payload.title || payload.name,
+            category: (activeTab === 'noticias' || activeTab === 'semillero') ? categoryForPreview() : (payload.category || categoryForPreview()),
             author: payload.author || payload.institution || payload.name || 'Autor',
             date: payload.date || payload.year || todayISO(),
             description: payload.description || payload.excerpt || '',
@@ -482,9 +520,7 @@ window.__DATOS = {{ datos | tojson }};
           } });
         }
         toast(TAB_LABEL[activeTab] + ': registro publicado');
-        activePanel().reset();
-        mediaFiles = [];
-        renderMedia();
+        resetActivePanel();
         renderPreview();
       })
       .catch(function (err) {
@@ -505,19 +541,8 @@ window.__DATOS = {{ datos | tojson }};
   document.getElementById('anadir-form').addEventListener('change', function () { clearError(); renderPreview(); });
   document.getElementById('anadir-form').addEventListener('submit', onPublish);
 
-  document.getElementById('media-drop').addEventListener('click', function () {
-    mediaFiles.push('evidencia_' + (mediaFiles.length + 1) + '.pdf');
-    renderMedia();
-  });
-
-  document.getElementById('media-list').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-i]');
-    if (b) { mediaFiles.splice(Number(b.getAttribute('data-i')), 1); renderMedia(); }
-  });
-
   var hash = (location.hash || '').replace('#tab-', '');
   if (TABS.indexOf(hash) !== -1) setTab(hash); else setTab('timeline');
-  renderMedia();
 })();
 </script>
 {% endblock %}

@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Validación de Contenido — UniLibreTour{% endblock %}
-{% set cm = contentItems | selectattr('title', 'equalto', item.title) | first %}
-{% set confirm_href = url_for('web.admin_confirmacion', iid=cm.id) if (cm is defined and cm) else '' %}
+{% set confirm_href = url_for('web.admin_confirmacion', iid=item.id) %}
 {% block content %}
   {% set pendientes = contentQueue | selectattr('status', 'equalto', 'pendiente') | list %}
   {% set sb_active = 'admin-cola' %}
   
-  {% set placeholder = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800&h=500&fit=crop&auto=format' %}
   <div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
     <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
       {% from 'components/sidebar.html' import sidebar_for %}
@@ -18,7 +16,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2">
             <div class="rounded overflow-hidden mb-5" style="aspect-ratio:16/9;background:var(--card)">
-              <img src="{{ item.image or placeholder }}" alt="{{ item.title }}" class="w-full h-full object-cover">
+              <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-full h-full object-cover">
             </div>
             <div class="flex items-center gap-2 mb-3">
               {{ status_badge(item.status) }}
@@ -33,17 +31,6 @@
               <strong>Nota anterior:</strong> {{ item.reviewNote }}
             </div>
             {% endif %}
-
-            <div class="museum-card rounded p-4">
-              <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Archivos Adjuntos</div>
-              {% for f in ['documento_principal.pdf', 'evidencia_fotografica.zip', 'certificado_autorizacion.pdf'] %}
-              <div class="flex items-center gap-3 py-2" style="border-bottom:1px solid var(--border-subtle)">
-                <span class="text-lg"><i class="fa-solid fa-file-pdf" style="color:var(--brown)"></i></span>
-                <span class="text-sm flex-1" style="color:var(--secondary-foreground)">{{ f }}</span>
-                <button type="button" class="text-xs" style="color:var(--primary)" onclick="toast('Descarga simulada de ' + '{{ f }}')">Descargar</button>
-              </div>
-              {% endfor %}
-            </div>
           </div>
 
           <div class="flex flex-col gap-5">
@@ -51,20 +38,21 @@
               <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Enviado por</div>
               <div class="flex items-center gap-3 mb-3">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center font-semibold"
-                     style="background:var(--brown-soft);color:var(--brown)">{{ (item.submittedBy or 'U')[0] }}</div>
+                     style="background:var(--brown-soft);color:var(--brown)">{{ (item.submittedBy or item.author or '?')[0] }}</div>
                 <div>
-                  <div class="font-medium text-sm" style="color:var(--card-foreground)">{{ item.submittedBy }}</div>
-                  <div class="text-xs" style="color:var(--muted-foreground)">Docente · Ingeniería de Sistemas</div>
+                  <div class="font-medium text-sm" style="color:var(--card-foreground)">{{ item.submittedBy or item.author or 'Sin autor registrado' }}</div>
+                  {% if item.author and item.author != item.submittedBy %}<div class="text-xs" style="color:var(--muted-foreground)">Autor: {{ item.author }}</div>{% endif %}
                 </div>
               </div>
               <div class="text-xs font-mono" style="color:var(--muted-foreground)">Enviado: {{ item.date }}</div>
             </div>
 
             <div class="museum-card rounded p-5">
-              <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Verificación</div>
+              <div class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--muted-foreground)">Lista de verificación</div>
+              <p class="text-xs mb-3" style="color:var(--muted-foreground)">Guía para revisar antes de aprobar.</p>
               {% for c in ['Contenido original verificado', 'Archivos completos y legibles', 'Relevancia institucional confirmada', 'Metadatos correctos'] %}
               <div class="flex items-center gap-2 py-2 text-sm" style="border-bottom:1px solid var(--border-subtle)">
-                <span style="color:var(--gold)"><i class="fa-solid fa-check" style="font-size:11px"></i></span>
+                <span style="color:var(--muted-foreground)"><i class="fa-regular fa-square" style="font-size:11px"></i></span>
                 <span style="color:var(--secondary-foreground)">{{ c }}</span>
               </div>
               {% endfor %}
@@ -92,11 +80,6 @@
               <button type="button" id="btn-institucional" class="w-full py-2.5 rounded text-sm font-semibold"
                       style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)"><i class="fa-solid fa-landmark"></i> Marcar institucional</button>
 
-              {% if not confirm_href %}
-              <div class="text-xs px-3 py-2 rounded" style="background:var(--brown-soft);color:var(--secondary-foreground);border:1px solid var(--brown-border)">
-                ℹ Este ítem aún no tiene equivalente en el archivo: la confirmación queda simulada con toast.
-              </div>
-              {% endif %}
             </div>
           </div>
         </div>

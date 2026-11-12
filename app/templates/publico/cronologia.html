@@ -248,10 +248,12 @@
 {% endmacro %}
 
 <div class="relative overflow-x-hidden">
-    {% set first_year = timeline[0].year if timeline and timeline[0].year else 1975 %}
-    {% set last_year = timeline[-1].year if timeline and timeline[-1].year else 2024 %}
+    {% set first_year = timeline[0].year if timeline and timeline[0].year else '' %}
+    {% set last_year = timeline[-1].year if timeline and timeline[-1].year else '' %}
 
-    {% set decades = [1970, 1980, 1990, 2000, 2010, 2020] %}
+    {% set dec_ns = namespace(lista=[]) %}
+    {% for ev in timeline if ev.year %}{% set d = (ev.year // 10) * 10 %}{% if d not in dec_ns.lista %}{% set dec_ns.lista = dec_ns.lista + [d] %}{% endif %}{% endfor %}
+    {% set decades = dec_ns.lista | sort %}
 
     <section class="relative min-h-[60vh] flex items-center justify-center overflow-hidden px-4">
         <div class="absolute inset-0"
@@ -266,7 +268,7 @@
                 <span>Volver al inicio</span>
             </a>
             <div class="text-xs font-mono uppercase tracking-widest mb-2.5" style="color:var(--brown)">
-                <i class="fa-solid fa-timeline mr-1"></i> Cronología Viva · {{ first_year }} — {{ last_year }}
+                <i class="fa-solid fa-timeline mr-1"></i> Cronología Viva{% if first_year %} · {{ first_year }}{% if last_year and last_year != first_year %} — {{ last_year }}{% endif %}{% endif %}
             </div>
             <h1 class="font-serif text-5xl md:text-6xl font-black leading-none mb-5" style="color:var(--foreground)">
                 La <span class="text-primary-gradient italic">Ruta</span>
@@ -321,6 +323,9 @@
             <circle id="ruta-wave-head" r="6" fill="#ffffff" stroke="var(--primary)" stroke-width="2.5" filter="url(#ruta-glow-fx)" style="opacity:0;transition:opacity .3s ease" />
         </svg>
 
+        {% if not timeline %}
+        <div class="museum-card rounded ui-empty relative mx-4" style="z-index:1"><i class="fa-solid fa-timeline"></i><p class="text-sm">La cronología aún no tiene hitos registrados.</p></div>
+        {% endif %}
         {% for ev in timeline %}
         {% set left = loop.index0 % 2 == 0 %}
         {% set color = type_colors.get(ev.type, 'var(--primary)') %}
@@ -378,9 +383,9 @@
              style="background:radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 65%)"></div>
         <div class="relative z-10 animate-fadeInUp">
             <div class="text-xs font-mono uppercase tracking-widest mb-3" style="color:var(--muted-foreground)">Cierre de la ruta</div>
-            <div class="font-serif text-5xl md:text-7xl font-black text-gold leading-none mb-4">50 Años</div>
+            <div class="font-serif text-5xl md:text-7xl font-black text-gold leading-none mb-4">{{ anio_actual - 1975 }} Años</div>
             <p class="text-xs md:text-sm max-w-lg mx-auto mb-8 leading-relaxed" style="color:var(--secondary-foreground)">
-                De 24 graduandos a una comunidad de miles de ingenieros. La ruta continúa con cada nueva generación.
+                La ruta continúa con cada nueva generación.
             </p>
             <div class="flex flex-wrap items-center justify-center gap-3">
                 <a href="{{ url_for('web.explorar') }}" class="btn-primary btn-float px-5 py-2.5 rounded text-xs">Explorar Colecciones</a>

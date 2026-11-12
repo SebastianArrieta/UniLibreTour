@@ -2,7 +2,7 @@ from marshmallow import Schema, fields, validate
 
 
 class ContenidoCreateSchema(Schema):
-    """Contrato del frente (nombres en inglés, como demo-data.json)."""
+    """Contrato del frente (nombres de campo en inglés)."""
 
     title = fields.Str(required=True, validate=validate.Length(min=3, max=200))
     category = fields.Str(required=True, validate=validate.Length(min=1, max=100))

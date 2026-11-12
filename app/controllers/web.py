@@ -2,15 +2,13 @@
 
 Sirve las vistas públicas, de autenticación y los paneles de rol
 (estudiante, docente, administrador) conectadas a la base de datos real
-a través del servicio app.services.museo (con respaldo de datos estáticos).
+a través del servicio app.services.museo.
 """
 
-import json
-from functools import lru_cache
-from pathlib import Path
+import logging
 
 from flask import Blueprint, abort, redirect, render_template, url_for
-from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 
 from app.extensions import db
 from app.middleware.auth import web_role_required
@@ -25,30 +23,39 @@ from app.services import notificacion as notificacion_svc
 
 web_bp = Blueprint("web", __name__)
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "static" / "data" / "demo-data.json"
+log = logging.getLogger(__name__)
 
 
-@lru_cache(maxsize=1)
-def _dataset_estatico() -> dict:
-    with open(DATA_PATH, encoding="utf-8") as f:
-        return json.load(f)
+def _dataset_vacio() -> dict:
+    """Misma forma que museo.dataset() pero sin filas (BD caída o vacía)."""
+    return {
+        "collections": [], "news": [], "timeline": [], "events": [],
+        "contentItems": [], "hallMembers": [], "badges": [], "users": [],
+        "contentQueue": [], "researchGroups": [], "achievements": [],
+        "teacherOptions": [], "tags": [],
+        "kpiData": {"totalContent": 0, "published": 0, "pending": 0,
+                    "activeUsers": 0, "newThisMonth": 0, "porCategoria": []},
+        "pointsPerLevel": museo.POINTS_PER_LEVEL, "maxLevel": museo.MAX_LEVEL,
+    }
 
 
 def dataset_actual() -> dict:
-    """Dataset desde la BD; fallback al JSON si no hay datos o falla la consulta."""
+    """Dataset real desde la BD. Si la consulta falla se muestra vacío (nunca datos ficticios)."""
     try:
-        d = museo.dataset()
-        if not museo.dataset_vacio(d):
-            return d
+        return museo.dataset()
     except Exception:
-        pass
-    return _dataset_estatico()
+        db.session.rollback()
+        log.exception("No se pudo cargar el dataset del museo")
+        return _dataset_vacio()
 
 
 def _dataset_publico(d: dict) -> dict:
     """Dataset para embeber en el navegador: sin cola interna ni emails."""
     limpio = dict(d)
     limpio.pop("contentQueue", None)
+    limpio["contentItems"] = [
+        c for c in d.get("contentItems", []) if c.get("status") in museo.ESTADOS_PUBLICADOS
+    ]
     limpio["users"] = [
         {k: v for k, v in u.items() if k != "email"} for u in d.get("users", [])
     ]
@@ -77,6 +84,7 @@ def _ctx(page: str, **extra) -> dict:
         "researchGroups": d.get("researchGroups", []),
         "achievements": d.get("achievements", []),
         "teacherOptions": d.get("teacherOptions", []),
+        "tags": d.get("tags", []),
         "pointsPerLevel": d.get("pointsPerLevel", 500),
         "maxLevel": d.get("maxLevel", 20),
     }
@@ -158,6 +166,15 @@ def buscar():
 def detalle(cid):
     item = _item(cid)
     usuario = _usuario_sesion_opcional()
+    if item.get("status") not in museo.ESTADOS_PUBLICADOS:
+        # Aportes sin aprobar: solo su autor, docentes y administradores.
+        pieza = db.session.get(Contenido, int(item["id"])) if str(item.get("id", "")).isdigit() else None
+        permitido = usuario is not None and (
+            usuario.rol in ("admin", "docente")
+            or (pieza is not None and pieza.creador_id == usuario.id)
+        )
+        if not permitido:
+            abort(404)
     try:
         comentarios = interaccion_svc.comentarios_de(int(item["id"]))
     except (TypeError, ValueError):
@@ -227,9 +244,9 @@ def two_fa():
 @web_role_required()
 def mi_espacio():
     """Enlace neutro al panel principal: cada rol va a su propio dashboard."""
-    claims = get_jwt()
+    usuario = _usuario_actual()
     destinos = {"egresado": "web.egresado", "docente": "web.docente", "admin": "web.admin"}
-    return redirect(url_for(destinos.get(claims.get("rol"), "web.estudiante")))
+    return redirect(url_for(destinos.get(usuario.rol if usuario else "", "web.estudiante")))
 
 
 @web_bp.get("/estudiante")
@@ -244,19 +261,21 @@ def estudiante():
 
 
 @web_bp.get("/estudiante/aportes")
-@web_role_required("estudiante", "egresado", "admin")
+@web_role_required("estudiante", "egresado", "docente", "admin")
 def estudiante_aportes():
     usuario = _usuario_actual()
     items = (
         Contenido.query.filter_by(creador_id=usuario.id)
-        .order_by(Contenido.id.desc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
         if usuario else []
     )
+    es_docente = bool(usuario and usuario.rol == "docente")
     return render_template(
         "estudiante/aportes.html",
         mis_aportes=[museo.contenido_dict(c) for c in items],
-        **_ctx("est-aportes"),
+        area="docente" if es_docente else "estudiante",
+        **_ctx("doc-aportes" if es_docente else "est-aportes"),
     )
 
 
@@ -299,7 +318,9 @@ def docente():
     }
     notifs = notificacion_svc.listar(usuario.id) if usuario else []
     mis_aportes = (
-        Contenido.query.filter_by(creador_id=usuario.id).order_by(Contenido.id.desc()).all()
+        Contenido.query.filter_by(creador_id=usuario.id)
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
+        .all()
         if usuario else []
     )
     return render_template(
@@ -321,7 +342,7 @@ def docente_revision():
     if usuario and usuario.rol == "admin":
         items = (
             Contenido.query.filter_by(estado=contenido_svc.ESTADO_REVISION_DOCENTE)
-            .order_by(Contenido.id.desc())
+            .order_by(Contenido.created_at.desc(), Contenido.id.desc())
             .all()
         )
     elif usuario:
@@ -334,7 +355,11 @@ def docente_revision():
 @web_bp.get("/docente/registrar-evidencia")
 @web_role_required("docente", "admin")
 def docente_evidencia():
-    return render_template("docente/evidencia.html", **_ctx("doc-wizard"))
+    usuario = _usuario_actual()
+    return render_template(
+        "docente/evidencia.html",
+        **_ctx("doc-wizard", autor_sesion=usuario.nombre if usuario else ""),
+    )
 
 
 @web_bp.get("/docente/notificaciones")

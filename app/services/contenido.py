@@ -78,6 +78,25 @@ def crear_contenido(data: dict, usuario: Usuario, estado: str | None = None) -> 
             referencia_id=contenido.id,
         )
 
+    if not publicado:
+        if docente and estado == ESTADO_REVISION_DOCENTE:
+            mensaje_autor = (
+                f'Tu aporte "{contenido.titulo}" fue enviado a revisión de '
+                f'{docente.nombre}.'
+            )
+        else:
+            mensaje_autor = (
+                f'Tu aporte "{contenido.titulo}" fue registrado y está en la '
+                "cola de validación."
+            )
+        notificacion_svc.crear(
+            usuario.id,
+            mensaje_autor,
+            tipo="enviado",
+            referencia_tipo="contenido",
+            referencia_id=contenido.id,
+        )
+
     db.session.commit()
     return contenido
 
@@ -86,7 +105,7 @@ def en_revision_para(docente_id: int) -> list[Contenido]:
     """Aportes que esperan el visto bueno de un docente concreto."""
     return (
         Contenido.query.filter_by(estado=ESTADO_REVISION_DOCENTE, docente_id=docente_id)
-        .order_by(Contenido.id.desc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
 
@@ -119,7 +138,7 @@ def decision_docente(
             notificacion_svc.crear(
                 contenido.creador_id,
                 f'Tu aporte "{contenido.titulo}" superó la revisión docente y espera la validación del administrador.',
-                tipo="aprobado",
+                tipo="avalado",
                 referencia_tipo="contenido",
                 referencia_id=contenido.id,
             )

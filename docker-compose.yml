@@ -1,4 +1,4 @@
-# Entorno local: Flask + MySQL
+# Flask + MySQL. Todas las credenciales salen del archivo .env (ver .env.example).
 services:
   db:
     image: docker.io/library/mysql:8.0
@@ -6,21 +6,22 @@ services:
     restart: unless-stopped
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_ROOT_PASSWORD: unilibretour_root
-      MYSQL_ROOT_HOST: "%"          # permite root desde el host en dev (TablePlus/DBeaver)
-      MYSQL_DATABASE: unilibretour_db
-      MYSQL_USER: unilibretour
-      MYSQL_PASSWORD: unilibretour
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Define MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-unilibretour_db}
+      MYSQL_USER: ${MYSQL_USER:-unilibretour}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Define MYSQL_PASSWORD en .env}
+    # Sin puerto publicado: la BD solo es accesible desde la red interna de Docker.
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./database/init:/docker-entrypoint-initdb.d
+      - ./database/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-punilibretour_root"]
+      # Por TCP: durante la inicialización MySQL solo escucha por socket local,
+      # así el servidor no arranca hasta que la BD acepta conexiones reales.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --protocol=tcp -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 30
+      start_period: 20s
 
   server:
     build:
@@ -29,18 +30,34 @@ services:
     container_name: unilibretour-server
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "${APP_PORT:-5000}:5000"
     environment:
-      FLASK_ENV: development
+      FLASK_ENV: ${FLASK_ENV:-production}
       PORT: 5000
-      DATABASE_URL: mysql+pymysql://unilibretour:unilibretour@db:3306/unilibretour_db
-      SECRET_KEY: toursecretkey
-      JWT_SECRET_KEY: toursecretkey
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-unilibretour}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-unilibretour_db}
+      SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY en .env}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Define JWT_SECRET_KEY en .env}
+      JWT_COOKIE_SECURE: ${JWT_COOKIE_SECURE:-1}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NOMBRE: ${ADMIN_NOMBRE:-Administrador}
+      MAIL_SERVER: ${MAIL_SERVER:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_USE_TLS: ${MAIL_USE_TLS:-1}
+      MAIL_USE_SSL: ${MAIL_USE_SSL:-0}
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - .:/app
+    healthcheck:
+      # Python ya está en la imagen (no hay curl); /api/health toca la BD.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
 volumes:
   mysql-data:

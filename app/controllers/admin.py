@@ -15,11 +15,12 @@ from app.schemas.admin import (
     NoticiaCreateSchema,
     PremioCreateSchema,
     ProyectoCreateSchema,
+    SemilleroCreateSchema,
     UsuarioAdminUpdateSchema,
     ValidacionSchema,
 )
 from app.services import admin as admin_svc
-from app.services.usuario import obtener_usuario
+from app.services.usuario import ReglaUsuarioError, obtener_usuario
 from app.utils.response import json_error, json_ok
 
 admin_bp = Blueprint("admin", __name__)
@@ -30,6 +31,7 @@ proyecto_schema = ProyectoCreateSchema()
 hall_schema = HallCreateSchema()
 evento_schema = EventoCreateSchema()
 noticia_schema = NoticiaCreateSchema()
+semillero_schema = SemilleroCreateSchema()
 validacion_schema = ValidacionSchema()
 usuario_schema = UsuarioAdminUpdateSchema()
 
@@ -111,6 +113,19 @@ def crear_noticia():
     return json_ok(admin_svc.crear_noticia(data, admin).to_dict(), 201)
 
 
+@admin_bp.post("/semilleros")
+@role_required("admin")
+def crear_semillero():
+    try:
+        data = _cargar(semillero_schema)
+    except ValidationError as err:
+        return json_error(err.messages, 400)
+    semillero = admin_svc.crear_semillero(data, _admin_actual())
+    if semillero is None:
+        return json_error("El líder seleccionado debe ser un docente existente", 400)
+    return json_ok(semillero.to_dict(), 201)
+
+
 @admin_bp.put("/contenidos/<int:contenido_id>/validar")
 @role_required("admin")
 def validar_contenido(contenido_id: int):
@@ -136,6 +151,9 @@ def actualizar_usuario(usuario_id: int):
     try:
         data = _cargar(usuario_schema)
         usuario = admin_svc.actualizar_usuario(usuario, data)
+    except ReglaUsuarioError as err:
+        db.session.rollback()
+        return json_error(str(err), 400)
     except ValidationError as err:
         return json_error(err.messages, 400)
     except IntegrityError:

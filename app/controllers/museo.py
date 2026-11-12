@@ -1,6 +1,6 @@
 """API del Museo — lectura pública + escritura de aportes (fase 2).
 
-Lectura: contrato idéntico a demo-data.json (tablas reales vía /api/museo/*).
+Lectura: dataset del museo desde las tablas reales (/api/museo/*).
 Escritura: POST /contenidos requiere JWT de usuario autenticado y crea la
 pieza en estado 'pendiente' (cola de validación del flujo general).
 """
@@ -17,24 +17,31 @@ from app.schemas.contenido import ContenidoCreateSchema
 from app.services import contenido as contenido_svc
 from app.services import favoritos as favoritos_svc
 from app.services import interaccion as interaccion_svc
+from app.services import limite
 from app.services import museo
 from app.utils.response import json_error, json_ok
 
 museo_bp = Blueprint("museo", __name__)
 contenido_create_schema = ContenidoCreateSchema()
 
+# Límites de escritura por usuario (ventana deslizante persistente).
+MAX_APORTES = 10
+VENTANA_APORTES = 3600        # 1 hora
+MAX_COMENTARIOS = 20
+VENTANA_COMENTARIOS = 600     # 10 minutos
+
 _SECCIONES = {
     "colecciones": museo.colecciones,
     "noticias": museo.noticias,
     "linea-tiempo": museo.linea_tiempo,
     "eventos": museo.eventos,
-    "contenidos": museo.contenidos,
+    "contenidos": museo.contenidos_publicados,
     "hall": museo.hall_fama,
     "insignias": museo.insignias,
     "usuarios": museo.usuarios_publicos,
     "grupos": museo.grupos_investigacion,
     "logros": museo.logros,
-    "docentes": museo.opciones_docentes,
+    "docentes": museo.opciones_docentes_publicas,
     "kpi": museo.kpis,
 }
 
@@ -62,12 +69,17 @@ def crear_contenido():
     if not contenido_svc.puede_aportar(usuario):
         return json_error("Tu rol no puede aportar contenido", 403)
 
+    clave_limite = f"aporte:{usuario.id}"
+    if limite.bloqueado(clave_limite, MAX_APORTES, VENTANA_APORTES):
+        return json_error("Has enviado demasiados aportes. Espera un momento.", 429)
+
     try:
         data = contenido_create_schema.load(request.get_json(silent=True) or {})
     except ValidationError as err:
         return json_error(err.messages, 400)
 
     pieza = contenido_svc.crear_contenido(data, usuario)
+    limite.registrar(clave_limite)
     forma = next((c for c in museo.contenidos() if c["id"] == str(pieza.id)), pieza.to_dict())
     return json_ok(forma, 201)
 
@@ -113,11 +125,16 @@ def crear_comentario(contenido_id: int):
     if db.session.get(Contenido, contenido_id) is None:
         return json_error("Contenido no encontrado", 404)
 
+    clave_limite = f"comentario:{usuario.id}"
+    if limite.bloqueado(clave_limite, MAX_COMENTARIOS, VENTANA_COMENTARIOS):
+        return json_error("Has comentado demasiado seguido. Espera un momento.", 429)
+
     data = request.get_json(silent=True) or {}
     try:
         forma = interaccion_svc.crear_comentario(usuario, contenido_id, data.get("texto"))
     except ValueError as err:
         return json_error(str(err), 400)
+    limite.registrar(clave_limite)
     return json_ok(forma, 201)
 
 

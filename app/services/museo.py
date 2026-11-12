@@ -7,7 +7,14 @@ investigación, insignias y aportes).
 
 from __future__ import annotations
 
-from app.models.contenido import Coleccion, Contenido
+import json
+from datetime import datetime
+
+from sqlalchemy import func
+
+from app.extensions import db
+
+from app.models.contenido import Coleccion, Contenido, ContenidoEtiqueta, Etiqueta
 from app.models.cronologia import CronologiaHito, Evento
 from app.models.insignia import Insignia
 from app.models.premio import Premio
@@ -21,23 +28,6 @@ MAX_LEVEL = 20
 ESTADOS_PUBLICADOS = ("publicado", "institucional")
 ESTADOS_COLA = ("pendiente", "devuelto")
 
-# KPIs que aún no tienen tabla de origen (visitas requiere módulo de analítica).
-# Las vistas de admin y estudiante los consumen; deben existir siempre.
-_KPI_ESTATICOS = {
-    "visitors": 24780,
-    "newThisMonth": 47,
-    "monthlyVisits": [
-        {"month": "Ene", "visits": 1820},
-        {"month": "Feb", "visits": 2140},
-        {"month": "Mar", "visits": 1980},
-        {"month": "Abr", "visits": 2560},
-        {"month": "May", "visits": 3100},
-        {"month": "Jun", "visits": 2890},
-        {"month": "Jul", "visits": 3340},
-    ],
-}
-
-
 def colecciones() -> list[dict]:
     out = []
     for c in Coleccion.query.order_by(Coleccion.id.asc()).all():
@@ -45,7 +35,7 @@ def colecciones() -> list[dict]:
             "id": c.slug or str(c.id),
             "title": c.titulo,
             "description": c.descripcion,
-            "count": len(c.contenidos),
+            "count": sum(1 for x in c.contenidos if x.estado in ESTADOS_PUBLICADOS),
             "icon": c.icono,
             "image": c.imagen,
         })
@@ -87,6 +77,7 @@ def _contenido_dict(c: Contenido) -> dict:
         "category": c.categoria,
         "author": c.autor,
         "date": c.fecha,
+        "created_at": c.created_at.isoformat() if c.created_at else "",
         "status": c.estado,
         "description": c.descripcion,
         "image": c.imagen,
@@ -108,17 +99,31 @@ def contenidos() -> list[dict]:
     """contentItems: todo el contenido que no fue devuelto por validación."""
     q = (
         Contenido.query.filter(Contenido.estado != "devuelto")
-        .order_by(Contenido.id.asc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
     return [_contenido_dict(c) for c in q]
+
+
+def contenidos_publicados() -> list[dict]:
+    """Solo piezas publicadas/institucionales (lo único apto para el público)."""
+    q = (
+        Contenido.query.filter(Contenido.estado.in_(ESTADOS_PUBLICADOS))
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
+        .all()
+    )
+    return [_contenido_dict(c) for c in q]
+
+
+def opciones_docentes_publicas() -> list[dict]:
+    return [{"id": d["id"], "name": d["name"]} for d in opciones_docentes()]
 
 
 def cola_contenidos() -> list[dict]:
     """contentQueue: pendientes y devueltos (flujo de validación)."""
     q = (
         Contenido.query.filter(Contenido.estado.in_(ESTADOS_COLA))
-        .order_by(Contenido.id.asc())
+        .order_by(Contenido.created_at.desc(), Contenido.id.desc())
         .all()
     )
     out = []
@@ -130,11 +135,21 @@ def cola_contenidos() -> list[dict]:
     return out
 
 
+def _meta_hall(h: HallFama) -> dict:
+    """Biografía e insignias guardadas como JSON en ``observaciones``."""
+    try:
+        meta = json.loads(h.observaciones or "{}")
+        return meta if isinstance(meta, dict) else {}
+    except (TypeError, ValueError):
+        return {}
+
+
 def hall_fama() -> list[dict]:
     q = HallFama.query.order_by(HallFama.id.asc()).all()
     return [
         {"id": str(h.id), "name": h.nombre, "title": h.titulo, "year": h.anio,
-         "achievement": h.logro, "image": h.imagen, "category": h.categoria}
+         "achievement": h.logro, "image": h.imagen, "category": h.categoria,
+         "bio": (_meta_hall(h).get("bio") or "").strip()}
         for h in q
     ]
 
@@ -208,13 +223,50 @@ def kpis() -> dict:
     publicados = Contenido.query.filter(Contenido.estado.in_(ESTADOS_PUBLICADOS)).count()
     pendientes = Contenido.query.filter(Contenido.estado == "pendiente").count()
     activos = Usuario.query.filter_by(estado="activo").count()
+    hoy = datetime.now()
+    inicio_mes = datetime(hoy.year, hoy.month, 1)
+    nuevos_mes = Usuario.query.filter(Usuario.created_at >= inicio_mes).count()
+
+    # Contenido publicado por colección (para la gráfica del panel admin).
+    filas = (
+        db.session.query(Coleccion.slug, Coleccion.titulo, func.count(Contenido.id))
+        .outerjoin(
+            Contenido,
+            (Contenido.coleccion_id == Coleccion.id)
+            & Contenido.estado.in_(ESTADOS_PUBLICADOS),
+        )
+        .group_by(Coleccion.id, Coleccion.slug, Coleccion.titulo)
+        .order_by(Coleccion.id.asc())
+        .all()
+    )
+    por_categoria = [
+        {"id": slug, "label": titulo, "count": int(n),
+         "pct": round(int(n) * 100 / publicados) if publicados else 0}
+        for slug, titulo, n in filas
+    ]
     return {
         "totalContent": total,
         "published": publicados,
         "pending": pendientes,
         "activeUsers": activos,
-        **_KPI_ESTATICOS,
+        "newThisMonth": nuevos_mes,
+        "porCategoria": por_categoria,
     }
+
+
+def etiquetas_populares(limite: int = 8) -> list[str]:
+    """Etiquetas más usadas en contenido publicado (sugerencias de búsqueda)."""
+    filas = (
+        db.session.query(Etiqueta.nombre, func.count(ContenidoEtiqueta.contenido_id))
+        .join(ContenidoEtiqueta, ContenidoEtiqueta.etiqueta_id == Etiqueta.id)
+        .join(Contenido, Contenido.id == ContenidoEtiqueta.contenido_id)
+        .filter(Contenido.estado.in_(ESTADOS_PUBLICADOS))
+        .group_by(Etiqueta.id, Etiqueta.nombre)
+        .order_by(func.count(ContenidoEtiqueta.contenido_id).desc())
+        .limit(limite)
+        .all()
+    )
+    return [nombre for nombre, _ in filas]
 
 
 def opciones_docentes() -> list[dict]:
@@ -223,7 +275,7 @@ def opciones_docentes() -> list[dict]:
 
 
 def dataset() -> dict:
-    """Dataset completo con el mismo contrato que demo-data.json."""
+    """Dataset completo del museo (contrato que consumen las vistas y el JS)."""
     return {
         "collections": colecciones(),
         "news": noticias(),
@@ -238,6 +290,7 @@ def dataset() -> dict:
         "researchGroups": grupos_investigacion(),
         "achievements": logros(),
         "teacherOptions": opciones_docentes(),
+        "tags": etiquetas_populares(),
         "pointsPerLevel": POINTS_PER_LEVEL,
         "maxLevel": MAX_LEVEL,
     }
@@ -255,6 +308,9 @@ def dataset_publico() -> dict:
     """Dataset apto para el navegador: sin cola interna ni emails de usuarios."""
     d = dataset()
     d.pop("contentQueue", None)
+    d["contentItems"] = [
+        c for c in d.get("contentItems", []) if c.get("status") in ESTADOS_PUBLICADOS
+    ]
     d["users"] = [
         {clave: valor for clave, valor in u.items() if clave != "email"}
         for u in d.get("users", [])
@@ -264,7 +320,3 @@ def dataset_publico() -> dict:
         for t in d.get("teacherOptions", [])
     ]
     return d
-
-
-def dataset_vacio(d: dict) -> bool:
-    return not d.get("collections") and not d.get("contentItems")

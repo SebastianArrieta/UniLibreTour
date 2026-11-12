@@ -29,6 +29,8 @@
                     <p class="text-sm" style="color:var(--muted-foreground)">{{ g.description }}</p>
                 </div>
             </div>
+            {% else %}
+            <div class="museum-card rounded ui-empty"><i class="fa-solid fa-microscope"></i><p class="text-sm">Aún no hay semilleros registrados.</p></div>
             {% endfor %}
         </div>
     </div>
@@ -48,6 +50,8 @@
                     <p class="text-sm" style="color:var(--muted-foreground)">{{ g.description }}</p>
                 </div>
             </div>
+            {% else %}
+            <div class="museum-card rounded ui-empty"><i class="fa-solid fa-flask"></i><p class="text-sm">Aún no hay grupos de investigación registrados.</p></div>
             {% endfor %}
         </div>
     </div>

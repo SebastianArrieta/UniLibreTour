@@ -1,7 +1,9 @@
+import logging
 import os
 from datetime import datetime
 
-from flask import Flask
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
 
 from app.config import config_by_name
 from app.extensions import db, jwt
@@ -35,10 +37,27 @@ def _fmt_fecha(value):
     return f"{dt.day} de {MESES_LARGO[dt.month - 1]} de {dt.year}"
 
 
+def _img(value, archivo="images/placeholder.svg"):
+    """URL de la imagen o un marcador local neutro si no hay ninguna."""
+    from flask import url_for
+
+    valor = (str(value).strip() if value else "")
+    if not valor or valor == "None":
+        return url_for("static", filename=archivo)
+    return valor
+
+
+def _img_persona(value):
+    return _img(value, "images/persona.svg")
+
+
 def create_app(config_name: str | None = None) -> Flask:
     app = Flask(__name__)
     env_name = config_name or os.getenv("FLASK_ENV", "development")
-    app.config.from_object(config_by_name.get(env_name, config_by_name["development"]))
+    config_cls = config_by_name.get(env_name, config_by_name["development"])
+    if hasattr(config_cls, "validar"):
+        config_cls.validar()
+    app.config.from_object(config_cls)
 
     app.url_map.strict_slashes = False
 
@@ -47,33 +66,94 @@ def create_app(config_name: str | None = None) -> Flask:
 
     app.jinja_env.filters["fmt_mes"] = _fmt_mes
     app.jinja_env.filters["fmt_fecha"] = _fmt_fecha
+    app.jinja_env.filters["img"] = _img
+    app.jinja_env.filters["img_persona"] = _img_persona
 
     from app.controllers import register_blueprints
     from app import models as _models  # noqa: F401 — registra todos los modelos para db.create_all()
 
     register_blueprints(app)
 
+    @app.teardown_request
+    def _rollback_en_error(exc):
+        # No dejar la sesión SQLAlchemy sucia tras una petición fallida.
+        if exc is not None:
+            db.session.rollback()
+
+    @app.errorhandler(HTTPException)
+    def _http_error(err):
+        if _es_api():
+            return jsonify({"ok": False, "error": err.description or err.name}), err.code
+        return err
+
+    @app.errorhandler(Exception)
+    def _error_interno(err):
+        if isinstance(err, HTTPException):
+            return _http_error(err)
+        db.session.rollback()
+        app.logger.exception("Error no controlado en %s", request.path)
+        if _es_api():
+            return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
+        return "Error interno del servidor", 500
+
     with app.app_context():
+        _esperar_bd(app)
         db.create_all()
         _migrar_columnas_faltantes()
-        if app.config.get("SEED_DEMO", True):
-            from app.services.usuario import seed_usuarios
-            from app.services.seed_demo import seed_desde_demo
+        from app.services.catalogo import bootstrap_admin, seed_catalogo
+        from app.services.limite import limpiar_expirados
+        from app.services.token import limpiar_expirados as limpiar_tokens_expirados
 
-            try:
-                seed_usuarios()
-                seed_desde_demo()
-            except Exception as exc:  # no bloquear el arranque; las vistas tienen fallback
-                db.session.rollback()
-                print(f"[seed] omitido (esquema desactualizado?): {exc}")
+        try:
+            seed_catalogo()
+            bootstrap_admin()
+        except Exception:  # no bloquear el arranque
+            db.session.rollback()
+            app.logger.exception("No se pudo preparar el catálogo base / administrador inicial")
+
+        try:
+            limpiar_expirados()
+            limpiar_tokens_expirados()
+        except Exception:  # no bloquear el arranque
+            db.session.rollback()
+            app.logger.exception("No se pudo limpiar tokens/rate limits caducados")
+
+    @app.context_processor
+    def _anio_actual():
+        ahora = datetime.now()
+        return {"anio_actual": ahora.year, "hoy_iso": ahora.strftime("%Y-%m-%d")}
 
     return app
+
+
+def _es_api() -> bool:
+    return request.path.startswith("/api/")
+
+
+def _esperar_bd(app, intentos: int = 30, pausa: float = 2.0) -> None:
+    """Espera a que la BD acepte conexiones (arranque simultáneo con MySQL)."""
+    import time
+
+    from sqlalchemy import text
+
+    for intento in range(1, intentos + 1):
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            return
+        except Exception as exc:
+            if intento == intentos:
+                raise
+            app.logger.warning("BD no disponible (%s/%s): %s", intento, intentos, exc.__class__.__name__)
+            time.sleep(pausa)
 
 
 def _migrar_columnas_faltantes() -> None:
     """Parche idempotente de columnas nuevas (el proyecto no usa Alembic y
     ``db.create_all()`` no altera tablas existentes)."""
     from sqlalchemy import inspect, text
+
+    log = logging.getLogger("app.schema")
 
     try:
         inspector = inspect(db.engine)
@@ -82,14 +162,23 @@ def _migrar_columnas_faltantes() -> None:
             if "media" not in columnas:
                 with db.engine.begin() as conn:
                     conn.execute(text("ALTER TABLE cronologia_hitos ADD COLUMN media TEXT"))
-                print("[schema] columna cronologia_hitos.media agregada")
+                log.info("columna cronologia_hitos.media agregada")
 
         if "contenidos" in inspector.get_table_names():
             columnas = {c["name"] for c in inspector.get_columns("contenidos")}
             if "docente_id" not in columnas:
                 with db.engine.begin() as conn:
                     conn.execute(text("ALTER TABLE contenidos ADD COLUMN docente_id INT NULL"))
-                print("[schema] columna contenidos.docente_id agregada")
+                log.info("columna contenidos.docente_id agregada")
+
+        if "usuarios" in inspector.get_table_names():
+            columnas = {c["name"] for c in inspector.get_columns("usuarios")}
+            if "token_version" not in columnas:
+                with db.engine.begin() as conn:
+                    conn.execute(text(
+                        "ALTER TABLE usuarios ADD COLUMN token_version INT NOT NULL DEFAULT 0"
+                    ))
+                log.info("columna usuarios.token_version agregada")
 
         if "favoritos" in inspector.get_table_names():
             columnas = {c["name"] for c in inspector.get_columns("favoritos")}
@@ -106,6 +195,6 @@ def _migrar_columnas_faltantes() -> None:
                             "ALTER TABLE favoritos ADD COLUMN created_at "
                             "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
                         ))
-                print("[schema] columna favoritos.created_at normalizada")
+                log.info("columna favoritos.created_at normalizada")
     except Exception as exc:  # nunca bloquear el arranque por una migración
-        print(f"[schema] no se pudo verificar/agregar columnas nuevas: {exc}")
+        log.warning("No se pudo verificar/agregar columnas nuevas: %s", exc)

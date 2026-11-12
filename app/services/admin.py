@@ -10,9 +10,11 @@ from app.models.contenido import Contenido
 from app.models.cronologia import CronologiaHito, Evento
 from app.models.premio import Premio
 from app.models.publicacion import HallFama, Noticia
+from app.models.semillero import Semillero
 from app.models.usuario import Usuario
 from app.services import contenido as contenido_svc
 from app.services import notificacion as notificacion_svc
+from app.services.usuario import validar_cambio_admin
 
 
 def _meta_hall(data: dict) -> str:
@@ -123,6 +125,24 @@ def crear_noticia(data: dict, admin: Usuario) -> Noticia:
     return noticia
 
 
+def crear_semillero(data: dict, admin: Usuario) -> Semillero | None:
+    lider_id = data.get("leadId")
+    if lider_id is not None:
+        lider = db.session.get(Usuario, lider_id)
+        if lider is None or lider.rol != "docente":
+            return None
+    semillero = Semillero(
+        nombre=data["name"].strip(),
+        categoria=data["category"],
+        lider_id=lider_id,
+        descripcion=data["description"].strip(),
+        imagen=data.get("image"),
+    )
+    db.session.add(semillero)
+    db.session.commit()
+    return semillero
+
+
 def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenido | None:
     contenido = db.session.get(Contenido, contenido_id)
     if contenido is None:
@@ -146,7 +166,10 @@ def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenid
         if data.get("fecha_publicacion"):
             contenido.fecha = data["fecha_publicacion"]
         tipo_notificacion = "aprobado"
-        mensaje = f'Tu contribución "{contenido.titulo}" fue aprobada y publicada.'
+        if contenido.estado == "institucional":
+            mensaje = f'Tu aporte "{contenido.titulo}" fue validado como óptimo y marcado como institucional.'
+        else:
+            mensaje = f'Tu aporte "{contenido.titulo}" fue validado como óptimo y publicado.'
         if data.get("mensaje"):
             mensaje = f"{mensaje} {data['mensaje'].strip()}"
 
@@ -164,10 +187,21 @@ def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenid
 
 
 def actualizar_usuario(usuario: Usuario, data: dict) -> Usuario:
+    validar_cambio_admin(
+        usuario,
+        nuevo_rol=data.get("rol"),
+        nuevo_estado=data.get("estado"),
+    )
+    cambios_de_sesion = False
     for campo in ("nombre", "email", "rol", "estado"):
         valor = data.get(campo)
-        if valor is not None:
+        if valor is not None and valor != getattr(usuario, campo):
+            if campo in ("rol", "estado"):
+                cambios_de_sesion = True
             setattr(usuario, campo, valor)
+    if cambios_de_sesion:
+        # Un rol/estado nuevo aplica de inmediato: invalida los JWT anteriores.
+        usuario.token_version = (usuario.token_version or 0) + 1
     db.session.commit()
     return usuario
 

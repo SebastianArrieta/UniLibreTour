@@ -41,7 +41,7 @@
 
           <div class="museum-card rounded p-5 text-left mb-6">
             <div class="flex items-center gap-3 mb-3">
-              <img src="{{ item.image }}" alt="{{ item.title }}" class="w-12 h-12 rounded object-cover">
+              <img src="{{ item.image | img }}" alt="{{ item.title }}" class="w-12 h-12 rounded object-cover">
               <div class="min-w-0">
                 <div class="font-serif font-semibold text-sm truncate" style="color:var(--card-foreground)">{{ item.title }}</div>
                 <div class="text-xs" style="color:var(--muted-foreground)">Por: {{ item.submittedBy or item.author }}</div>

@@ -41,3 +41,14 @@ mysql_data/
 #GIt
 .git/
 .gitignore
+# No necesarios en la imagen
+.git/
+.gitignore
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+docs/
+GUION_*.md
+opencode.json
+.claude/
+graphify-out/
