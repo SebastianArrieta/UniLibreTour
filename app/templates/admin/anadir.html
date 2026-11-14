@@ -80,6 +80,7 @@
                     {% call field('Título *') %}<input name="title" data-required placeholder="Premio Nacional de Ingeniería…" class="{{ inputCls }}">{% endcall %}
                     {% call field('Institución otorgante *') %}<input name="institution" data-required placeholder="Ministerio de Tecnologías de la Información…" class="{{ inputCls }}">{% endcall %}
                     {% call field('Descripción *') %}<textarea rows="3" name="description" data-required placeholder="Describe el reconocimiento…" class="{{ inputCls }} resize-none"></textarea>{% endcall %}
+                    {% call field('URL de imagen (opcional)') %}<input name="image" maxlength="255" placeholder="https://…" class="{{ inputCls }}">{% endcall %}
                   </div>
                 </div>
 

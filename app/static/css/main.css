@@ -985,6 +985,20 @@ label {
     .header-inner { padding: 0 2rem; }
 }
 
+.brand-link {
+    border-radius: 0.5rem;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.brand-link:hover,
+.brand-link:focus-visible {
+    background: var(--primary-soft);
+    box-shadow: 0 0 0 0.4rem var(--primary-soft);
+}
+.brand-link:focus-visible,
+.search-btn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+}
 .brand-name {
     font-family: var(--font-serif);
     font-size: 0.875rem;
@@ -1226,6 +1240,10 @@ label {
     height: 2.75rem;
     border-radius: 9999px;
     transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.3s;
+}
+.search-btn:hover,
+.search-btn:focus-visible {
+    background: var(--primary-soft);
 }
 
 /* ------------------------------------------------------------
@@ -1962,7 +1980,7 @@ label {
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 0;
+    gap: 0.5rem;
 }
 
 .museo-crumb {

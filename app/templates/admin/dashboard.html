@@ -3,6 +3,8 @@
 {% block extra_head %}
 <style>
     .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+    .collection-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem 2rem; }
+    @media (min-width: 768px) { .collection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 </style>
@@ -69,7 +71,7 @@
             </div>
             {% set cats = (kpiData.porCategoria or []) | sort(attribute='count', reverse=true) %}
             {% if cats %}
-            <div class="grid grid-cols-1 gap-y-8">
+            <div class="collection-grid">
               {% for c in cats %}
               <div>
                 <div class="flex items-baseline justify-between gap-3 text-sm mb-2.5" style="color:var(--secondary-foreground)">
