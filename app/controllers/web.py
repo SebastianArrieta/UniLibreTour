@@ -253,6 +253,8 @@ def mi_espacio():
 @web_role_required("estudiante", "admin")
 def estudiante():
     usuario = _usuario_actual()
+    if usuario and usuario.rol == 'admin':
+        return redirect(url_for('web.admin'))
     return render_template(
         "estudiante/dashboard.html",
         eventos=museo.eventos()[:3],
@@ -264,6 +266,8 @@ def estudiante():
 @web_role_required("estudiante", "egresado", "docente", "admin")
 def estudiante_aportes():
     usuario = _usuario_actual()
+    if usuario and usuario.rol == 'admin':
+        return redirect(url_for('web.admin'))
     items = (
         Contenido.query.filter_by(creador_id=usuario.id)
         .order_by(Contenido.created_at.desc(), Contenido.id.desc())
@@ -275,8 +279,23 @@ def estudiante_aportes():
         "estudiante/aportes.html",
         mis_aportes=[museo.contenido_dict(c) for c in items],
         area="docente" if es_docente else "estudiante",
+        puede_gestionar=bool(usuario and usuario.rol in ('estudiante', 'docente')),
         **_ctx("doc-aportes" if es_docente else "est-aportes"),
     )
+
+
+@web_bp.get('/estudiante/aportes/<int:contenido_id>/editar')
+@web_role_required('estudiante', 'docente')
+def estudiante_editar_aporte(contenido_id):
+    usuario = _usuario_actual()
+    pieza = db.session.get(Contenido, contenido_id)
+    if not pieza or pieza.creador_id != usuario.id:
+        abort(404)
+    if not contenido_svc.editable(pieza):
+        abort(409, description='Este aporte ya no se puede editar. Vuelve a Mis Aportes.')
+    return render_template('estudiante/editar_aporte.html', pieza=pieza,
+                           version=contenido_svc.version(pieza), es_docente=usuario.rol == 'docente',
+                           **_ctx('doc-aportes' if usuario.rol == 'docente' else 'est-aportes'))
 
 
 @web_bp.get("/estudiante/favoritos")
@@ -297,6 +316,8 @@ def estudiante_favoritos():
 @web_bp.get("/estudiante/contribuir")
 @web_role_required("estudiante", "egresado", "admin")
 def estudiante_contribuir():
+    if _usuario_actual().rol == 'admin':
+        return redirect(url_for('web.admin'))
     return render_template(
         "estudiante/contribuir.html",
         usuario=_usuario_actual(),
@@ -349,7 +370,7 @@ def docente_revision():
         items = contenido_svc.en_revision_para(usuario.id)
     else:
         items = []
-    return render_template("docente/revision.html", items=items, **_ctx("doc-revision"))
+    return render_template("docente/revision.html", items=items, version_aporte=contenido_svc.version, **_ctx("doc-revision"))
 
 
 @web_bp.get("/docente/registrar-evidencia")

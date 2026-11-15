@@ -97,6 +97,7 @@ window.__DATOS = {{ datos | tojson }};
 
 
   function validar(payload) {
+    payload.version = {{ item.version | tojson }};
     if (!window.Museo || !Museo.isAuthenticated()) {
       return Promise.reject(new Error('Inicia sesión como administrador para validar contenido.'));
     }

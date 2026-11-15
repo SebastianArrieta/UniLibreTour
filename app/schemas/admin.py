@@ -69,6 +69,7 @@ class SemilleroCreateSchema(Schema):
 
 
 class ValidacionSchema(Schema):
+    version = fields.Str(required=True)
     accion = fields.Str(
         required=True,
         validate=validate.OneOf(["aprobar", "devolver", "institucional"]),

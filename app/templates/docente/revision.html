@@ -27,7 +27,7 @@
                 {% else %}
                 <div class="flex flex-col gap-4">
                     {% for item in items %}
-                    <article class="rounded-lg p-4" data-revision-id="{{ item.id }}" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
+                    <article class="rounded-lg p-4" data-revision-id="{{ item.id }}" data-version="{{ version_aporte(item) }}" style="background:var(--surface-1);border:1px solid var(--border-subtle)">
                         <div class="flex items-start gap-4">
                             {% if item.imagen %}
                             <img src="{{ item.imagen | img }}" alt="{{ item.titulo }}" class="w-16 h-16 object-cover rounded flex-shrink-0">
@@ -117,7 +117,7 @@
         var botones = card.querySelectorAll('button');
         Array.prototype.forEach.call(botones, function (b) { b.disabled = true; });
         feedback(card, aprobar ? 'Aprobando…' : 'Devolviendo…');
-        api('/api/museo/contenidos/' + id + '/docente-revision', 'PUT', { aprobar: aprobar, nota: texto })
+        api('/api/museo/contenidos/' + id + '/docente-revision', 'PUT', { aprobar: aprobar, nota: texto, version: card.getAttribute('data-version') })
             .then(function () {
                 card.style.opacity = '0';
                 card.style.transition = 'opacity .25s ease';

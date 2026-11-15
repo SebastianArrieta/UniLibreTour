@@ -182,6 +182,9 @@ python run.py
 | GET | `/api/museo/data` | Dataset público (sin cola ni emails) | — |
 | GET | `/api/museo/<seccion>` | Sección (`colecciones`, `noticias`, `linea-tiempo`, `eventos`, `contenidos`, `hall`, `insignias`, `usuarios`, `grupos`, `logros`, `docentes`, `kpi`) | — |
 | POST | `/api/museo/contenidos` | Registrar aporte (revisión docente o cola) | JWT |
+| PUT | `/api/museo/contenidos/<id>` | Editar y reenviar aporte propio editable, con su `version` | estudiante/docente |
+| DELETE | `/api/museo/contenidos/<id>?version=<version>` | Eliminar aporte propio editable | estudiante/docente |
+| POST | `/api/museo/contenidos/<id>/retirar` | Retirar un aporte avalado para corregirlo, con su `version` | estudiante/docente |
 | PUT | `/api/museo/contenidos/<id>/docente-revision` | Docente aprueba/devuelve aporte | docente/admin |
 | GET | `/api/museo/contenidos/<id>/comentarios` | Comentarios de una pieza | — |
 | POST | `/api/museo/contenidos/<id>/comentarios` | Publicar comentario | JWT |
@@ -204,6 +207,10 @@ python run.py
 | PUT | `/api/admin/contenidos/<id>/validar` | Aprobar o devolver contenido | admin |
 | PUT | `/api/admin/usuarios/<id>` | Editar usuario | admin |
 | PUT | `/api/admin/usuarios/<id>/aprobar` | Aprobar cuenta pendiente | admin |
+
+Las decisiones de revisión docente y validación administrativa deben incluir la
+`version` del aporte mostrado. Si cambió desde que se abrió, la API responde
+`409` y se debe volver a cargar antes de decidir.
 
 ### Notificaciones
 

@@ -63,6 +63,16 @@
               <strong>Nota del revisor:</strong> {{ item.reviewNote }}
             </div>
             {% endif %}
+            {% if puede_gestionar and item.status in ['revision_docente', 'devuelto', 'pendiente'] %}
+            <div class="flex flex-wrap gap-2 mt-3">
+              {% if item.status != 'pendiente' or not item.docenteId %}
+              <a href="{{ url_for('web.estudiante_editar_aporte', contenido_id=item.id) }}" class="btn-outline-primary px-3 py-1.5 rounded text-xs">Editar{% if item.status == 'devuelto' %} y reenviar{% endif %}</a>
+              <button type="button" class="btn-outline-primary px-3 py-1.5 rounded text-xs" data-eliminar data-id="{{ item.id }}" data-version="{{ item.version }}">{{ 'Eliminar' if item.status == 'devuelto' else 'Cancelar envío' }}</button>
+              {% else %}
+              <button type="button" class="btn-outline-primary px-3 py-1.5 rounded text-xs" data-retirar data-id="{{ item.id }}" data-version="{{ item.version }}">Retirar para corregir</button>
+              {% endif %}
+            </div>
+            {% endif %}
           </div>
           <div class="flex flex-col items-end gap-2 flex-shrink-0">
             <button type="button" class="fav-toggle w-8 h-8 rounded-full flex items-center justify-center text-sm" data-id="{{ item.id }}" aria-pressed="false">
@@ -137,9 +147,25 @@
   Array.prototype.forEach.call(cards, function (card) {
     card.addEventListener('click', function (e) {
       var t = e.target;
-      if (t && t.closest && t.closest('.fav-toggle')) return;
+      if (t && t.closest && t.closest('button, a')) return;
       var href = card.getAttribute('data-href');
       if (href) window.location.href = href;
+    });
+  });
+
+  document.querySelectorAll('[data-eliminar], [data-retirar]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var retirar = button.hasAttribute('data-retirar');
+      var mensaje = retirar ? '¿Retirar este aporte para corregirlo? Necesitará una nueva revisión docente.' : '¿Eliminar este aporte? Esta acción no se puede deshacer.';
+      if (!window.confirm(mensaje)) return;
+      var url = '/api/museo/contenidos/' + encodeURIComponent(button.dataset.id);
+      var version = button.dataset.version;
+      button.disabled = true;
+      var request = retirar ? API.post(url + '/retirar', {version: version}) : API.delete(url + '?version=' + encodeURIComponent(version));
+      request.then(function () { window.location.reload(); }).catch(function (err) {
+        button.disabled = false;
+        toast(err.message || 'No fue posible completar la acción.', 'err');
+      });
     });
   });
 

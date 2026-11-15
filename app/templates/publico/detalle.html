@@ -5,7 +5,11 @@
 {% set related = contentItems | selectattr('status', 'in', ['publicado', 'institucional']) | selectattr('category', 'equalto', item.category) | selectattr('id', 'ne', item.id) | list %}
 
 <div class="max-w-6xl mx-auto px-4 md:px-8 py-10">
+    {% if usuario and usuario.rol == 'admin' and item.status == 'pendiente' %}
+    {{ page_nav([('Panel Admin', url_for('web.admin')), ('Cola de Contenido', url_for('web.admin_cola')), (item.title, '')], back_url=url_for('web.admin_cola'), back_label='Cola de Contenido') }}
+    {% else %}
     {{ page_nav([('Inicio', url_for('web.home')), ('Explorar', url_for('web.explorar')), (item.title, '')], back_url=url_for('web.explorar'), back_label='Explorar') }}
+    {% endif %}
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">
@@ -121,6 +125,10 @@
                 </div>
             </div>
 
+            {% if usuario and usuario.rol == 'admin' and item.status == 'pendiente' %}
+            <a href="{{ url_for('web.admin_validacion', iid=item.id) }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Validar contenido</a>
+            {% endif %}
+
             {% if related %}
             <div>
                 <h4 class="font-serif font-semibold mb-3" style="color:var(--card-foreground)">Contenido Relacionado</h4>
@@ -138,14 +146,16 @@
             </div>
             {% endif %}
 
+            {% if not usuario or usuario.rol in ['estudiante', 'docente', 'egresado'] %}
             <div class="rounded p-5 text-center" style="background:var(--brown-soft);border:1px solid var(--brown-border)">
                 <p class="text-sm mb-3" style="color:var(--secondary-foreground)">¿Tienes una contribución para el museo?</p>
                 {% if usuario %}
-                <a href="{{ url_for('web.estudiante_contribuir') }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Contribuir</a>
+                <a href="{{ url_for('web.docente_evidencia') if usuario.rol == 'docente' else url_for('web.estudiante_contribuir') }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Contribuir</a>
                 {% else %}
                 <a href="{{ url_for('web.login', next='/detalle/' ~ item.id) }}" class="btn-primary px-4 py-2 rounded text-sm w-full inline-flex justify-center items-center">Inicia sesión para contribuir</a>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

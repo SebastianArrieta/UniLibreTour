@@ -144,9 +144,13 @@ def crear_semillero(data: dict, admin: Usuario) -> Semillero | None:
 
 
 def validar_contenido(contenido_id: int, data: dict, admin: Usuario) -> Contenido | None:
-    contenido = db.session.get(Contenido, contenido_id)
+    contenido = contenido_svc.bloquear(contenido_id)
     if contenido is None:
         return None
+
+    estados_permitidos = ('pendiente', 'publicado', 'institucional') if data['accion'] != 'devolver' else ('pendiente',)
+    if contenido.estado not in estados_permitidos or data.get('version') != contenido_svc.version(contenido):
+        raise ValueError('El aporte cambió o ya no está pendiente. Actualiza la página.')
 
     accion = data["accion"]
     if accion == "devolver":

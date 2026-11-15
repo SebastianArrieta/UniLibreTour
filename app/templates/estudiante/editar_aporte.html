@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Editar aporte — UniLibreTour{% endblock %}
+{% block content %}
+{% from 'components/sidebar.html' import sidebar_for %}
+{% from 'components/macros.html' import page_nav %}
+<div class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+  <div class="grid grid-cols-1 lg:grid-cols-[224px_1fr] gap-6">
+    {{ sidebar_for('docente' if es_docente else 'estudiante', current_page) }}
+    <div class="min-w-0">
+      {{ page_nav([('Mis Aportes', url_for('web.estudiante_aportes')), ('Editar aporte', '')], back_url=url_for('web.estudiante_aportes'), back_label='Mis Aportes') }}
+      <h1 class="font-serif text-3xl font-bold mb-4">Editar aporte</h1>
+      {% if pieza.observaciones %}<div class="museum-card rounded p-4 mb-4 text-sm" style="color:var(--brown)"><strong>Nota del revisor:</strong> {{ pieza.observaciones }}</div>{% endif %}
+      <p class="text-sm mb-6" style="color:var(--muted-foreground)">Al guardar, el aporte se enviará a revisión nuevamente.</p>
+      <form id="editar-aporte" class="museum-card rounded p-6 flex flex-col gap-4" style="max-width:42rem">
+        <label class="text-sm">Título *<input class="museum-input w-full px-4 py-2 rounded" name="title" required minlength="3" maxlength="200" value="{{ pieza.titulo }}"></label>
+        <label class="text-sm">Categoría *<select class="museum-input w-full px-4 py-2 rounded" name="category" required>
+          {% for c in ['historia', 'investigacion', 'proyectos', 'eventos', 'logros', 'docentes'] %}<option value="{{ c }}" {% if pieza.categoria == c %}selected{% endif %}>{{ c | capitalize }}</option>{% endfor %}
+        </select></label>
+        <label class="text-sm">Autor<input class="museum-input w-full px-4 py-2 rounded" name="author" maxlength="150" value="{{ pieza.autor or '' }}"></label>
+        {% if es_docente %}
+        <input type="hidden" name="docenteId" value="{{ pieza.docente_id or '' }}">
+        {% else %}
+        <label class="text-sm">Docente revisor<select class="museum-input w-full px-4 py-2 rounded" name="docenteId" {% if pieza.docente_id %}required{% endif %}>
+          <option value="">Sin docente (validación administrativa)</option>
+          {% for t in teacherOptions %}<option value="{{ t.id }}" {% if t.id | int == pieza.docente_id %}selected{% endif %}>{{ t.name }}</option>{% endfor %}
+        </select></label>
+        {% endif %}
+        <label class="text-sm">Descripción *<textarea class="museum-input w-full px-4 py-2 rounded" name="description" rows="5" required minlength="10">{{ pieza.descripcion }}</textarea></label>
+        <label class="text-sm">URL de imagen<input class="museum-input w-full px-4 py-2 rounded" type="url" maxlength="255" name="image" value="{{ pieza.imagen or '' }}"></label>
+        <label class="text-sm">Etiquetas (separadas por comas)<input class="museum-input w-full px-4 py-2 rounded" name="tags" value="{{ pieza.etiquetas | map(attribute='nombre') | join(', ') }}"></label>
+        <div class="flex flex-wrap gap-3"><button class="btn-primary px-5 py-2 rounded" type="submit">Guardar y enviar a revisión</button><a class="btn-outline-primary px-5 py-2 rounded" href="{{ url_for('web.estudiante_aportes') }}">Cancelar</a></div>
+        <p id="edit-error" role="alert" class="text-sm" style="color:var(--primary)"></p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var form = document.getElementById('editar-aporte');
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var data = new FormData(form);
+    var button = form.querySelector('button[type=submit]');
+    var payload = {
+      version: {{ version | tojson }}, title: data.get('title').trim(), category: data.get('category'),
+      description: data.get('description').trim(), author: data.get('author').trim() || null,
+      date: {{ pieza.fecha | tojson }}, image: data.get('image').trim() || null,
+      docenteId: data.get('docenteId') ? Number(data.get('docenteId')) : null,
+      tags: data.get('tags').split(',').map(function (tag) { return tag.trim(); }).filter(Boolean)
+    };
+    button.disabled = true;
+    API.put('/api/museo/contenidos/{{ pieza.id }}', payload).then(function () {
+      window.location.href = {{ url_for('web.estudiante_aportes') | tojson }};
+    }).catch(function (error) {
+      document.getElementById('edit-error').textContent = error.message || 'No fue posible guardar el aporte.';
+      button.disabled = false;
+    });
+  });
+})();
+</script>
+{% endblock %}

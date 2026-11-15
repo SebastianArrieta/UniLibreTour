@@ -131,6 +131,7 @@
 
     Museo.apiJson('/api/admin/contenidos/' + encodeURIComponent(ITEM_ID) + '/validar', 'PUT', {
       accion: institucional ? 'institucional' : 'aprobar',
+      version: {{ item.version | tojson }},
       tipo: institucional ? 'institucional' : 'contenido ordinario',
       fecha_publicacion: document.getElementById('pub-date').value || null,
       mensaje: document.getElementById('pub-msg').value.trim() || null

@@ -463,7 +463,10 @@ def validar_contenido(contenido_id: int):
         return json_error(err.messages, 400)
 
     admin = _admin_actual()
-    contenido = admin_svc.validar_contenido(contenido_id, data, admin)
+    try:
+        contenido = admin_svc.validar_contenido(contenido_id, data, admin)
+    except ValueError as err:
+        return json_error(str(err), 409)
     if contenido is None:
         return json_error("Contenido no encontrado", 404)
     return json_ok(contenido.to_dict())

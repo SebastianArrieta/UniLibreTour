@@ -156,6 +156,75 @@ def crear_contenido():
     return json_ok(forma, 201)
 
 
+@museo_bp.put('/contenidos/<int:contenido_id>')
+@role_required('estudiante', 'docente')
+def editar_aporte(contenido_id):
+    pieza = contenido_svc.bloquear(contenido_id)
+    if not pieza or pieza.creador_id != int(get_jwt_identity()):
+        return json_error('Aporte no encontrado', 404)
+    if not contenido_svc.editable(pieza):
+        return json_error('Este aporte ya no se puede editar. Actualiza la página.', 409)
+    payload = request.get_json(silent=True) or {}
+    if payload.pop('version', None) != contenido_svc.version(pieza):
+        return json_error('El aporte cambió. Actualiza la página antes de continuar.', 409)
+    try:
+        data = contenido_create_schema.load(payload)
+        usuario = db.session.get(Usuario, int(get_jwt_identity()))
+        if usuario.rol == 'docente' and data.get('docenteId') != pieza.docente_id:
+            return json_error('No puedes cambiar el docente revisor de este aporte.', 403)
+        contenido_svc.actualizar_aporte(pieza, data)
+    except (ValidationError, ValueError) as err:
+        db.session.rollback()
+        return json_error(err.messages if isinstance(err, ValidationError) else str(err), 400)
+    return json_ok(museo.contenido_dict(pieza))
+
+
+@museo_bp.post('/contenidos/<int:contenido_id>/retirar')
+@role_required('estudiante', 'docente')
+def retirar_aporte(contenido_id):
+    pieza = contenido_svc.bloquear(contenido_id)
+    if not pieza or pieza.creador_id != int(get_jwt_identity()):
+        return json_error('Aporte no encontrado', 404)
+    payload = request.get_json(silent=True) or {}
+    if payload.get('version') != contenido_svc.version(pieza) or pieza.estado != 'pendiente' or not pieza.docente_id:
+        return json_error('El aporte cambió o ya no puede retirarse. Actualiza la página.', 409)
+    pieza.estado = 'devuelto'
+    pieza.observaciones = 'Retirado por su autor para corregirlo; requiere nueva revisión docente.'
+    from app.services import notificacion as notificacion_svc
+    for admin in Usuario.query.filter_by(rol='admin', estado='activo').all():
+        notificacion_svc.crear(admin.id, f'El autor retiró el aporte "{pieza.titulo}" para corregirlo.', tipo='validacion')
+    db.session.commit()
+    return json_ok({'estado': pieza.estado})
+
+
+@museo_bp.delete('/contenidos/<int:contenido_id>')
+@role_required('estudiante', 'docente')
+def eliminar_aporte(contenido_id):
+    pieza = contenido_svc.bloquear(contenido_id)
+    if not pieza or pieza.creador_id != int(get_jwt_identity()):
+        return json_error('Aporte no encontrado', 404)
+    if not contenido_svc.editable(pieza) or request.args.get('version') != contenido_svc.version(pieza):
+        return json_error('El aporte ya no puede eliminarse. Actualiza la página.', 409)
+    from app.models.contenido import Favorito
+    from app.models.cronologia import CronologiaHito
+    from app.models.evidencia import Evidencia
+    from app.models.interaccion import Comentario, Reaccion
+    from app.services import notificacion as notificacion_svc
+    if pieza.docente_id and pieza.estado == 'revision_docente':
+        notificacion_svc.crear(pieza.docente_id, f'El autor canceló el aporte "{pieza.titulo}".', tipo='revision')
+    elif pieza.estado == 'pendiente':
+        for admin in Usuario.query.filter_by(rol='admin', estado='activo').all():
+            notificacion_svc.crear(admin.id, f'El autor canceló el aporte "{pieza.titulo}".', tipo='validacion')
+    Favorito.query.filter_by(contenido_id=pieza.id).delete()
+    for modelo in (Comentario, Reaccion, Evidencia):
+        modelo.query.filter_by(entidad_tipo='contenido', entidad_id=pieza.id).delete()
+    CronologiaHito.query.filter_by(contenido_id=pieza.id).update({'contenido_id': None})
+    pieza.etiquetas.clear()
+    db.session.delete(pieza)
+    db.session.commit()
+    return json_ok({'eliminado': True})
+
+
 @museo_bp.put("/contenidos/<int:contenido_id>/docente-revision")
 @role_required("docente", "admin")
 def revisar_docente(contenido_id: int):
@@ -207,11 +276,13 @@ def revisar_docente(contenido_id: int):
           $ref: '#/definitions/Error'
     """
     revisor = db.session.get(Usuario, int(get_jwt_identity()))
-    contenido = db.session.get(Contenido, contenido_id)
+    contenido = contenido_svc.bloquear(contenido_id)
     if not revisor or not contenido:
         return json_error("Contenido no encontrado", 404)
 
     data = request.get_json(silent=True) or {}
+    if data.get('version') != contenido_svc.version(contenido):
+        return json_error('El aporte cambió. Actualiza la página antes de revisarlo.', 409)
     aprobar = bool(data.get("aprobar"))
     nota = data.get("nota")
 

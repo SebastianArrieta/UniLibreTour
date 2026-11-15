@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+import hashlib
+import json
 
 from app.extensions import db
 from app.models.contenido import Coleccion, Contenido, Etiqueta
@@ -10,10 +12,61 @@ from app.models.usuario import Usuario
 from app.services import notificacion as notificacion_svc
 
 # Roles autorizados a aportar contenido (visitante es anónimo/solo lectura)
-ROLES_CONTRIBUYENTES = ("estudiante", "docente", "egresado", "admin")
+ROLES_CONTRIBUYENTES = ("estudiante", "docente", "egresado")
 
 # Estado intermedio: el docente asignado revisa antes de la cola del admin.
 ESTADO_REVISION_DOCENTE = "revision_docente"
+
+
+def version(contenido: Contenido) -> str:
+    valores = [contenido.estado, contenido.titulo, contenido.categoria, contenido.descripcion,
+               contenido.fecha, contenido.imagen, contenido.autor, contenido.docente_id,
+               contenido.observaciones, sorted(e.nombre for e in contenido.etiquetas)]
+    return hashlib.sha256(json.dumps(valores, ensure_ascii=False).encode()).hexdigest()
+
+
+def bloquear(contenido_id: int) -> Contenido | None:
+    return db.session.query(Contenido).filter_by(id=contenido_id).with_for_update().first()
+
+
+def editable(contenido: Contenido) -> bool:
+    return contenido.estado in ("revision_docente", "devuelto") or (
+        contenido.estado == "pendiente" and contenido.docente_id is None
+    )
+
+
+def actualizar_aporte(contenido: Contenido, data: dict) -> None:
+    docente = _docente_valido(data.get("docenteId"))
+    if data.get("docenteId") and not docente:
+        raise ValueError("El docente seleccionado ya no está disponible.")
+    if contenido.docente_id and not docente:
+        raise ValueError("Selecciona un docente para volver a revisar el aporte.")
+    estaba_devuelto = contenido.estado == "devuelto"
+    anterior_docente = contenido.docente_id
+    contenido.titulo = data["title"].strip()
+    contenido.categoria = data["category"].strip()
+    contenido.descripcion = data["description"].strip()
+    contenido.fecha = data.get("date") or contenido.fecha
+    contenido.imagen = data.get("image") or None
+    contenido.autor = (data.get("author") or contenido.autor or "").strip()
+    contenido.docente_id = docente.id if docente else None
+    coleccion = Coleccion.query.filter_by(slug=contenido.categoria).first()
+    contenido.coleccion_id = coleccion.id if coleccion else None
+    nombres = [str(t).strip() for t in data.get("tags", []) if str(t).strip()]
+    contenido.etiquetas = [_obtener_o_crear_etiqueta(n) for n in dict.fromkeys(nombres)]
+    contenido.estado = "revision_docente" if docente else "pendiente"
+    if estaba_devuelto:
+        contenido.observaciones = None
+    contenido.validado_por = None
+    contenido.fecha_validacion = None
+    if anterior_docente and anterior_docente != contenido.docente_id:
+        notificacion_svc.crear(anterior_docente, f'El aporte "{contenido.titulo}" ya no está asignado a tu revisión.', tipo="revision")
+    if docente:
+        notificacion_svc.crear(docente.id, f'El aporte "{contenido.titulo}" fue actualizado y espera tu revisión.', tipo="revision", referencia_tipo="contenido", referencia_id=contenido.id)
+    else:
+        for admin in Usuario.query.filter_by(rol="admin", estado="activo").all():
+            notificacion_svc.crear(admin.id, f'El aporte "{contenido.titulo}" fue actualizado y espera validación.', tipo="validacion", referencia_tipo="contenido", referencia_id=contenido.id)
+    db.session.commit()
 
 
 def _obtener_o_crear_etiqueta(nombre: str) -> Etiqueta:

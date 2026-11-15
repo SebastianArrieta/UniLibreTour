@@ -71,6 +71,7 @@ def eventos() -> list[dict]:
 
 
 def _contenido_dict(c: Contenido) -> dict:
+    from app.services.contenido import version
     d = {
         "id": str(c.id),
         "title": c.titulo,
@@ -82,6 +83,8 @@ def _contenido_dict(c: Contenido) -> dict:
         "description": c.descripcion,
         "image": c.imagen,
         "tags": [e.nombre for e in c.etiquetas],
+        "version": version(c),
+        "docenteId": c.docente_id,
     }
     if c.creador is not None:
         d["submittedBy"] = c.creador.nombre
